@@ -28,7 +28,7 @@ dist: apidoc
 	rm -rf ticc-$(VERSION)
 	mkdir -p ticc-$(VERSION)
 	@echo Creating temporary build replica
-	tar -cf - --exclude CVS --exclude .cvsignore \
+	tar -cf - --exclude .svn \
 		--exclude "*.cmi" --exclude "*.cmo" \
 		--exclude "*.o" --exclude "*.a" --exclude "examples/etc" \
 		--exclude "*.tar" --exclude "*.tar.gz" \
