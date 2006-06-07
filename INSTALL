@@ -1,0 +1,17 @@
+Installation
+============
+
+To make the executable, do: 
+
+    $ cd src/glu-2.0
+    $ ./configure
+    $ make
+    $ cd ../..
+    $ make 
+
+To make the documentation, do: 
+
+    $ make doc
+
+The result is left in the doc/api directory; look in particular at 
+Ticc.html. 

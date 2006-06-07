@@ -1,0 +1,77 @@
+//
+// Example:
+//    Models a two-deep buffer, and a message receiver/processor.
+//    Related to "Interfaces: A Game-Theoretic Framework to Reason about
+//    Component-Based Systems", Fig 2.
+//    In this example, we model an extra communication channel
+//    where the receiver can indicate that it is ready to
+//    receive a message.  This allows the composition to be able
+//    to buffer two messages.
+//
+
+
+// State diagram:
+//     ready?
+//     /--\
+//     \  V
+//     /--\ --snd?--> /--\ --snd?--> /--\
+// --> |b0|           |b1|           |b2|
+//     \__/           \__/           \__/
+//        ^           /  ^           /
+//         \   ready?/    \         /ready?
+//      rec!\       v      \rec!   v
+//           \    /--\      \    /--\
+//            ----|b3|       ----|b4|
+//                \--/ --snd?--> \--/
+//                /  ^           /  ^
+//                \__/           \__/
+//                ready?         ready?
+//
+module Buffer:
+    var state: [0..4]
+
+    input snd : {
+	local:
+	    state < 2 ==> state' := state + 1 
+       else state = 3 ==> state' := 4 
+    }
+    input ready : {
+	local:
+	         state = 0 ==> state' := 0 
+	    else state = 1 ==> state' := 3 
+	    else state = 2 ==> state' := 4 
+	    else state = 3 ==> state' := 3 
+	    else state = 4 ==> state' := 4 
+    }
+    output rec : {
+	state > 2 ==> state' = state - 3
+    }
+
+endmodule
+
+
+// State diagram:
+//
+//       /--\ --rec?--> /--\
+//   --> |r0|           |r1|
+//       \__/ <--proc!- \__/
+//       /  ^
+//       \__/
+//       ready!
+
+module Receiver:
+    var busy: bool
+
+    input rec : {
+	local:
+	    not busy ==> busy' := true
+    }
+
+    output proc : {
+	busy ==> not busy'
+    }
+    output ready : {
+        not busy ==> 
+    }
+endmodule
+

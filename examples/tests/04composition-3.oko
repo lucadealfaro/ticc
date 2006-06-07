@@ -1,0 +1,117 @@
+
+===================================
+Printing symbolic module User3*User2*Printer*User1.
+* Known variables:
+{ busy user size User1.s User2.s User3.s }
+ 
+* History variables: 
+{ busy User1.s User2.s User3.s }
+ 
+* Input Invariant:
+(
+ (busy = 0)(
+   (User1.s = 1)(
+     (User2.s = 1)(
+       (User3.s = 1)) ) ) 
+  + 
+ (busy = 1)(
+   (User2.s = 0)(
+     (User3.s = 1)) 
+    + 
+   (User2.s = 1)) ) 
+
+* Output Invariant:
+(1) 
+
+* Rules:
+
+action ack:--------
+----[output]:
+(
+ (busy = 1)(
+   (busy' = 0)(
+     (User1.s' = 0)(
+       (User2.s = 0)(
+         (User2.s' = 0)(
+           (User3.s = 0)(
+             (User3.s' = 0)) ) ) ) ) ) ) 
+action print:--------
+----[output]:
+(
+ (busy = 0)(
+   (user' = 1)(
+     (User1.s = 0)(
+       (User1.s' = 1)(
+         (User2.s = 0)(
+           (User2.s' = 0)(
+             (User3.s = 0)(
+               (User3.s' = 0)) 
+              + 
+             (User3.s = 1)(
+               (User3.s' = 1)) ) ) 
+          + 
+         (User2.s = 1)(
+           (User2.s' = 1)(
+             (User3.s = 0)(
+               (User3.s' = 0)) 
+              + 
+             (User3.s = 1)(
+               (User3.s' = 1)) ) ) ) ) ) 
+    + 
+   (user' = 2)(
+     (User1.s = 0)(
+       (User1.s' = 0)(
+         (User2.s = 0)(
+           (User2.s' = 0)(
+             (User3.s = 0)(
+               (User3.s' = 1)) ) 
+            + 
+           (User2.s' = 1)(
+             (User3.s = 0)(
+               (User3.s' = 0)) 
+              + 
+             (User3.s = 1)(
+               (User3.s' = 1)) ) ) 
+          + 
+         (User2.s = 1)(
+           (User2.s' = 1)(
+             (User3.s = 0)(
+               (User3.s' = 1)) ) ) ) ) 
+      + 
+     (User1.s = 1)(
+       (User1.s' = 1)(
+         (User2.s = 0)(
+           (User2.s' = 0)(
+             (User3.s = 0)(
+               (User3.s' = 1)) ) 
+            + 
+           (User2.s' = 1)(
+             (User3.s = 0)(
+               (User3.s' = 0)) 
+              + 
+             (User3.s = 1)(
+               (User3.s' = 1)) ) ) 
+          + 
+         (User2.s = 1)(
+           (User2.s' = 1)(
+             (User3.s = 0)(
+               (User3.s' = 1)) ) ) ) ) ) ) ) 
+action ack:--------
+----[input global]:
+(0) 
+----[input local]:
+(0) 
+
+
+action print:--------
+----[input global]:
+(
+ (busy = 0)(
+   (busy' = 1)) ) 
+----[input local]:
+(1) 
+
+
+endmodule
+===================================
+
