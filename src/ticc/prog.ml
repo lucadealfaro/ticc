@@ -119,18 +119,51 @@ let list_modules p : unit =
 
 let list_modules_top () = list_modules toplevel 
 
+(** ********** Statesets ********************************** *)
+
+(** Checks whether a stateset name is already defined *)
+let is_sset_name_def p n = Hsetmap.mem p.ssets n
+
+let is_sset_name_def_top = is_sset_name_def toplevel 
+
+(** Adds a stateset *)
+let add_sset p name exp = Hsetmap.add p.ssets name exp
+
+let add_sset_top = add_sset toplevel 
+
+(** Get a stateset by name *)
+let get_sset p name = Hsetmap.find p.ssets name
+
+let get_sset_top = get_sset toplevel
+
+(** ********** Program ********************************** *)
+
+(** Prints the program *)
+let print p : unit =
+  (* Printf.printf "\n// %s\n" p.name; *)
+  Hsetmap.iter_body Var.print p.vars;
+  Hsetmap.iter_body Mod.print p.mods
+
+let print_debug p : unit =
+  Hsetmap.iter_body Var.print p.vars;
+  Hsetmap.iter_body Mod.print_debug p.mods
+
+let print_top () = print toplevel 
+
+let print_debug_top () = print_debug toplevel 
+
+(* **************************************************************** *)
+
 (** These functions are used by the clone_mod function *)
 
-(** rename: Rename a variable or a local rule
+(** get_newname: Rename a variable or a local rule
 
-This function takes the name [mname] of a module
-and the name [vname] of a local variable/action.
-The function replaces the first part of [vname]
-by [mname] (i.e. [mname].* by [vname.*] 
-and return the new name.
-*)
+    This function takes the name [mname] of a module and a name
+    [name].  The function replaces the first part of [name] (the part
+    before the first ".")  by [mname], and return the new name.
+ *)
 
-let rename mname vname : string =
+let get_newname mname vname : string =
   let vlen = String.length vname in
   let pos = String.index vname '.' in
   let temp = String.sub vname (pos) (vlen - pos) in
@@ -138,81 +171,60 @@ let rename mname vname : string =
   new_name
 
 
-(** mk_var Create a new variable
-This function takes a variables [v] and
-a module name [mname]. The variable [v]
-is supposed to be local.
-The function creates a new variable whose
-type is the same as the one of [v]. 
-The name of the new variable is identical
-to the one of v except that the first part 
-of the name of [v] becomes [mname] 
-(i.e. *1.*2 -> [mname].*2].
-
-TO DO: check if the variable [v] is local.
-
-Remark: Is this a good name?? If the variable is
-global, then there is no creation ...
-
-Bo's idea: this function should be renamed in
-dup_var.
-
-*)
-let mk_var mname v : Var.t =
+(** dup_var Create a new variable. This function takes a
+    variables [v] and a module name [mname]. The variable [v] is
+    supposed to be local.  The function creates a new variable whose
+    type is the same as the one of [v].  The name of the new variable
+    is identical to the one of v except that the first part of the
+    name of [v] becomes [mname] (i.e. *1.*2 -> [mname].*2].
+ *)
+let dup_var mname v : Var.t =
   let typ = Var.get_type v in
   let vname = Var.get_name v in
-  let new_name = rename mname vname in
+  let new_name = get_newname mname vname in
   let new_var = Var.mk new_name typ (Some mname) in
   new_var
 
 
-(** lookup_lvar: Looks up a local variable.
+(** lookup_renamed_var looks up a variable. 
 
-This function takes a module [m] and a
-variable [v]. The functions first cheks
-if the variable [v] is global. In that case
-It simply send it back. Otherwise, it 
-returs a variable whose name is the name of
-[v] except that the first part has been 
-replaced by the name of the module [m].
-Notice that this variable is supposed to
-be a variable of [m].
-*)
+    This function takes a module [m] and a variable [v]. The functions
+    first cheks if the variable [v] is global. In that case It simply
+    returns it.  Otherwise, it returns the result of looking up in [m]
+    a variable with the name of [m], followed by the name of [v].  *)
 
-let lookup_lvar m v : Var.t =
+let lookup_renamed_var m v : Var.t =
   let mname = Mod.get_name m in
   let vname = Var.get_name v in
-  let stat = is_var_name_def_top vname in
-  if (not stat) then
-    let n = rename mname vname in
+  if is_var_name_def_top vname
+  then v
+  else
+    let n = get_newname mname vname in
     Mod.lookup_lvar m n
-  else v
 
-(** Clone_gcl: cloning of a list of moduls 
+(** Clone_gcl: cloning of a list of guarded commands. 
 
-This functions takes a list [gcl] of
-pairs of Ast and output a new list in 
-which the name of the local variables that
-are referenced in each member of [gcl] have
-been replaced by their new names in [m].
-*)
+    This functions takes a list [gcl] of pairs of Ast and output a new
+    list in which the name of the local variables that are referenced
+    in each member of [gcl] have been replaced by their new names in
+    [m].  *)
 
 let rec clone_gcl m gcl : (Ast.t * Ast.t) list =
-    match gcl with
-      (g, c) :: tail -> [(Ast.replace_vars g (lookup_lvar m ),
-                           Ast.replace_vars c (lookup_lvar m ))] 
-                           @ clone_gcl m tail
-    | [] -> []
+  match gcl with
+    (g, c) :: tail -> (Ast.replace_vars g (lookup_renamed_var m ),
+    Ast.replace_vars c (lookup_renamed_var m ))
+      :: clone_gcl m tail
+  | [] -> []
 
 
 (** Clone a command
 
-This function is the same as the previous one except
-that it works on a list of Ast (not on a list of PAIRs). 
-*)
+    This function is the same as the previous one except
+    that it works on a list of Ast (not on a list of PAIRs). 
+ *)
 let rec clone_command cl m : Ast.t list =
   match cl with
-    (c) :: tail -> [Ast.replace_vars c (lookup_lvar m)] @ clone_command tail m
+    (c) :: tail -> [Ast.replace_vars c (lookup_renamed_var m)] @ clone_command tail m
   | [] -> []
 
 (** Clone a deterministic garded command
@@ -233,10 +245,10 @@ We have a double recusion:
 
 let rec clone_ligcl m ilgcl : (Ast.t * (Ast.t list)) list =
     match ilgcl with
-      (g, c :: ctail) :: tail -> [(Ast.replace_vars g (lookup_lvar m),
-                           [Ast.replace_vars c (lookup_lvar m )] @ 
+      (g, c :: ctail) :: tail -> [(Ast.replace_vars g (lookup_renamed_var m),
+                           [Ast.replace_vars c (lookup_renamed_var m )] @ 
                             clone_command ctail m)] @ clone_ligcl m tail
-    | (g, []) :: tail -> [(Ast.replace_vars g (lookup_lvar m), [])] @ 
+    | (g, []) :: tail -> [(Ast.replace_vars g (lookup_renamed_var m), [])] @ 
                             clone_ligcl m tail
     | [] -> []
 
@@ -261,7 +273,7 @@ The module [m] is the clone.
 let new_lrule m rule : unit =
 let mname = Mod.get_name m in
 let rname = Rule.get_lact rule in
-let lact = rename mname rname in
+let lact = get_newname mname rname in
 let lgc_list = Rule.get_lgc_list rule in
 let lrule = Rule.mk_lrule lact lgc_list in
 let lrvars = Rule.get_lrvars rule in
@@ -271,9 +283,9 @@ If global: do not change
 If local : lookup for the new name in 
            [m].
 *)
-let new_lrvars v = Rule.add_lr_var lrule (lookup_lvar m v) in
+let new_lrvars v = Rule.add_lr_var lrule (lookup_renamed_var m v) in
 Hsetmap.iter_body new_lrvars lrvars;
-let new_lwvars v = Rule.add_lw_var lrule (lookup_lvar m v) in
+let new_lwvars v = Rule.add_lw_var lrule (lookup_renamed_var m v) in
 Hsetmap.iter_body new_lwvars lwvars;
 let new_lgc_list = clone_gcl m lgc_list in
 Rule.set_lgc_list lrule new_lgc_list;
@@ -292,9 +304,9 @@ let new_orule m rule : unit =
   let orule = Rule.mk_orule oact ogc_list in
   let orvars = Rule.get_orvars rule in
   let owvars = Rule.get_owvars rule in
-  let new_orvars v = Rule.add_or_var orule (lookup_lvar m v) in
+  let new_orvars v = Rule.add_or_var orule (lookup_renamed_var m v) in
   Hsetmap.iter_body new_orvars orvars;
-  let new_owvars v = Rule.add_ow_var orule (lookup_lvar m v) in
+  let new_owvars v = Rule.add_ow_var orule (lookup_renamed_var m v) in
   Hsetmap.iter_body new_owvars owvars;
   let new_ogc_list = clone_gcl m ogc_list in
   Rule.set_ogc_list orule new_ogc_list;
@@ -314,11 +326,11 @@ let new_irule m rule : unit =
   let irvars = Rule.get_irvars rule in
   let iwgvars = Rule.get_iwgvars rule in
   let iwlvars = Rule.get_iwlvars rule in
-  let new_irvars v = Rule.add_ir_var irule (lookup_lvar m v) in
+  let new_irvars v = Rule.add_ir_var irule (lookup_renamed_var m v) in
   Hsetmap.iter_body new_irvars irvars;
-  let new_iwgvars v = Rule.add_iwg_var irule (lookup_lvar m v) in
+  let new_iwgvars v = Rule.add_iwg_var irule (lookup_renamed_var m v) in
   Hsetmap.iter_body new_iwgvars iwgvars;
-  let new_iwlvars v = Rule.add_iwl_var irule (lookup_lvar m v) in
+  let new_iwlvars v = Rule.add_iwl_var irule (lookup_renamed_var m v) in
   Hsetmap.iter_body new_iwlvars iwlvars;
   let new_gigc_list = clone_gcl m gigc_list in
   Rule.set_global_igc_list irule new_gigc_list;
@@ -368,57 +380,22 @@ let clone_modp p m1 m2 : unit =
     let oinv1 = Mod.get_oinv mod1 in
     let mod2 = Mod.create_empty m2 in
     add_mod p mod2;
-    let add_lvar v = Mod.add_lvar mod2 (mk_var m2 v) in
+    let add_lvar v = Mod.add_lvar mod2 (dup_var m2 v) in
     Mod.iter_lvars mod1 add_lvar;
     Hsetmap.iter_body (Mod.add_fvar mod2) fvars1;
-    let add_hvar v = Mod.add_hvar mod2 (lookup_lvar mod2 v) in
+    let add_hvar v = Mod.add_hvar mod2 (lookup_renamed_var mod2 v) in
     Hsetmap.iter_body add_hvar hvars1;
     Mod.iter_lvars mod2 (Mod.add_var mod2);
     Hsetmap.iter_body (Mod.add_var mod2) fvars1;
     let hvars2 = Mod.get_hvars mod2 in
     Hsetmap.iter_body (Mod.add_var mod2) hvars2;
-    let add_iinv iinv = Mod.add_iinv mod2 (Ast.replace_vars iinv (lookup_lvar mod2 )) in
+    let add_iinv iinv = Mod.add_iinv mod2 (Ast.replace_vars iinv (lookup_renamed_var mod2 )) in
     List.iter add_iinv iinv1;
-    let add_oinv oinv = Mod.add_oinv mod2 (Ast.replace_vars oinv (lookup_lvar mod2 )) in
+    let add_oinv oinv = Mod.add_oinv mod2 (Ast.replace_vars oinv (lookup_renamed_var mod2 )) in
     List.iter add_oinv oinv1;
     Mod.iter_lrules mod1 (new_lrule mod2);
     Mod.iter_orules mod1 (new_orule mod2);
     Mod.iter_irules mod1 (new_irule mod2)
   end
 (** End of the clone functions *)
-
-(** ********** Statesets ********************************** *)
-
-(** Checks whether a stateset name is already defined *)
-let is_sset_name_def p n = Hsetmap.mem p.ssets n
-
-let is_sset_name_def_top = is_sset_name_def toplevel 
-
-(** Adds a stateset *)
-let add_sset p name exp = Hsetmap.add p.ssets name exp
-
-let add_sset_top = add_sset toplevel 
-
-(** Get a stateset by name *)
-let get_sset p name = Hsetmap.find p.ssets name
-
-let get_sset_top = get_sset toplevel
-
-(** ********** Program ********************************** *)
-
-(** Prints the program *)
-let print p : unit =
-  (* Printf.printf "\n// %s\n" p.name; *)
-  Hsetmap.iter_body Var.print p.vars;
-  Hsetmap.iter_body Mod.print p.mods
-
-let print_debug p : unit =
-  Hsetmap.iter_body Var.print p.vars;
-  Hsetmap.iter_body Mod.print_debug p.mods
-
-let print_top () = print toplevel 
-
-let print_debug_top () = print_debug toplevel 
-
-
 

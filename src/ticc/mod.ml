@@ -1,5 +1,4 @@
-(** $Id: mod.ml,v 1.39 2006/06/07 20:02:09 luca Exp $ *)
-
+(* mod.ml *)
 
 (* This is the type of a module *) 
 type t = {
