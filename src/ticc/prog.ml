@@ -1,4 +1,4 @@
-(** $Id: prog.ml,v 1.30 2006/01/21 09:09:48 luca Exp $ *)
+(** prog.ml *)
 
 (** This declares the enumerative top level. *) 
 
@@ -16,6 +16,7 @@ type t = {
 exception Prog_duplicate_var
 exception Prog_duplicate_act
 exception Prog_duplicate_mod
+exception Prog_nomod
 
 (** Create an empty program *)
 let mk (name: string) : t =
@@ -163,10 +164,10 @@ let print_debug_top () = print_debug toplevel
     before the first ".")  by [mname], and return the new name.
  *)
 
-let get_newname mname vname : string =
-  let vlen = String.length vname in
-  let pos = String.index vname '.' in
-  let temp = String.sub vname (pos) (vlen - pos) in
+let get_newname (mname: string) (name: string) : string =
+  let vlen = String.length name in
+  let pos = String.index name '.' in
+  let temp = String.sub name (pos) (vlen - pos) in
   let new_name = mname ^ temp in
   new_name
 
@@ -224,79 +225,66 @@ let rec clone_gcl m gcl : (Ast.t * Ast.t) list =
  *)
 let rec clone_command cl m : Ast.t list =
   match cl with
-    (c) :: tail -> [Ast.replace_vars c (lookup_renamed_var m)] @ clone_command tail m
+    (c) :: tail -> (Ast.replace_vars c (lookup_renamed_var m)) :: clone_command tail m
   | [] -> []
 
 (** Clone a deterministic garded command
 
-This function is used to clone a list [ilgcl] whose 
-elements are of the type (Ast.t, [Ast.t, Ast.t, Ast.t, ..., Ast.t]).
-The new list is a copy of [ilgcl] except that
-the local variables have been replaced by their
-clones in [m].
+    This function is used to clone a list [ilgcl] whose elements are of
+    the type (Ast.t, [Ast.t, Ast.t, Ast.t, ..., Ast.t]).  The new list is
+    a copy of [ilgcl] except that the local variables have been replaced
+    by their clones in [m].
 
-We have a double recusion:
+    We have a double recusion:
 
-1. on each member of [ilgcl]
-2. in the rith part of the pair of each
-   member of [ilgcl].
+    1. on each member of [ilgcl]
+    2. in the right part of the pair of each member of [ilgcl].
 
-*)
+ *)
 
 let rec clone_ligcl m ilgcl : (Ast.t * (Ast.t list)) list =
     match ilgcl with
-      (g, c :: ctail) :: tail -> [(Ast.replace_vars g (lookup_renamed_var m),
-                           [Ast.replace_vars c (lookup_renamed_var m )] @ 
-                            clone_command ctail m)] @ clone_ligcl m tail
-    | (g, []) :: tail -> [(Ast.replace_vars g (lookup_renamed_var m), [])] @ 
-                            clone_ligcl m tail
+      (g, c :: ctail) :: tail -> ((Ast.replace_vars g (lookup_renamed_var m),
+      (Ast.replace_vars c (lookup_renamed_var m )) ::
+        clone_command ctail m)) :: clone_ligcl m tail
+    | (g, []) :: tail -> ((Ast.replace_vars g (lookup_renamed_var m), [])) ::
+        clone_ligcl m tail
     | [] -> []
-
+	
 
 (** New local rule. 
-
-This function takes a local rule [rule]
-and a module [m] as inputs.
-The goal of the function is to clone the
-local rule. The name of the new rule is
-given by the concatenation of the name of
-[m] with the second part of the name of [rule].
-
-The local variables of [rule] are replaced
-by their names in [m]. The "body" of the rule 
-is cloned using the same approach.
-
-The module [m] is the clone.
-
-*)
+    This function takes a local rule [rule] and a module [m] as inputs.
+    The goal of the function is to clone the local rule. The name of the
+    new rule is given by the concatenation of the name of [m] with the
+    second part of the name of [rule].
+    The local variables of [rule] are replaced by their names in
+    [m]. The "body" of the rule is cloned using the same approach.
+    The module [m] is the clone.
+ *)
 
 let new_lrule m rule : unit =
-let mname = Mod.get_name m in
-let rname = Rule.get_lact rule in
-let lact = get_newname mname rname in
-let lgc_list = Rule.get_lgc_list rule in
-let lrule = Rule.mk_lrule lact lgc_list in
-let lrvars = Rule.get_lrvars rule in
-let lwvars = Rule.get_lwvars rule in
-(* fixing the name of the variables in the rule:
-If global: do not change
-If local : lookup for the new name in 
-           [m].
-*)
-let new_lrvars v = Rule.add_lr_var lrule (lookup_renamed_var m v) in
-Hsetmap.iter_body new_lrvars lrvars;
-let new_lwvars v = Rule.add_lw_var lrule (lookup_renamed_var m v) in
-Hsetmap.iter_body new_lwvars lwvars;
-let new_lgc_list = clone_gcl m lgc_list in
-Rule.set_lgc_list lrule new_lgc_list;
-Mod.add_lrule m lrule
+  let mname = Mod.get_name m in
+  let rname = Rule.get_lact rule in
+  let lact = get_newname mname rname in
+  let lgc_list = Rule.get_lgc_list rule in
+  let lrule = Rule.mk_lrule lact lgc_list in
+  let lrvars = Rule.get_lrvars rule in
+  let lwvars = Rule.get_lwvars rule in
+  (* fixing the name of the variables in the rule:
+     If global: do not change
+     If local : lookup for the new name in [m].
+   *)
+  let new_lrvars v = Rule.add_lr_var lrule (lookup_renamed_var m v) in
+  Hsetmap.iter_body new_lrvars lrvars;
+  let new_lwvars v = Rule.add_lw_var lrule (lookup_renamed_var m v) in
+  Hsetmap.iter_body new_lwvars lwvars;
+  let new_lgc_list = clone_gcl m lgc_list in
+  Rule.set_lgc_list lrule new_lgc_list;
+  Mod.add_lrule m lrule
 
-(** New output rule
-Same as new_lrule except
-that the name of the new
-rule is the same as the one 
-of [rule].
-*)
+(** New output rule.  Same as new_lrule except that the name of the new
+    rule is the same as the one of [rule].
+ *)
 
 let new_orule m rule : unit =
   let oact = Rule.get_oact rule in
@@ -313,10 +301,10 @@ let new_orule m rule : unit =
   Mod.add_orule m orule
 
 (** Rename variables in a input rule.
-This function clones an input
-rule [rule]. The principle is identical 
-to the one used in mk_orule and mk_lrule.
-*)
+    This function clones an input
+    rule [rule]. The principle is identical 
+    to the one used in mk_orule and mk_lrule.
+ *)
 
 let new_irule m rule : unit =
   let iact = Rule.get_iact rule in
@@ -338,39 +326,53 @@ let new_irule m rule : unit =
   Rule.set_local_igc_list irule new_ligc_list;
   Mod.add_irule m irule
 
+(** Clones a set of states.
+    [m] is the new module; 
+    [old_name] is the old name; 
+    [expr] is the expression. 
+    The function changes the name [old_name] to the name of [m],
+    followed by remaining part of the name [old_name] after the first
+    ".".  Then, it renames the variables in [expr] appropriately, and 
+    adds the stateset to [m].
+ *)
+let new_sset (m: Mod.t) (old_name: string) (expr: Ast.t) : unit = 
+  let new_name = get_newname (Mod.get_name m) old_name in 
+  let new_expr = Ast.replace_vars expr (lookup_renamed_var m) in 
+  Mod.add_sset m new_name new_expr 
+
 (** Clones a module. 
 
-This function clones a module whose name is 
-[m1] into a module whose name is [m2] in a
-program [p]. The name [m2] cannot reference
-an existing module in [P]. The cloning is
-done in the following way.
+    This function clones a module whose name is [m1] into a module whose
+    name is [m2] in a program [p]. The name [m2] cannot reference an
+    existing module in [P]. The cloning is done in the following way.
 
-1) The local variables are cloned
-and their name are changed in the following
-way: [m1].* -> [m2].*.
+    1) The local variables are cloned and their name are changed in
+    the following way: [m1].* -> [m2].*.
 
-2) The global variables are not cloned.
+    2) The global variables are not cloned.
 
 
-3) New rules are created for the clone [m2].
-   For each rule of [m1], clone_mod
-   creates a rule whose name is identical 
-   to the one of the rule of [m1] except
-   if the rule is local (in that case, we 
-   use [m1].* -> [m2].* ). The variables
-   referenced in the rules are either cloned
-   or stay the same depending if they are local
-   or global.
-   
-*)
+    3) New rules are created for the clone [m2].  For each rule of [m1],
+    clone_mod creates a rule whose name is identical to the one of the
+    rule of [m1] except if the rule is local (in that case, we use
+    [m1].* -> [m2].* ). The variables referenced in the rules are
+    either cloned or stay the same depending if they are local or
+    global.
+    
+ *)
 
 let clone_modp p m1 m2 : unit =
   if (is_mod_name_def_top m2)
   then begin
     Printf.printf "Error: module %s is already defined \n" m2;
     raise Prog_duplicate_mod
-    end else begin
+  end 
+  else if not (is_mod_name_def_top m1)
+  then begin
+    Printf.printf "Error: module %s is not defined \n" m1;
+    raise Prog_nomod
+  end
+  else begin
     let mod1 = get_mod p m1 in
     let mname = Mod.get_name mod1 in
     let mlen = String.length mname in
@@ -395,7 +397,9 @@ let clone_modp p m1 m2 : unit =
     List.iter add_oinv oinv1;
     Mod.iter_lrules mod1 (new_lrule mod2);
     Mod.iter_orules mod1 (new_orule mod2);
-    Mod.iter_irules mod1 (new_irule mod2)
+    Mod.iter_irules mod1 (new_irule mod2);
+    Mod.iter_ssets  mod1 (new_sset mod2)
   end
+
 (** End of the clone functions *)
 

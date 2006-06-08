@@ -98,7 +98,6 @@ let parse_stateset (exp_string: string) : Symops.stateset_t =
   Symbuild.parse_stateset Symprog.toplevel exp_string
 
 (** clone a module *)
-
 let clone = Prog.clone_modp Prog.toplevel;;
 
 (** Comparisons between mdds *)

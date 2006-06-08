@@ -1,4 +1,4 @@
-(** $Id: symmod.ml,v 1.24 2005/10/18 02:47:11 luca Exp $ *)
+(** symmod.ml *)
 
 (** Container for symbolic module *) 
 
@@ -148,7 +148,6 @@ let mk_rule typ act wvars tran : rule_t =
       Local  -> Loc (List.hd tran)
     | Output -> Out (List.hd tran)
     | Input -> Inp ((List.nth tran 0), (List.nth tran 1))
-		(* TODO: why doesn't the last line use hd & tl? *)
   in 
   {
     act = act;

@@ -1,5 +1,6 @@
 module ControlUnit:
     var s: [0..3] // 0=waiting, 1=alarm raised, 2=fd called, 3=disabled
+    initial: s = 0
     input fire:     { local: s = 0 | s = 1 ==> s' := 1 
                        else  s = 2         ==>         } 
     input disable:  { local: true ==> s' := 3 }
@@ -8,6 +9,7 @@ endmodule
 
 module FireDetector1:
     var s: [0..2] // 0=idle, 1=smoke detected, 2=inactive
+    initial: s = 0
     input smoke1:  { local: s = 0 | s = 1 ==> s' := 1 
                      else   s = 2 ==>        } // do nothing if inactive 
     output fire:   { s = 1        ==> s'  = 2 }
@@ -17,6 +19,7 @@ endmodule
 
 module Faulty_FireDetector2: 
     var s: [0..2] // 0=idle, 1=smoke detected, 2=inactive
+    initial: s = 0
     input smoke2:  { local: s = 0 | s = 1 ==> s' := 1 
                      else   s = 2 ==>        } // do nothing if inactive 
     output fire:   { s = 1        ==> s'  = 2 }
@@ -26,6 +29,8 @@ endmodule
 
 module FireDetector3:
     var s: [0..2] // 0=idle, 1=smoke detected, 2=inactive
+    initial: s = 0
+    stateset inactive: s = 2
     input smoke3:  { local: s = 0 | s = 1 ==> s' := 1
                      else  s = 2 ==>         } // do nothing if inactive 
     output fire:   { s = 1        ==> s'  = 2 }

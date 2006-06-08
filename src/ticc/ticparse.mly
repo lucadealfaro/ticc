@@ -99,7 +99,11 @@
              pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol) name;
 	   raise ParseError 
 	 end;
-	 Mod.add_sset m name exp 
+	 (* The real name of the set is the name of the module "." the name
+	    of the set. *) 
+	 let mod_name = Mod.get_name m in
+	 let local_name = mod_name ^ "." ^ name in 
+	 Mod.add_sset m local_name exp 
      | None -> 
 	 (* The stateset is declared at the top level *)
 	 (* check if there is another stateset by the same name *)

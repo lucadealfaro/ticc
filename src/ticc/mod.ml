@@ -64,6 +64,7 @@ let get_oinv  m = m.oinv
 let get_lrules m = m.lrules
 let get_irules m = m.irules
 let get_orules m = m.orules
+let get_initcond_name (m: t) : string = m.name ^ "." ^ init_sset_name
 
 (** Iterators *) 
 
@@ -72,6 +73,8 @@ let iter_vars  m f  = Hsetmap.iter_body f m.vars
 let iter_lrules m f = Hsetmap.iter_body f m.lrules
 let iter_irules m f = Hsetmap.iter_body f m.irules
 let iter_orules m f = Hsetmap.iter_body f m.orules
+let iter_ssets  (m: t) (f: string -> Ast.t -> unit) : unit = 
+  Hsetmap.iter f m.ssets
 
 (** Checks existence in hash tables *)
 
@@ -105,7 +108,8 @@ let set_oinv m el = m.oinv <- el
 (** Adds a stateset to a module *)
 let add_sset (m : t) (n: string) (e: Ast.t) = Hsetmap.add m.ssets n e
 (** Defines, or replaces, the initial condition of a module *) 
-let set_init_sset (m: t) (e: Ast.t) = Hsetmap.modify m.ssets init_sset_name e
+let set_init_sset (m: t) (e: Ast.t) = 
+  Hsetmap.modify m.ssets (get_initcond_name m) e
 
 (** Add rules to a module *)
 let add_lrule m (r: Rule.lrule_t) : unit = Hsetmap.add m.lrules (Rule.get_lname r) r
@@ -118,8 +122,9 @@ let lookup_fvar m n = Hsetmap.find m.fvars n
 let lookup_var m n = Hsetmap.find m.vars n
 
 (** Looks up statesets *) 
-let lookup_sset m n = Hsetmap.find m.ssets n 
-let lookup_initial_sset m = Hsetmap.find m.ssets init_sset_name
+let lookup_sset (m: t) (n: string) : Ast.t = Hsetmap.find m.ssets n 
+let lookup_initial_sset (m: t) : Ast.t = 
+  Hsetmap.find m.ssets (get_initcond_name m)
     
 (** Gets variable hashtables *) 
 let get_lvars (m : t) = m.lvars
@@ -152,6 +157,11 @@ let print_debug (m : t) : unit =
   Printf.printf "\n\n All variables:";
   Hsetmap.iter_body Var.print m.vars;
   Printf.printf "\n";
+  let print_sset (n: string) (e: Ast.t) : unit = 
+    Printf.printf "\n  Stateset %s: " n; 
+    Ast.print e;
+    Printf.printf ";"
+  in iter_ssets m print_sset; 
   let print_ialone e = 
     Printf.printf "\n  iinv: ";
     Ast.print e;
@@ -172,6 +182,11 @@ let print (m : t) : unit =
   Printf.printf "\n\nmodule %s:" m.name;
   Hsetmap.iter_body Var.print_if_local m.vars;
   Printf.printf "\n";
+  let print_sset (n: string) (e: Ast.t) : unit = 
+    Printf.printf "\n  Stateset %s: " n; 
+    Ast.print e;
+    Printf.printf ";"
+  in iter_ssets m print_sset; 
   let print_ialone e = 
     Printf.printf "\n  iinv: ";
     Ast.print e;

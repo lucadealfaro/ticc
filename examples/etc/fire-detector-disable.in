@@ -1,6 +1,12 @@
 open Ticc;;
 
-parse "fire-detector-disable.si"
+parse "fire-detector-disable.si" ;;
+
+clone "FireDetector1" "FireDetector4";;
+
+print_toplevel () ;;
+
+(*
 
 let fire1 = mk_sym "FireDetector1";;
 let fire3 = mk_sym "FireDetector3";;
@@ -22,3 +28,5 @@ print_input_restriction d "disable";;
 
 print_input_restriction c "smoke1";;
 print_input_restriction d "smoke2";;
+
+*)

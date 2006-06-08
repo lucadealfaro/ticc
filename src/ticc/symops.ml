@@ -214,15 +214,6 @@ let print_input_restriction sp sm (r: string) =
 	    Printf.printf "\n------------- end of restriction\n" 
 ;;
 
-(** Prints many examples of how a rule might have become restricted
-    due to the input invariant.  Specifically, 
-    print_action_restricted [sp] [sm] [r] [num]
-    prints [num] examples of states where the action with name [r]
-    of the symbolic module [sm] with symbolic top [sp] has become
-    no longer possible.  *)
-
-(* ---qui--- *) 
-
 
 (** (May) Pre for a rule.  
     Given a set of states [set] and a rule [r], 
