@@ -105,9 +105,13 @@ let add_cvar (m: t) (id: varid_t) (bound: int) =
 
 let set_iinv m phi = m.iinv <- phi
 let set_oinv m phi = m.oinv <- phi
+let set_init m phi = m.init <- phi
 let get_iinv m = m.iinv
 let get_oinv m = m.oinv
-
+let get_init m = m.init 
+let get_ssets (m: t) : (string, Mlglu.mdd) Hsetmap.t = m.ssets
+let iter_ssets (m: t) (f: string -> Mlglu.mdd -> unit) : unit = 
+  Hsetmap.iter f m.ssets
 
 let get_name (m: t) : string   = m.name
 let get_vars (m: t) : VarSet.t = m.vars

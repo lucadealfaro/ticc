@@ -675,6 +675,12 @@ let disjoin_det_gc_list (sp: Symprog.t) (l: (Ast.t * (Ast.t list)) list)
 ;;
 
 
+(** Builds the symbolic representations of the statesets, and adds
+    them to the symbolic module *)
+let mk_sset (sp: Symprog.t) (sm: Symmod.t) (name: string) (e: Ast.t) : unit = 
+  let mdd = mk_bool sp e in 
+  Hsetmap.add (Symmod.get_ssets sm) name mdd
+
 (** Builds the symbolic representation of the local transition rule
  [l], and adds it to the symbolic module [sm]. 
 
@@ -829,6 +835,14 @@ let mk_mod (m: Mod.t) (sp: Symprog.t) : Symmod.t =
   let oinv = Mod.get_oinv m in
   let sym_oinv = conjoin_exp_list sp oinv in
   Symmod.set_oinv sym_mod sym_oinv;
+
+  (* initial condition *)
+  let init = Mod.get_init m in 
+  let sym_init = conjoin_exp_list sp init in 
+  Symmod.set_init sym_mod sym_init; 
+
+  (* statesets *)
+  Mod.iter_ssets  m (mk_sset  sp sym_mod); 
 
   (* and transitions *)
   Mod.iter_lrules m (mk_lrule sp sym_mod);

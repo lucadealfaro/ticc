@@ -4,15 +4,10 @@ Installation
 To make the executable, first build glue:  
 
     $ cd src/glu-2.0
+    $ touch configure
     $ ./configure
     $ make
 
-If you get an error, try to do again: 
-    $ ./configure
-    $ make
-(if you know what the problem is with the glu Makefile, drop us a
-line). 
-  
 Then, make Ticc: 
 
     $ cd ../..

@@ -142,11 +142,17 @@ let print_rulemodact sp sm act : unit =
 ;;
 
 
-(** Prints the contents of the symbolic module [sm]. 
-    Little modification to reorganize the printing.
-    Another possibility would be to print the input
-    and the output corresponding to an action in
-    the same time. *)
+(** Prints the statesets of a symbolic module *)
+let print_statesets (sm: Symmod.t) mgr : unit = 
+  let print_set name bdd = 
+    Printf.printf "   %s: " name; 
+    flush stdout;
+    Mlglu.mdd_print mgr bdd;
+    Printf.printf "\n"
+  in
+  Symmod.iter_ssets sm print_set 
+
+(** Prints the contents of the symbolic module [sm]. *)
 
 let print sp sm : unit =
     let mgr = Symprog.get_mgr sp in
@@ -166,6 +172,15 @@ let print sp sm : unit =
     flush stdout;
     Mlglu.mdd_print mgr (Symmod.get_oinv sm);
     Printf.printf "\n";
+    Printf.printf "* Initial Condition:\n";
+    flush stdout;
+    Mlglu.mdd_print mgr (Symmod.get_init sm); 
+    (* prints the statesets, if any *)
+    if (Hsetmap.size (Symmod.get_ssets sm)) > 0 then begin
+      Printf.printf "* Statesets:\n";
+      flush stdout;
+      print_statesets sm mgr
+    end; 
     Printf.printf "* Rules:\n\n";
     Symmod.iter_lrules sm (print_rule sp);
     Symmod.iter_orules sm (print_rule sp);
@@ -998,6 +1013,12 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1:Symmod.t) (m2:Symm
 (*---------------------------------------------------------------------------*)
 
 
+(* **************************************************************** *)
+(*                                                                  *)
+(*  Builds the symolic representation of a module                   *)
+(*                                                                  *)
+(* **************************************************************** *)
+
 (** Given the name of a module, 
     it builds and returns the symbolic representation of the module. 
 *)
@@ -1019,6 +1040,8 @@ let mk_sym (mod_name: string) =
   (* adds it to the set of all symbolic modules *)
   Symprog.add_mod_top sm;
   sm
+
+
 
 (** ********************* Clone of Symbolic Modules **********************)
 (** The function takes a list of symbolic modules and returns a list of cloned
