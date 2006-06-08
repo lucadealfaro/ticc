@@ -2,7 +2,7 @@ dnl	Run autoconf on this file to produce the system configuration
 dnl	script "configure"
 
 # FileName	[ configure.in ]
-#
+# 
 # PackageName	[ glu ]
 #
 # Synopsis	[ System configuration script for autoconf ]
