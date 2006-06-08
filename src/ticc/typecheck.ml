@@ -1,4 +1,4 @@
-(** $Id: typecheck.ml,v 1.33 2005/12/29 17:50:03 mfaella Exp $ *)
+(** typecheck.ml *)
 
 (** This file contains type-checking functions for Ticc. *)
 
@@ -553,19 +553,56 @@ let check_irule (m: Mod.t) (r: Rule.irule_t) =
     variables in hful *)
 let check_invariant (m: Mod.t) (e : Ast.t) : unit = 
   let hful = Mod.get_hvars m in 
-
+  (* Checks no primed variables *)
   let chkg v pos = 
     Ast.print_pos pos; 
-    Printf.printf " Error: %s': primed variables cannot appear in invariants.\n" (Var.get_name v);
+    Printf.printf " Error: %s': primed variables cannot appear in invariant.\n" (Var.get_name v);
     raise TypeError
   in 
   iter_primed_vars e chkg; 
+  (* Checks no history-free variables *)
+  let chkg v pos = 
+    let v_name = Var.get_name v in 
+    if not (Hsetmap.mem (Mod.get_hvars m) v_name) then begin
+      Ast.print_pos pos; 
+      Printf.printf " Error: %s': history-free variables cannot appear in invariant.\n" v_name;
+      raise TypeError
+    end 
+  in iter_unprimed_vars e chkg; 
+  (* does some final type checking *) 
   type_check_bool e;
   update_clock_bounds_expr e;
   (* adds variables to the module *)
   let vars = get_unprimed_vars e in
   List.iter (Mod.add_var m) vars 
 
+(** This function checks that there are no primed variables in an
+    initial condition, and moreover, that all variables appearing 
+    in the initial condition are local. *)
+let check_init (m: Mod.t) (e : Ast.t) : unit = 
+  let loc_vars = Mod.get_hvars m in 
+  (* check no primed variables *)
+  let chkg v pos = 
+    Ast.print_pos pos; 
+    Printf.printf " Error: %s': primed variables cannot appear in invariants.\n" (Var.get_name v);
+    raise TypeError
+  in 
+  iter_primed_vars e chkg; 
+  (* Checks that all variables are local *)
+  let chkg v pos = 
+    let v_name = Var.get_name v in 
+    if not (Hsetmap.mem (Mod.get_lvars m) v_name) then begin
+      Ast.print_pos pos; 
+      Printf.printf " Error: %s': the initial condition must cite only local variables.\n" v_name;
+      raise TypeError
+    end 
+  in iter_unprimed_vars e chkg; 
+  (* does some final type checking *) 
+  type_check_bool e;
+  update_clock_bounds_expr e;
+  (* adds variables to the module *)
+  let vars = get_unprimed_vars e in
+  List.iter (Mod.add_var m) vars 
 
 (** This function checks that a module follows all the rules *)
 let check_module (m: Mod.t) : unit = 
@@ -573,11 +610,14 @@ let check_module (m: Mod.t) : unit =
   Hsetmap.iter_body (check_lrule m) (Mod.get_lrules m); 
   Hsetmap.iter_body (check_orule m) (Mod.get_orules m); 
   Hsetmap.iter_body (check_irule m) (Mod.get_irules m);
+  (* Checks that the initial condition contains only local variables *)
+  List.iter (check_init m) (Mod.get_init m); 
   (* at this point, the vars of the module are known. *) 
   (* computes the history-full variables as the difference between 
      the variables of the module and the free variables. *) 
   Mod.set_hvars m;
   (* checks that invariants only mention history-full variables *) 
+  Hsetmap.iter_body (check_invariant m) (Mod.get_ssets m); 
   List.iter (check_invariant m) (Mod.get_iinv m);
   List.iter (check_invariant m) (Mod.get_oinv m)
 
@@ -589,6 +629,18 @@ let optimize_module (m: Mod.t) : unit =
   Mod.set_iinv m new_iinv; 
   let new_oinv = List.map optimize_expression (Mod.get_oinv m) in 
   Mod.set_oinv m new_oinv; 
+  (* Optimizes the initial condition *)
+  let new_init = List.map optimize_expression (Mod.get_init m) in 
+  Mod.set_init m new_init; 
+
+  (* Optimizes the statesets *) 
+  let optimize_set (h: (string, Ast.t) Hsetmap.t) (n: string) (e: Ast.t) : unit = 
+    let new_e = optimize_expression e in 
+    Hsetmap.add h n new_e
+  in
+  let new_h : (string, Ast.t) Hsetmap.t = Hsetmap.mk () in 
+  Hsetmap.iter (optimize_set new_h) (Mod.get_ssets m); 
+  Mod.set_ssets m new_h; 
 
   (* How to optimize a guarded command (except input local) *)
   let optimize_gc (g, c) = 

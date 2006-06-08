@@ -50,6 +50,10 @@ type t = {
   mutable cvars : VarSet.t; 
   (** bounds of clock variables *) 
   clock_bound : (varid_t, int) Hsetmap.t; 
+  (** initial condition *)
+  mutable init   : Mlglu.mdd; 
+  (** statesets *)
+  ssets : (string, Mlglu.mdd) Hsetmap.t; 
   (** input invariants *) 
   mutable iinv   : Mlglu.mdd; 
   (** output invariants *)
@@ -77,6 +81,9 @@ let mk mgr (name: string) : t =
     cvars = VarSet.empty; 
 
     clock_bound = Hsetmap.mk (); 
+    
+    init = Mlglu.mdd_one mgr;
+    ssets = Hsetmap.mk (); 
 
     iinv = Mlglu.mdd_one mgr;
     oinv = Mlglu.mdd_one mgr;

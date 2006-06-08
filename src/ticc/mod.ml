@@ -15,7 +15,7 @@ type t = {
   (** initial condition of the module *)
   mutable init  : Ast.t list; 
   (** statesets of the module *)
-  ssets         : (string, Ast.t) Hsetmap.t; 
+  mutable ssets : (string, Ast.t) Hsetmap.t; 
   (** input invariants *) 
   mutable iinv  : Ast.t list; 
   (** output invariants *)
@@ -100,11 +100,6 @@ let add_iinv m e = m.iinv <- e::m.iinv
 let add_oinv m e = m.oinv <- e::m.oinv
 let add_init m e = m.init <- e::m.init
 
-(** Sets invariants and initial conditions *)
-let set_iinv m el = m.iinv <- el 
-let set_oinv m el = m.oinv <- el 
-let set_init m el = m.init <- el 
-
 (** Adds a stateset to a module *)
 let add_sset (m : t) (n: string) (e: Ast.t) = Hsetmap.add m.ssets n e
 
@@ -112,6 +107,12 @@ let add_sset (m : t) (n: string) (e: Ast.t) = Hsetmap.add m.ssets n e
 let add_lrule m (r: Rule.lrule_t) : unit = Hsetmap.add m.lrules (Rule.get_lname r) r
 let add_orule m (r: Rule.orule_t) : unit = Hsetmap.add m.orules (Rule.get_oname r) r
 let add_irule m (r: Rule.irule_t) : unit = Hsetmap.add m.irules (Rule.get_iname r) r
+
+(** Sets invariants and initial conditions *)
+let set_iinv m el = m.iinv <- el 
+let set_oinv m el = m.oinv <- el 
+let set_init m el = m.init <- el 
+let set_ssets m el = m.ssets <- el 
 
 (** Looks up variables *) 
 let lookup_lvar m n = Hsetmap.find m.lvars n
