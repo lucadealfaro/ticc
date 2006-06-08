@@ -116,8 +116,7 @@
 	     raise ParseError 
 	   end;
 	 Prog.add_sset Prog.parselevel name exp
-       
-
+      
    (** Declares global or local variable. 
      The decision is based on the scope. 
      Either global or inside current module (curr_mod) *)
@@ -370,7 +369,11 @@
 
  statesetd   : STATESET ID COL exp { declare_stateset $2 $4 };
 
- initsetd    : INITIAL COL exp { declare_stateset Mod.init_sset_name $3 };
+ initsetd    : INITIAL COL exp 
+               { match !curr_mod with
+                   Some x -> Mod.add_init x $3
+                 | None -> Printf.printf "Initial conditions should belong to a module";
+                   raise Internal_error} ;
 
  invariant : OINV COL exp
                { match !curr_mod with

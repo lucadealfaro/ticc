@@ -378,6 +378,7 @@ let clone_modp p m1 m2 : unit =
     let mlen = String.length mname in
     let fvars1 = Mod.get_fvars mod1 in
     let hvars1 = Mod.get_hvars mod1 in
+    let init1 = Mod.get_init mod1 in 
     let iinv1 = Mod.get_iinv mod1 in
     let oinv1 = Mod.get_oinv mod1 in
     let mod2 = Mod.create_empty m2 in
@@ -395,6 +396,8 @@ let clone_modp p m1 m2 : unit =
     List.iter add_iinv iinv1;
     let add_oinv oinv = Mod.add_oinv mod2 (Ast.replace_vars oinv (lookup_renamed_var mod2 )) in
     List.iter add_oinv oinv1;
+    let add_init init = Mod.add_init mod2 (Ast.replace_vars init (lookup_renamed_var mod2 )) in
+    List.iter add_init init1;
     Mod.iter_lrules mod1 (new_lrule mod2);
     Mod.iter_orules mod1 (new_orule mod2);
     Mod.iter_irules mod1 (new_irule mod2);

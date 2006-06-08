@@ -1,5 +1,4 @@
 (* file : ticlex.mll *)
-(* $Id: ticlex.mll,v 1.30 2006/06/07 20:02:09 luca Exp $ *)
 
 {
   open Ticparse (* Assumes the parser file is "ticparse.mly".*)

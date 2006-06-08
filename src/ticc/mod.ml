@@ -12,6 +12,8 @@ type t = {
   mutable hvars : (string, Var.t) Hsetmap.t;
   (** list of all mentioned variables *) 
   vars          : (string, Var.t) Hsetmap.t;
+  (** initial condition of the module *)
+  mutable init  : Ast.t list; 
   (** statesets of the module *)
   ssets         : (string, Ast.t) Hsetmap.t; 
   (** input invariants *) 
@@ -25,10 +27,6 @@ type t = {
   (** output transition rules *) 
   orules        : (string, Rule.orule_t) Hsetmap.t; 
 }
-
-(** Name of the initial condition of a module. Note: this cannot be
-    something that can occur in the input, so we make it begin by _ *)
-let init_sset_name = "_initial"
 
 (** To signal duplicate declarations *)
 exception Mod_duplicate_var
@@ -44,6 +42,7 @@ let create_empty (name: string) : t =
   fvars    = Hsetmap.mk ();
   hvars    = Hsetmap.mk ();
   vars     = Hsetmap.mk ();
+  init     = []; 
   ssets    = Hsetmap.mk (); 
   iinv     = [];
   oinv     = [];
@@ -58,13 +57,13 @@ let get_lvars m = m.lvars
 let get_fvars m = m.fvars
 let get_hvars m = m.hvars
 let get_vars  m = m.vars
+let get_init m = m.init 
 let get_ssets m = m.ssets 
 let get_iinv  m = m.iinv
 let get_oinv  m = m.oinv
 let get_lrules m = m.lrules
 let get_irules m = m.irules
 let get_orules m = m.orules
-let get_initcond_name (m: t) : string = m.name ^ "." ^ init_sset_name
 
 (** Iterators *) 
 
@@ -77,7 +76,6 @@ let iter_ssets  (m: t) (f: string -> Ast.t -> unit) : unit =
   Hsetmap.iter f m.ssets
 
 (** Checks existence in hash tables *)
-
 let is_lvar_name_def m n = Hsetmap.mem m.lvars n
 let is_fvar_name_def m n = Hsetmap.mem m.lvars n
 let is_var_name_def m n = Hsetmap.mem m.vars n
@@ -97,19 +95,18 @@ let add_fvar m (v: Var.t) = add_somevar m.fvars v
 let add_hvar m (v: Var.t) = add_somevar m.hvars v
 let add_var m (v: Var.t)  = add_somevar m.vars  v
 
-(** Adds invariants *)
+(** Adds invariants and initial conditions *)
 let add_iinv m e = m.iinv <- e::m.iinv
 let add_oinv m e = m.oinv <- e::m.oinv
+let add_init m e = m.init <- e::m.init
 
-(** Sets invariants *)
+(** Sets invariants and initial conditions *)
 let set_iinv m el = m.iinv <- el 
 let set_oinv m el = m.oinv <- el 
+let set_init m el = m.init <- el 
 
 (** Adds a stateset to a module *)
 let add_sset (m : t) (n: string) (e: Ast.t) = Hsetmap.add m.ssets n e
-(** Defines, or replaces, the initial condition of a module *) 
-let set_init_sset (m: t) (e: Ast.t) = 
-  Hsetmap.modify m.ssets (get_initcond_name m) e
 
 (** Add rules to a module *)
 let add_lrule m (r: Rule.lrule_t) : unit = Hsetmap.add m.lrules (Rule.get_lname r) r
@@ -123,28 +120,20 @@ let lookup_var m n = Hsetmap.find m.vars n
 
 (** Looks up statesets *) 
 let lookup_sset (m: t) (n: string) : Ast.t = Hsetmap.find m.ssets n 
-let lookup_initial_sset (m: t) : Ast.t = 
-  Hsetmap.find m.ssets (get_initcond_name m)
     
 (** Gets variable hashtables *) 
 let get_lvars (m : t) = m.lvars
 let get_fvars (m : t) = m.fvars
 let get_vars (m : t) = m.vars
 
-(** gets lists of invariants *) 
-let get_iinv (m : t) : Ast.t list = m.iinv
-let get_oinv (m : t) : Ast.t list = m.oinv
-
 (** Checks whether names are defined *)
 let is_irule_name_def m n = Hsetmap.mem m.irules n
 let is_orule_name_def m n = Hsetmap.mem m.orules n
 let is_lrule_name_def m n = Hsetmap.mem m.lrules n
 
-
 (** Fixes the set of history variables in a module *) 
 let set_hvars (m: t) : unit = 
   m.hvars <- (Hsetmap.unsafe_difference m.vars m.fvars)
-
 
 (** Print module *)
 let print_debug (m : t) : unit =
@@ -157,6 +146,11 @@ let print_debug (m : t) : unit =
   Printf.printf "\n\n All variables:";
   Hsetmap.iter_body Var.print m.vars;
   Printf.printf "\n";
+  let print_init e = 
+    Printf.printf "\n  Initial condition: "; 
+    Ast.print e;
+    Printf.printf ";"
+  in List.iter print_init m.init; 
   let print_sset (n: string) (e: Ast.t) : unit = 
     Printf.printf "\n  Stateset %s: " n; 
     Ast.print e;
@@ -182,6 +176,11 @@ let print (m : t) : unit =
   Printf.printf "\n\nmodule %s:" m.name;
   Hsetmap.iter_body Var.print_if_local m.vars;
   Printf.printf "\n";
+  let print_init e = 
+    Printf.printf "\n  Initial condition: "; 
+    Ast.print e;
+    Printf.printf ";"
+  in List.iter print_init m.init; 
   let print_sset (n: string) (e: Ast.t) : unit = 
     Printf.printf "\n  Stateset %s: " n; 
     Ast.print e;

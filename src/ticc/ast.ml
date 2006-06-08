@@ -1,4 +1,4 @@
-(** $Id: ast.ml,v 1.31 2005/12/29 17:50:03 mfaella Exp $ *)
+(** ast.ml *)
 
 type pos = Lexing.position 
 
