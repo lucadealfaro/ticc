@@ -243,7 +243,9 @@ let add_rule m r =
 let iter_lrules m f = Hsetmap.iter_body f m.lrules
 let iter_irules m f = Hsetmap.iter_body f m.irules
 let iter_orules m f = Hsetmap.iter_body f m.orules
-
+let fold_lrules m f = Hsetmap.fold_body f m.lrules
+let fold_irules m f = Hsetmap.fold_body f m.irules
+let fold_orules m f = Hsetmap.fold_body f m.orules
 
 (** The function gets a rule, and clones it *)
 

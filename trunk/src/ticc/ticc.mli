@@ -32,6 +32,8 @@ exception NoTimedSupport
     from the names of m1 and m2, separated by '*'.  *)
 val compose : ?result_name:string -> symbolic_module_t -> symbolic_module_t -> symbolic_module_t
 
+val compose_alt : ?result_name:string -> symbolic_module_t -> symbolic_module_t -> symbolic_module_t
+
 (*
 (** [compose2opt ml1 ml2 l]  composes the list of symbolic modules 
     [ml1] and [m2], and leaves the result in [l]. 

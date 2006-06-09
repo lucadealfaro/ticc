@@ -22,6 +22,7 @@ exception Incompatible_Modules = Symops.Incompatible_Modules
 
 (** compose two modules *)
 let compose = Symops.composition Symprog.toplevel Symops.win_i_safe;;
+let compose_alt = Symops.composition Symprog.toplevel Symops.win_i_safe_alt_1;;
 
 (*
 (** compose two lists of modules *)
@@ -110,10 +111,10 @@ let sym_clone (m: Symmod.t) : Symmod.t =
 
 let set_equal b1 b2 = Mlglu.mdd_equal b1 b2;;
 
-let set_is_subset b1 b2 = Mlglu.mdd_is_tautology (Mlglu.mdd_or b1 b2 0 1) 1
+let set_is_subset b1 b2 = Mlglu.mdd_is_one (Mlglu.mdd_or b1 b2 0 1)
 
 (** Logical operations between BDDs *) 
-let set_is_empty b = Mlglu.mdd_is_tautology b 0 
+let set_is_empty b = Mlglu.mdd_is_zero b
 let set_and  b1 b2 = Mlglu.mdd_and b1 b2 1 1
 let set_or   b1 b2 = Mlglu.mdd_or  b1 b2 1 1
 let set_impl b1 b2 = Mlglu.mdd_or  b1 b2 0 1

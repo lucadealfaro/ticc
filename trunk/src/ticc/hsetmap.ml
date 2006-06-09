@@ -199,6 +199,12 @@ let iter_body f m =
   let g k b = f b in 
   iter g m  
 
+(** This is a special fold that folds only over the body 
+    (not the key) *)
+let fold_body f m = 
+    let g k b = f b in 
+    fold g m 
+
 (** Returns a list containing all the values in the set. *)
 let body_to_list m =
     let add_one_val _ v tmp = v::tmp in

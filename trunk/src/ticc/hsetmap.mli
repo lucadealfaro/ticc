@@ -50,11 +50,14 @@ val copy : ('a, 'b) t -> ('a, 'b) t
 (** Iterators *)
 
 val iter : ('a -> 'b -> unit) -> ('a, 'b) t -> unit
-val fold : ('a -> 'b -> 'c -> 'c) -> ('a, 'b) t -> 'c -> 'c
 (** This is a special iterator that iterates only on the 
     "body" (not the key). *)
 val iter_body : ('b -> unit) -> ('a, 'b) t -> unit 
 
+(** Fold *)
+val fold : ('a -> 'b -> 'c -> 'c) -> ('a, 'b) t -> 'c -> 'c
+(** Folds over the body only *)
+val fold_body: ('b -> 'c -> 'c) -> ('a, 'b) t -> 'c -> 'c
 
 (** Returns a list containing all the values in the set. *)
 val body_to_list : ('a, 'b) t -> 'b list

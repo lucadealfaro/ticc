@@ -13,7 +13,7 @@ var R_plumb, R_electr, R_floor, R_wall, R_clean: bool
 var plumb_active, electr_active, floor_active, wall_active, clean_active: bool 
 
 // This is the initial condition 
-stateset initial: ~K_busy & ~L_busy & ~B_busy & ~R_busy
+stateset initcond: ~K_busy & ~L_busy & ~B_busy & ~R_busy
 	 & ~plumb_active & ~electr_active & ~floor_active & ~wall_active & ~clean_active
 
 // This is the module that breaks things. 

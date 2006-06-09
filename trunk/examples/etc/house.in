@@ -17,56 +17,16 @@ let clean       = mk_sym "Clean";;
 
 (* for debugging *)
 (* print_symmod plumber;; *)
-(*
- clone "RudeElectrician" "Rude_Clone";
- let rude_clone =  mk_sym "Rude_Clone" in
- print_symmod rude_clone;;
-*)
 
-let newc0 = compose2pes [breaks] [calls];;
-(*List.iter print_symmod newc0;;*)
+let comp = compose_alt
 
-let newc1 = compose2pes newc0 [plumber];;
-(*List.iter print_symmod newc1;;*)
+let c0 = comp breaks calls;; 
+let c1 = comp c0 plumber;; 
+let c2 = comp c1 electrician;;
 
+let d2 = comp c1 rudelectr;;
 
-(*
-let electr =  compose2pes [electrician] [rudelectr];; 
-List.iter print_symmod electr;;*)
-
-
-let newc2 = compose2pes newc1 [rudelectr];;
-List.iter print_symmod newc2;;
-
-(*
-
-let newc3 = compose2opt [floors] newc1 ;;
-List.iter print_symmod newc2;;
-
-let newc4 = compose2opt newc3 [walls] ;;
-List.iter print_symmod newc4;;
-
-let newc5 = compose2opt newc4 [clean] ;;
-List.iter print_symmod newc5;; 
-
-print_symmod breaks;;
-print_symmod calls;;
-print_symmod rudelectr;;
-print_symmod plumber;;
-print_symmod floors;;
-print_symmod walls;;
-print_symmod clean;;
-*)
-
-
-let c0 = compose breaks calls;; 
-let c1 = compose c0 plumber;; 
-(*let c2 = compose c1 electrician;;*)
-
-let d2 = compose c1 rudelectr;;
-print_symmod d2;;
-(*
-let init  = mk_set "initial";; 
+let init  = mk_set "initcond";; 
 
 let c2i = get_iinv c2;;
 let d2i = get_iinv d2;;
@@ -80,10 +40,8 @@ print_string "\n d2init: ";; (* this should be empty *)
 print_bool (set_is_empty d2init);;
 print_string "\n";;
 
-let c3 = compose c2 floors;;
-let c4 = compose c3 walls;;
-*)
+let c3 = comp c2 floors;;
 (*
-let c  = compose c4 clean;;
+let c4 = comp c3 walls;;
+let c  = comp c4 clean;;
 *)
-
