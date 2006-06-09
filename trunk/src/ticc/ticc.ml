@@ -158,7 +158,7 @@ let print_vars () =
 
 (** prints a symbolic module *)
 let print_symmod sm : unit =
-  Symops.print Symprog.toplevel sm
+  Symprint.print Symprog.toplevel sm
   ;;
 
 (** prints a symbolic invariant of a module *)
@@ -168,7 +168,7 @@ let print_symmod_oinv = Symprog.print_oinv Symprog.toplevel;;
 (** prints how an input rule [r] of a symbolic module [sm]
     is restricted by the input invariant. *)
 let print_input_restriction sm (r: string) = 
-  Symops.print_input_restriction Symprog.toplevel sm r 
+  Symprint.print_input_restriction Symprog.toplevel sm r 
 
 (** print an enum module with debug info *) 
 let print_module_full (mn: string) = 
@@ -177,7 +177,7 @@ let print_module_full (mn: string) =
 
 (** prints the rules that correspond to an action *)
 
-let print_symmod_rules = Symops.print_rulemodact Symprog.toplevel;;
+let print_symmod_rules = Symprint.print_rulemodact Symprog.toplevel;;
 
 (** Prints a boolean value *)
 let print_bool b = 
