@@ -23,13 +23,14 @@ exception Incompatible_Modules = Symops.Incompatible_Modules
 (** compose two modules *)
 let compose = Symops.composition Symprog.toplevel Symops.win_i_safe;;
 
+(*
 (** compose two lists of modules *)
-
 let compose2opt = Symops.pairwise_composition Symprog.toplevel true Symops.win_i_safe;;
 let compose2pes = Symops.pairwise_composition Symprog.toplevel false Symops.win_i_safe;;
 
 (** calculate an input invariant based on pairwise composition *)
 let calculate_inv = Symops.composition_test2 Symprog.toplevel Symops.win_i_safe;;
+ *)
 
 (** Computes the local/output post of a module [sm] 
     and a stateset [set]. *)
@@ -97,8 +98,13 @@ let mk_set (set_name: string) =
 let parse_stateset (exp_string: string) : Symops.stateset_t =
   Symbuild.parse_stateset Symprog.toplevel exp_string
 
-(** clone a module *)
+(** clones an enumerative module *)
 let clone = Prog.clone_modp Prog.toplevel;;
+
+(** clones a symbolic module *)
+let sym_clone (m: Symmod.t) : Symmod.t = 
+  let mgr = Symprog.get_mgr Symprog.toplevel in 
+  Symmod.symbolic_clone mgr m
 
 (** Comparisons between mdds *)
 

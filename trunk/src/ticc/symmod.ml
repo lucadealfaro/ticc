@@ -49,7 +49,7 @@ type t = {
   (** clock variables *)
   mutable cvars : VarSet.t; 
   (** bounds of clock variables *) 
-  clock_bound : (varid_t, int) Hsetmap.t; 
+  mutable clock_bound : (varid_t, int) Hsetmap.t; 
   (** initial condition *)
   mutable init   : Mlglu.mdd; 
   (** statesets *)
@@ -154,7 +154,7 @@ let is_timed (m: t) : bool = not (VarSet.is_empty m.cvars)
 (** **************** Rules ******************* *)
 
 (** Internal function to make a rule of any type. *)
-let mk_rule typ act wvars tran : rule_t =
+let mk_rule (typ: rule_type_t) (act: string) (wvars:VarSet.t) (tran: Mlglu.mdd list) : rule_t =
   let rule = match typ with
       Local  -> Loc (List.hd tran)
     | Output -> Out (List.hd tran)
@@ -244,3 +244,52 @@ let iter_lrules m f = Hsetmap.iter_body f m.lrules
 let iter_irules m f = Hsetmap.iter_body f m.irules
 let iter_orules m f = Hsetmap.iter_body f m.orules
 
+
+(** The function gets a rule, and clones it *)
+
+let rule_dup (r: rule_t) : rule_t = 
+  let act = r.act in 
+  (* no need to dupe a set, as it is functional *)
+  let wvars = r.wvars in 
+  let new_r = 
+    match r.rule with
+      Loc (m) | Out (m) -> Loc (Mlglu.mdd_dup m)
+    | Inp (m1, m2) -> Inp (Mlglu.mdd_dup m1, Mlglu.mdd_dup m2)
+  in 
+  { 
+    act = act;
+    wvars = wvars; 
+    rule = new_r;
+  }
+
+
+(** The function takes a symbolic module and returns a clone. *)
+
+let symbolic_clone mgr (m : t) : t = 
+  let m1 = mk mgr m.name in 
+  (* We don't need to clone sets of variables, as they are functional *)
+  m1.vars  <- m.vars;
+  m1.lvars <- m.lvars;
+  m1.gvars <- m.gvars;
+  m1.hvars <- m.hvars;
+  m1.cvars <- m.cvars;
+  (* The bounds for the clock variables... They should not change, but 
+     just for safety, let's not skimp *)
+  m1.clock_bound <- Hsetmap.copy m.clock_bound; 
+  m1.init <- Mlglu.mdd_dup m.init; 
+  m1.iinv <- Mlglu.mdd_dup m.iinv; 
+  m1.oinv <- Mlglu.mdd_dup m.oinv; 
+  (* dups the state sets *)
+  let f (n: string) (mdd: Mlglu.mdd) : unit = 
+    Hsetmap.add m1.ssets n (Mlglu.mdd_dup mdd) 
+  in
+  Hsetmap.iter f m.ssets; 
+  (* dups the rules *)
+  let g (h: (string, rule_t) Hsetmap.t) (n: string) (r: rule_t) : unit = 
+    Hsetmap.add h n (rule_dup r)
+  in
+  Hsetmap.iter (g m1.lrules) m.lrules; 
+  Hsetmap.iter (g m1.orules) m.orules; 
+  Hsetmap.iter (g m1.irules) m.irules; 
+  (* all done *)
+  m1

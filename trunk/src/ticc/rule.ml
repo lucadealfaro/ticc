@@ -115,6 +115,12 @@ let add_iwg_var (r: irule_t) (v : Var.t) =
 let add_iwl_var (r: irule_t) (v : Var.t) = 
   Hsetmap.add r.iwlvars (Var.get_name v) v 
 
+(* duplicates rules *)
+
+
+
+
+
 (** prints a local rule *)
 let print_lrule (r: lrule_t) = 
   Printf.printf "\n  local %s: " r.lact ;

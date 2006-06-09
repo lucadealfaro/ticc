@@ -32,6 +32,7 @@ exception NoTimedSupport
     from the names of m1 and m2, separated by '*'.  *)
 val compose : ?result_name:string -> symbolic_module_t -> symbolic_module_t -> symbolic_module_t
 
+(*
 (** [compose2opt ml1 ml2 l]  composes the list of symbolic modules 
     [ml1] and [m2], and leaves the result in [l]. 
     The function takes a first optional parameter, which is the name
@@ -46,7 +47,9 @@ val compose2opt : ?result_name:string -> symbolic_module_t list -> symbolic_modu
     from the names of m1 and m2, separated by '*'.  *)
 val compose2pes : ?result_name:string -> symbolic_module_t list -> symbolic_module_t list -> symbolic_module_t list
 
+(** calculate an input invariant based on pairwise composition *)
 val calculate_inv : symbolic_module_t list -> state_set_t
+ *)
 
 (** This exception can be thrown by [compose] to indicate that the
     symbolic modules are not composable. *)
@@ -112,6 +115,9 @@ val parse_stateset : string -> state_set_t
     module with name [mod_name1], producing a parsed module
     [mod_name2].  *)
 val clone : string -> string -> unit
+
+(** [sym_clone m] returns a clone of the symbolic module m *)
+val sym_clone : Symmod.t -> Symmod.t 
 
 (* **************************************************************** *)
 

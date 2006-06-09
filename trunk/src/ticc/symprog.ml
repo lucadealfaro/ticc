@@ -1,4 +1,4 @@
-(** $Id: symprog.ml,v 1.19 2005/12/26 17:32:15 mfaella Exp $ *)
+(** symprog.ml *)
 
 (** This declares the symbolic top level, and contains functions to
     add variables, etc. *)
@@ -7,6 +7,7 @@ module VarSet = Vset.VS
 
 type varid_t = Vset.varid_t 
 
+(** This is the type of a symbolic toplevel *)
 type t = {
   name  : string;
 
@@ -38,7 +39,7 @@ exception ID_not_defined
 let env_act = "delta_env"
 
 (** Creates an empty symbolic toplevel *)
-let mk n = 
+let mk (n: string) : t = 
   {
     name = n; 
 
@@ -55,7 +56,7 @@ let toplevel = mk "Toplevel"
 
 
 (** Gets mdd manager *)
-let get_mgr s = s.mgr
+let get_mgr (s: t) : Mlglu.mdd_manager = s.mgr
 
 
 (** ********** Modules ********************************** *)
@@ -80,7 +81,7 @@ let list_modules_top () = list_modules toplevel
     s: symbolic program 
     v: variable 
     p: flag indicating whether primed *) 
-let get_id_of_var s v p = 
+let get_id_of_var (s: t) v p = 
   if Hsetmap.mem s.var_to_ids v 
   then begin
     let (id, pid) = Hsetmap.find s.var_to_ids v in 
@@ -92,7 +93,7 @@ let get_id_of_var s v p =
   end
 
 (** Gets the set of (unprimed) IDs for a set of variables. *)
-let get_id_of_varset s (vset: (string, Var.t) Hsetmap.t) : VarSet.t =
+let get_id_of_varset (s: t) (vset: (string, Var.t) Hsetmap.t) : VarSet.t =
   let f n v id_set =
     let vid = get_id_of_var s v false in
     VarSet.add vid id_set 
