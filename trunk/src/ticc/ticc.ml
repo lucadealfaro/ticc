@@ -3,26 +3,26 @@
 
 (** This is the type of a symbolic representation of a set of
     states. *)
-type state_set_t = Symops.stateset_t
+type state_set_t = Symmod.stateset_t
 
 (** This is the type of a symbolic module. *)
 type symbolic_module_t = Symmod.t 
 
 (** Indicates that the operation has not yet been implemented for
     timed modules. *) 
-exception NoTimedSupport = Symops.NoTimedSupport
+exception NoTimedSupport = Ops.NoTimedSupport
 
 (** This exception can be thrown by [compose] to indicate that the
     modules are not composable. *)
-exception Modules_not_composable = Symops.Modules_not_composable
+exception Modules_not_composable = Compose.Modules_not_composable
 
 (** this exception can be thrown by [compose] to indicate that the
     modules being composed are incompatible. *)
-exception Incompatible_Modules = Symops.Incompatible_Modules
+exception Incompatible_Modules = Compose.Incompatible_Modules
 
 (** compose two modules *)
-let compose = Symops.composition Symprog.toplevel Symops.win_i_safe;;
-let compose_alt = Symops.composition Symprog.toplevel Symops.win_i_safe_alt_1;;
+let compose = Compose.composition Symprog.toplevel Ops.win_i_safe;;
+let compose_alt = Compose.composition Symprog.toplevel Ops.win_i_safe_alt_1;;
 
 (*
 (** compose two lists of modules *)
@@ -35,25 +35,25 @@ let calculate_inv = Symops.composition_test2 Symprog.toplevel Symops.win_i_safe;
 
 (** Computes the local/output post of a module [sm] 
     and a stateset [set]. *)
-let lo_post (sm: Symmod.t) (set: Symops.stateset_t) : Symops.stateset_t =
-  Symops.lo_post Symprog.toplevel sm set
+let lo_post (sm: Symmod.t) (set: state_set_t) : state_set_t =
+  Ops.lo_post Symprog.toplevel sm set
  
 (** Computes the input post of a module [sm] and a stateset [set]. *)
-let i_post (sm: Symmod.t) (set: Symops.stateset_t) : Symops.stateset_t =
-  Symops.i_post Symprog.toplevel sm set
+let i_post (sm: Symmod.t) (set: state_set_t) : state_set_t =
+  Ops.i_post Symprog.toplevel sm set
 
 (** Computes the set of winning states for player Input w.r.t.
   the safety goal [set]. *)
-let win_i_safe (sm: Symmod.t) (set: Symops.stateset_t) 
-  : Symops.stateset_t  = 
-  Symops.win_i_safe Symprog.toplevel sm set
+let win_i_safe (sm: Symmod.t) (set: state_set_t) 
+  : state_set_t  = 
+  Ops.win_i_safe Symprog.toplevel sm set
   ;;
 
 (** Computes the set of winning states for player Output w.r.t.
   the safety goal [set]. *)
-let win_lo_safe (sm: Symmod.t) (set: Symops.stateset_t) 
-  : Symops.stateset_t  = 
-  Symops.win_lo_safe Symprog.toplevel sm set
+let win_lo_safe (sm: Symmod.t) (set: state_set_t) 
+  : state_set_t  = 
+  Ops.win_lo_safe Symprog.toplevel sm set
   ;;
 
 (** Returns the MDD representing the input invariant of module m *)
@@ -76,7 +76,7 @@ let parse (f: string) =
 (** Given the name of a module, 
     it builds and returns the symbolic representation of the module. 
 *)
-let mk_sym = Symops.mk_sym
+let mk_sym = Ops.mk_sym
 
 
 (** Given the name of a stateset, build a symbolic representation for
@@ -96,7 +96,7 @@ let mk_set (set_name: string) =
 (** Given a string containing an expression, returns the symbolic
     representation of the set of states that satisfy the
     expression. *)
-let parse_stateset (exp_string: string) : Symops.stateset_t =
+let parse_stateset (exp_string: string) : state_set_t =
   Symbuild.parse_stateset Symprog.toplevel exp_string
 
 (** clones an enumerative module *)

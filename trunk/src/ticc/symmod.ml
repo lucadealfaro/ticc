@@ -5,6 +5,8 @@
 exception WrongRuleType
 exception UnknownClock 
 
+type stateset_t = Mlglu.mdd;;
+
 module VarSet = Vset.VS
 
 type varid_t = Vset.varid_t 
