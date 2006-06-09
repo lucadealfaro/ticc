@@ -52,6 +52,8 @@ type t = {
   mutable clock_bound : (varid_t, int) Hsetmap.t; 
   (** initial condition *)
   mutable init   : Mlglu.mdd; 
+  (** Set of reachable states *)
+  mutable reachset : Mlglu.mdd option; 
   (** statesets *)
   ssets : (string, Mlglu.mdd) Hsetmap.t; 
   (** input invariants *) 
@@ -83,6 +85,7 @@ let mk mgr (name: string) : t =
     clock_bound = Hsetmap.mk (); 
     
     init = Mlglu.mdd_one mgr;
+    reachset = None; 
     ssets = Hsetmap.mk (); 
 
     iinv = Mlglu.mdd_one mgr;
@@ -279,11 +282,15 @@ let symbolic_clone mgr (m : t) : t =
      just for safety, let's not skimp *)
   m1.clock_bound <- Hsetmap.copy m.clock_bound; 
   m1.init <- Mlglu.mdd_dup m.init; 
+  let new_reachset =  match m.reachset with
+      Some b -> Some (Mlglu.mdd_dup b)
+    | None -> None
+  in m1.reachset <- new_reachset;
   m1.iinv <- Mlglu.mdd_dup m.iinv; 
   m1.oinv <- Mlglu.mdd_dup m.oinv; 
   (* dups the state sets *)
   let f (n: string) (mdd: Mlglu.mdd) : unit = 
-    Hsetmap.add m1.ssets n (Mlglu.mdd_dup mdd) 
+     Hsetmap.add m1.ssets n (Mlglu.mdd_dup mdd) 
   in
   Hsetmap.iter f m.ssets; 
   (* dups the rules *)

@@ -386,14 +386,13 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 	
 	Symmod.Loc tau | Symmod.Out tau -> 
 	  (* the result is 
-	     ( (\exists allvars . 
-	        (\tau /\ set)[notw'/notw] )[allvars/allvars'] ) /\ oinv
+	     (\exists w . (\tau /\ set)[notw'/notw] )[allvars/allvars'] ) 
+             /\ oinv
 	  *)
-	    
 	  let notw = VarSet.diff allvars w in 
 	  let set_tau = Mlglu.mdd_and set tau 1 1 in 
 	  let set_tau_notw' =  Symutil.prime_mdd_vars sp set_tau notw in
-	  let result  = Mlglu.mdd_smooth mgr set_tau_notw' allvars in
+	  let result  = Mlglu.mdd_smooth mgr set_tau_notw' w in
 	  let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
 	  let oinv = Symmod.get_oinv sm in
 	  Mlglu.mdd_and unprimed_result oinv 1 1
@@ -402,7 +401,7 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 	  
 	  (* the result is
 	     ( (\exists allvars . 
-	        (taug /\ taul /\ set)[(V^l-w)'/(V^l-w)]] )[allvars/allvars'] ) /\ iinv
+	        (taug /\ taul /\ set)[(V^l-w)'/(V^l-w)] )[allvars/allvars'] ) /\ iinv
 	     where w is the set of variables that can be rewritten by taul
 	  *)
 	  let local_notw = VarSet.diff local w in
@@ -414,7 +413,7 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 	  let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
 	  let iinv = Symmod.get_iinv sm in
 	  Mlglu.mdd_and unprimed_result iinv 1 1
-;;
+
 
 (** Takes the local/output post of a set of states [set]. 
     This function computes the set of states that can be reached
@@ -456,6 +455,37 @@ let i_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
     in
     Symmod.iter_irules sm do_one_rule;
     !result
+
+(** This does both i_post and lo_post *)
+let loi_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
+    i_post sp sm (lo_post sp sm set)
+
+(** This function returns the set of states that are reachable from a given 
+    initial set. *)
+let reach (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t = 
+    let mgr = Symprog.get_mgr sp in
+    (* awkward variable declaration *)
+    let tot_set = ref (Mlglu.mdd_zero mgr) in 
+    let frontier = ref (Mlglu.mdd_zero mgr) in 
+    tot_set := set; 
+    frontier := set;
+    while not (Mlglu.mdd_is_zero !frontier) do
+	let set' = loi_post sp sm !frontier in 
+	frontier := Mlglu.mdd_and set' !tot_set 1 0; 
+	tot_set  := Mlglu.mdd_or !tot_set !frontier 1 1 
+    done;
+    !tot_set
+
+(** This function returns the set of reachable states of a module *)
+let reachable  (sp: Symprog.t) (sm: Symmod.t) = 
+    match sm.reachset with 
+	Some r -> r 
+      | None -> begin
+	    let r = reach sp sm sm.init in 
+	    sm.reachset <- Some r; 
+	    r
+	end
+
 
 
 (** **************** Composition of modules  ******************* *)
