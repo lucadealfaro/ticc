@@ -35,18 +35,21 @@ exception Incompatible_Modules
 
 (** Diagnostics *) 
 exception Internal_error_1
+exception Internal_error_2
 
 
 (** **************** Composition of modules  ******************* *)
 
-(** Search through a list of rules for a particular type. 
-    This function takes a list of rules [rule_list] and searches
-    if one of them is of type [typ].
-    In the positive case, the function returns the corresponding
-    rule. Otherwise, it returns a rule whose body is FALSE.
-
+(** Search through a list of rules [rule_list] for a rule 
+    for action [act] of type [typ]. 
+    If it finds it, returns it. 
+    If it does not find it, returns a new rule for action [act], 
+    corresponding to the empty transition relation, so that 
+    an incompatibility will result. 
  *)
-let rec find_rule_or_false (sp:Symprog.t) act typ rule_list =
+let rec find_rule_or_false (sp:Symprog.t) (act: string) 
+	(typ: Symmod.rule_type_t) (rule_list: Symmod.rule_t list)
+	: Symmod.rule_t =
     match rule_list with
 	[]	->
 	    (* if there is no rule for an action, then the
@@ -57,7 +60,8 @@ let rec find_rule_or_false (sp:Symprog.t) act typ rule_list =
 	    Symmod.mk_rule typ act VarSet.empty
 		[(Mlglu.mdd_zero mgr); (Mlglu.mdd_zero mgr)]
       | r::rs	->
-	    if (Symmod.get_rule_type r) = typ then r
+	    if (Symmod.get_rule_type r) = typ 
+	    then r 
 	    else find_rule_or_false sp act typ rs
 ;;
 
@@ -67,7 +71,6 @@ let rec find_rule_or_false (sp:Symprog.t) act typ rule_list =
     have different sets of local variables.
     The result is true if the intersection between the two
     sets is empty, otherwise it is false.
-
 
     Remark: if [m1] and [m2] share local variables, then the shared set
     is given by a printout.
@@ -109,24 +112,23 @@ let has_disjoint_lactions (m1:Symmod.t) (m2:Symmod.t) : bool =
     Symmod.iter_lrules m1 (next_local_rule m2); 
     !result;;
 
+
 (** is_composable.
     This functions checks if two modules [m1] and [m2]
     satisfy the composability condition.
     
     The composability condition is given by
     
+    "Marco's condition": 
+
     \forall a \in \Actions_2 . 
     W_2(a) \cap \vstate{1} \neq \emptyset \implies a \in \Actions_1 
     \forall a \in \Actions_1 .
     W_1(a) \cap \vstate{2} \neq \emptyset \implies a \in \Actions_2. 
 
-    and
-    
-    V_1^L \cap V_2^L {\equal} {\empty}
+    and    V_1^L \cap V_2^L {\equal} {\empty}
 
-    and
-
-    local actions of both modules are not shared.
+    and     local actions of both modules are not shared.
 
     The function return true if [m1] and [m2] satisfy the 
     composability condition. Otherwise, it returns false.
@@ -134,7 +136,6 @@ let has_disjoint_lactions (m1:Symmod.t) (m2:Symmod.t) : bool =
     Notice that the function is only iterated on output rules.
     This is because output rules are the only rules
     that can rewrite a global variable.
-
 
     REMARK: Each composability problem is reported by a printout. 
  *)
@@ -146,7 +147,7 @@ let is_composable (sp:Symprog.t) (m1:Symmod.t) (m2:Symmod.t) : bool =
     let v_1 = v_i m1 in
     let v_2 = v_i m2 in
     let interferes wvars v = not(VarSet.is_empty (VarSet.inter wvars v)) in
-    let check_for_interference sm1 sm2 sm2_v (r: rule_t)=
+    let check_for_interference sm1 sm2 sm2_v (r: rule_t) =
 	if !result then begin
 	    (* if result is false, we already know that [m1] and [m2] 
 	       are not composable*)
@@ -154,19 +155,18 @@ let is_composable (sp:Symprog.t) (m1:Symmod.t) (m2:Symmod.t) : bool =
 	    let wvars = Symmod.get_rule_wvars r in
 	    if (interferes wvars sm2_v)
 		&& not (Symmod.has_action sm2 act)
-	    then 
-	    begin  
-	    Printf.printf "Modules %s and %s have a composability problem.\n" 
-            (Symmod.get_name sm1) (Symmod.get_name sm2); 
-	    flush stdout;
-            Printf.printf "Action %s of Module %s modifies variables that are also part of Varset of module %s. The set of variables that is modified is " act (Symmod.get_name sm1) (Symmod.get_name sm2);
-	    flush stdout;
-	    Symutil.print_varset sp (VarSet.inter wvars sm2_v);
-	    Printf.printf ".\n";
-	    Printf.printf "However, Module %s do not have action %s\n \n" 
-	    (Symmod.get_name sm2) act;
-            flush stdout;
-	      result := false
+	    then begin  
+		Printf.printf "Modules %s and %s have a composability problem.\n" 
+		    (Symmod.get_name sm1) (Symmod.get_name sm2); 
+		flush stdout;
+		Printf.printf "Action %s of Module %s modifies variables that are also part of Varset of module %s. The set of variables that is modified is " act (Symmod.get_name sm1) (Symmod.get_name sm2);
+		flush stdout;
+		Symutil.print_varset sp (VarSet.inter wvars sm2_v);
+		Printf.printf ".\n";
+		Printf.printf "However, Module %s do not have action %s\n \n" 
+		    (Symmod.get_name sm2) act;
+		flush stdout;
+		result := false
             end
 	end
     in

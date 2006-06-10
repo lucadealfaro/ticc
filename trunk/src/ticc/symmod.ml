@@ -34,7 +34,6 @@ type rule_t = {
       In the local part, the variables that are primed must be local.
       TO CHECK: are the previous comments checked during the parsing?
       *)
-
   rule:  rule_body_t;
 }
 
@@ -181,7 +180,7 @@ let mk_irule act wvars trang tranl : rule_t =
   mk_rule Input  act wvars [trang; tranl]
 
 (** Returns the type of a rule. *)
-let get_rule_type r : rule_type_t =
+let get_rule_type (r: rule_t) : rule_type_t =
   match r.rule with
     Loc _ -> Local
   | Inp _ -> Input
