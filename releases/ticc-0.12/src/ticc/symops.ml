@@ -1009,10 +1009,9 @@ let product (sp:Symprog.t) ?(result_name="") (m1:Symmod.t) (m2:Symmod.t)
 		    (* for the local part, wvars keeps track of which
 		       variables can change, so there is no need to
 		       change the transition relation. *) 
-		    let new_mdd_il = mdd_il in
 		    let new_wvars = r.wvars in
 		    Symmod.mk_irule (Symmod.get_rule_act r)
-			new_wvars mdd_ig mdd_il
+			new_wvars new_mdd_ig mdd_il
 	in
 	add_rule new_sm new_rule
     in
