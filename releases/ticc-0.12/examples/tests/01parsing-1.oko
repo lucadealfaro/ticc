@@ -1,0 +1,81 @@
+
+===================================
+Printing symbolic module Printer.
+* Known variables:
+{ busy }
+ 
+* History variables: 
+{ busy }
+ 
+* Input Invariant:
+(1) 
+
+* Output Invariant:
+(1) 
+
+* Rules:
+
+action ack:--------
+----[output]:
+(
+ (busy = 1)(
+   (busy' = 0)) ) 
+action print:--------
+----[input global]:
+(
+ (busy = 0)(
+   (busy' = 1)) ) 
+----[input local]:
+(1) 
+
+
+endmodule
+===================================
+
+
+===================================
+Printing symbolic module User1.
+* Known variables:
+{ busy user size User1.s }
+ 
+* History variables: 
+{ busy User1.s }
+ 
+* Input Invariant:
+(1) 
+
+* Output Invariant:
+(1) 
+
+* Rules:
+
+action print:--------
+----[output]:
+(
+ (busy = 0)(
+   (busy' = 1)(
+     (user' = 1)(
+       (User1.s = 0)(
+         (User1.s' = 1)) ) ) ) ) 
+action ack:--------
+----[input global]:
+(1) 
+----[input local]:
+(
+ (User1.s = 0)(
+   (User1.s' = 1)) 
+  + 
+ (User1.s = 1)(
+   (User1.s' = 0)) ) 
+
+
+action print:--------
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+endmodule
+===================================
+

@@ -1,0 +1,118 @@
+//
+// Example:
+//   Implement two smoke alarms, and a central alarm unit.
+//   The central alarm collects alarms from the smoke alarms
+//   (fire detectors), and sends a message to the fire department
+//   if there is an alarm.
+//   This example is also presented in Section 2.1
+//   of the FROCOS05 paper.
+//
+
+
+
+// Modules can be defined in any order.  Following the FROCOS05 paper,
+// we first define the ControlUnit, which listens for alarms
+// from the fire detectors, and sends a message to the fire department
+// when an alarm is received.  The state diagram is quite simple:
+//    [1] --fire?--> [2] --FD!--> [3]
+// Basically, we stay in state [1] until a message is received
+// from one of the fire detectors.  This moves us to state [2],
+// in which we immediately issue the FD message to the fire department.
+// Once we broadcast FD!, we are permanently trapped in state [3]
+// until we are reset.
+// Notice that we do not use global variables.
+
+module ControlUnit:
+    // Define variables used by the module:
+    var s: [0..3]
+    // Here, we have defined an integer variable s which is restricted
+    // to the range of values 0, 1, 2, 3. 
+    // All ranges are required to begin at zero.
+
+    // A module contains a list of actions, with associated transitions. 
+    // The order in which the actions are listed is irrelevant. 
+
+    // fire? is an input transition that leads from s=1 to s=2. 
+    input fire : {
+        // For each input action, there are two sections that
+	// help define the behavior: global and local.
+	// See the Wiki (search for "guarded commands"). 
+	// For this example, we only need a 'local' section,
+	// because we only want to modify our internal variable, 's';
+	// the global section is for when there is some precondition and
+	// postcondition that you would like to specify on the global variables.
+        local:
+	    // We can only receive a "fire?" action from state 1,
+	    // and when we receive it, the ControlUnit switches to
+	    // state 2. 
+	    // Primed variables represents the value of the variable on the next "step".
+	    s = 1 ==> s' := 2 
+    }
+
+    // Similar to the input actions, we need to declare our output
+    // actions.  There is only one output action, FD!, which happens
+    // on the transition from state 2 to state 3.
+    output FD  : {
+        // In the following statement, notice that we don't
+	// use the ":=" assignment operator.  Instead, the guarded
+	// commands specified for an output action are like
+	// preconditions and postconditions.  If you have the statement:
+	//    P ==> Q & R 
+	// then P is the precondition that must be true for FD to fire,
+	// and "Q & R" describes the postconditions that must be true
+	// after the action has fired.  Internally, this is
+	// logically interpreted as "P & Q & R" to describe the transition
+	// (ie, FD is fired on those transitions where P is true at
+	// the start of the transition, and Q & R is true at end
+	// of the transition).  From the discussion, it should be clear
+	// that P will refer to unprimed variables, and Q and R
+	// can refer to both primed and unprimed variables.
+        s = 2 ==> s' = 3 
+    }
+endmodule
+
+
+// The fire detectors are also a very simple state machine:
+//     [1] --smoke1?--> [2] --fire!--> [3]
+//     (_)^             (_)^           (_)^
+//    fire?            fire?          fire?
+// There are self-loops to each state, which accept the
+// fire? input action.  This is so that this fire detector
+// can be safely composed with other fire detectors which
+// might issue a "fire!" message.
+module FireDetector1:
+    var s: [0..3]
+
+    input fire : {
+        // The "fire?" input action can be received from any state,
+	// and it does not change the state, so we don't have to
+	// say anything.  Declaring it as an input action is enough.
+    }
+    input smoke1 : {
+        local:
+	    // we only receive smoke1? when we're in state 1,
+	    // and it moves us to state 2.
+	    s = 1	==> s' := 2 
+    } 
+    output fire : {
+    	// The "fire!" message is only broadcast on the transition
+	// between states 2 and 3.
+    	s = 2		==> s' = 3 
+    }
+endmodule
+
+
+// This is duplicate implementation of a fire detector.
+// Notice that it has been declared with a different name,
+// so that it doesn't conflict with FireDetector1.
+// Currently, Ticc does not allow you to instantiate two
+// copies of the same module.
+module FireDetector2:
+    var s: [0..3]
+
+    input fire : { }
+    input smoke2 : { local: s = 1	==> s' := 2  }
+    output fire : { s = 2		==> s' = 3  }
+
+endmodule
+ 

@@ -1,0 +1,1317 @@
+var busy: bool    // global variable indicating a printer busy 
+var size: [0..10] // size of the print job
+var user: [0..5]  // user who requested the job 
+
+module Printer:
+
+  output ack   : { busy ==> not busy' } 
+                              // ack? is not allowed
+
+  input  print : { global: not busy ==> busy' }
+
+endmodule
+
+
+module User1:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 1 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+
+module User2:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User3:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User4:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User5:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User6:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User7:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User8:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User9:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User10:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User11:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User12:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User13:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User14:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User15:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User16:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User17:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User18:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User19:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User20:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User21:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User22:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User23:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User24:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User25:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User26:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User27:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User28:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User29:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User30:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User31:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User32:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User33:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User34:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User35:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User36:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User37:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User38:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User39:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User40:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User41:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User42:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User43:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User44:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User45:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User46:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User47:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User48:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User49:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User50:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User51:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User52:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User53:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User54:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User55:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User56:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User57:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User58:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User59:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User60:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User61:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User62:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User63:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User64:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User65:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User66:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User67:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User68:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User69:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User70:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User71:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User72:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User73:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User74:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User75:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User76:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User77:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User78:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User79:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User80:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User81:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User82:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User83:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User84:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User85:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User86:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User87:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User88:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User89:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User90:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User91:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User92:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User93:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User94:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User95:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User96:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User97:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User98:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User99:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+module User100:
+  var s: [0..1]
+  stateless size, user
+
+  output print : { s = 0 & not busy ==> 
+                                  s' = 1 & user' = 2 & nondet size' }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  ack   : { local: s = 1 ==> s' := 0 
+                  else  s = 0 ==> s' := 0        }  // ignore ack? when s=0 
+
+endmodule
+
+
+

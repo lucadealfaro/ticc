@@ -1,0 +1,15 @@
+open Ticc;;
+parse "printer-large.si";;
+let pr = mk_sym "Printer";;
+let us1 = mk_sym "User1";;
+let us2 = mk_sym "User2";;
+let us3 = mk_sym "User3";;
+
+try let c1 = compose us3 us2 in
+    let c2 = compose c1 pr in
+    let c3 = compose c2 us1 in
+    print_symmod c3
+with _ -> print_endline "Exception was raised.";;
+
+flush stdout;;
+

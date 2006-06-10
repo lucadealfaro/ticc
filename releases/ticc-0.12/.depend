@@ -1,0 +1,6 @@
+main.cmo: ticparse.cmi ticlex.cmo 
+main.cmx: ticparse.cmx ticlex.cmx 
+ticlex.cmo: ticparse.cmi 
+ticlex.cmx: ticparse.cmx 
+ticparse.cmo: ast.cmo ticparse.cmi 
+ticparse.cmx: ast.cmx ticparse.cmi 

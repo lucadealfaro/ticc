@@ -1,0 +1,14 @@
+open Ticc;;
+parse "fire-detector.si";;
+
+let fire1 = mk_sym "FireDetector1";;
+let fire2 = mk_sym "FireDetector2";;
+let controlunit = mk_sym "ControlUnit";;
+
+print_symmod fire1;;
+print_symmod fire2;;
+print_symmod controlunit;;
+
+let composed = compose (compose controlunit fire1) fire2;;
+
+print_symmod composed;;

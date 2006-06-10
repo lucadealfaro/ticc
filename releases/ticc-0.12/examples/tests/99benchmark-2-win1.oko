@@ -1,0 +1,9 @@
+Composition built successfully.
+Safety condition has been calculated.
+(
+ (ControlUnit.s = 1)(
+   (FireDetector100.t = 0)
+    + 
+   (FireDetector100.t = 1)
+    + 
+   (FireDetector100.t = 3)) ) 

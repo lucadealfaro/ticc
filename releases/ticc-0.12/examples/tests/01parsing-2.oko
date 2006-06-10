@@ -1,0 +1,77 @@
+
+===================================
+Printing symbolic module ControlUnit.
+* Known variables:
+{ ControlUnit.s }
+ 
+* History variables: 
+{ ControlUnit.s }
+ 
+* Input Invariant:
+(1) 
+
+* Output Invariant:
+(1) 
+
+* Rules:
+
+action FD:--------
+----[output]:
+(
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 2)) ) 
+action fire:--------
+----[input global]:
+(
+ (ControlUnit.s = 0)) 
+----[input local]:
+(
+ (ControlUnit.s = 0)(
+   (ControlUnit.s' = 1)) ) 
+
+
+endmodule
+===================================
+
+
+===================================
+Printing symbolic module FireDetector1.
+* Known variables:
+{ FireDetector1.s }
+ 
+* History variables: 
+{ FireDetector1.s }
+ 
+* Input Invariant:
+(1) 
+
+* Output Invariant:
+(1) 
+
+* Rules:
+
+action fire:--------
+----[output]:
+(
+ (FireDetector1.s = 1)(
+   (FireDetector1.s' = 2)) ) 
+action fire:--------
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action smoke1:--------
+----[input global]:
+(
+ (FireDetector1.s = 0)) 
+----[input local]:
+(
+ (FireDetector1.s = 0)(
+   (FireDetector1.s' = 1)) ) 
+
+
+endmodule
+===================================
+
