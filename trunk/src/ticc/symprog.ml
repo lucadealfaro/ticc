@@ -36,7 +36,7 @@ exception Var_not_defined
 exception ID_not_defined
 
 (** This is the name of an environment action *)
-let env_act = "delta_env"
+let env_act = "_env_action"
 
 (** Creates an empty symbolic toplevel *)
 let mk (n: string) : t = 

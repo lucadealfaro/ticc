@@ -37,6 +37,7 @@ type rule_t = {
   rule:  rule_body_t;
 }
 
+
 type t = {
   name: string;
   (** list of all mentioned variables *) 
@@ -56,7 +57,7 @@ type t = {
   (** Set of reachable states *)
   mutable reachset : Mlglu.mdd option; 
   (** statesets *)
-  ssets : (string, Mlglu.mdd) Hsetmap.t; 
+  mutable ssets : (string, Mlglu.mdd) Hsetmap.t; 
   (** input invariants *) 
   mutable iinv   : Mlglu.mdd; 
   (** output invariants *)
@@ -107,6 +108,14 @@ let add_cvar (m: t) (id: varid_t) (bound: int) =
   m.cvars <- VarSet.add id m.cvars; 
   Hsetmap.add m.clock_bound id bound 
 
+let set_vars  (m: t) (vs: VarSet.t) = m.vars  <- vs
+let set_lvars (m: t) (vs: VarSet.t) = m.lvars <- vs
+let set_gvars (m: t) (vs: VarSet.t) = m.gvars <- vs
+let set_hvars (m: t) (vs: VarSet.t) = m.hvars <- vs
+let set_cvars (m: t) (vs: VarSet.t) = m.cvars <- vs
+let set_clk_bounds (m: t) (bounds: (varid_t, int) Hsetmap.t) = m.clock_bound <- bounds
+let set_ssets (m: t) (set : (string, Mlglu.mdd) Hsetmap.t) = m.ssets <- set 
+
 let set_iinv m phi = m.iinv <- phi
 let set_oinv m phi = m.oinv <- phi
 let set_init m phi = m.init <- phi
@@ -123,13 +132,44 @@ let get_lvars (m: t) : VarSet.t = m.lvars
 let get_gvars (m: t) : VarSet.t = m.gvars
 let get_hvars (m: t) : VarSet.t = m.hvars
 let get_cvars (m: t) : VarSet.t = m.cvars
+let get_bounds (m: t) : (varid_t, int) Hsetmap.t = m.clock_bound 
 
 let get_clock_bound (m: t) (id: varid_t) : int = 
   if not (VarSet.mem id m.cvars) then raise UnknownClock 
   else Hsetmap.find m.clock_bound id 
 
+(** A module is timed if it has at least one clock *) 
+let is_timed (m: t) : bool = not (VarSet.is_empty m.cvars) 
 
-let get_rules (m: t) act : rule_t list =
+
+(** **************** Rules ******************* *)
+
+(** Iterators *)
+let iter_lrules m f = Hsetmap.iter_body f m.lrules
+let iter_irules m f = Hsetmap.iter_body f m.irules
+let iter_orules m f = Hsetmap.iter_body f m.orules
+let fold_lrules m f = Hsetmap.fold_body f m.lrules
+let fold_irules m f = Hsetmap.fold_body f m.irules
+let fold_orules m f = Hsetmap.fold_body f m.orules
+
+(** The function gets a rule, and clones it *)
+
+let rule_dup (r: rule_t) : rule_t = 
+  let act = r.act in 
+  (* no need to dupe a set, as it is functional *)
+  let wvars = r.wvars in 
+  let new_r = 
+    match r.rule with
+      Loc (m) | Out (m) -> Loc (Mlglu.mdd_dup m)
+    | Inp (m1, m2) -> Inp (Mlglu.mdd_dup m1, Mlglu.mdd_dup m2)
+  in 
+  { 
+    act = act;
+    wvars = wvars; 
+    rule = new_r;
+  }
+
+let get_rules (m: t) (act: string) : rule_t list =
     List.fold_left
 	(fun found_rules rule_collection ->
 	    (* check the next collection, and prepend its rule
@@ -139,45 +179,69 @@ let get_rules (m: t) act : rule_t list =
 	)
 	[]
 	[ m.lrules; m.irules; m.orules ]
-    ;;
 
-let get_irule (m: t) act : rule_t option = 
+(** Gets an input rule, using perfect equality as the criterion 
+    (no wildcard match) *)
+let get_irule (m: t) (act: string) : rule_t option = 
     try Some (Hsetmap.find m.irules act)
     with Not_found -> None
-    ;;
 
+(** Checks whether a module has a given action.  The check is done by 
+    text equality, disregarding wildcards. *)
 let has_action (m: t) act : bool =
     let rule_list = get_rules m act in
     (List.length rule_list > 0)
-    ;;
 
+(** Checks whether a module has a given input action, giving either a
+    perfect match (if any), or the longest wildcard match. *)
+let has_input_action_wild (m: t) act : bool =
+    if Hsetmap.mem m.irules act 
+    then true 
+    else begin
+	let len_act = String.length act in 
+	let found = ref false in 
+	(* This function will be iterated on all input actions of m *)
+	let search_match (a: string) (r: rule_t) : unit = 
+	    let len_a = String.length a in 
+	    if a.[len_a - 1] = '*' && len_a - 1 <= len_act then 
+		found := !found || (
+		    (Str.first_chars act (len_a - 1)) = (Str.first_chars a (len_a - 1)))
+	in Hsetmap.iter search_match m.irules; 
+	!found
+    end
 
-(** A module is timed if it has at least one clock *) 
-let is_timed (m: t) : bool = not (VarSet.is_empty m.cvars) 
-
-(** **************** Rules ******************* *)
-
-(** Internal function to make a rule of any type. *)
-let mk_rule (typ: rule_type_t) (act: string) (wvars:VarSet.t) (tran: Mlglu.mdd list) : rule_t =
-  let rule = match typ with
-      Local  -> Loc (List.hd tran)
-    | Output -> Out (List.hd tran)
-    | Input -> Inp ((List.nth tran 0), (List.nth tran 1))
-  in 
-  {
-    act = act;
-    wvars = wvars;
-    rule = rule;
-  }
-  
-let mk_lrule act wvars tran : rule_t = 
-  mk_rule Local  act wvars [tran]
-
-let mk_orule act wvars tran : rule_t = 
-  mk_rule Output act wvars [tran]
-
-let mk_irule act wvars trang tranl : rule_t = 
-  mk_rule Input  act wvars [trang; tranl]
+(** This function looks for an input rule in a module, looking for the
+    best possible match with the given name, which can itself be
+    a wildcard.  It returns the rule, if found. *)
+let best_rule_match (m: t) (act: string) : rule_t option = 
+    (* A precise match is the best, if found *)
+    if Hsetmap.mem m.irules act 
+    then Some (Hsetmap.find m.irules act)
+    else begin
+	let root_act = 
+	    if (Str.last_chars act 1) = "*"
+	    then Str.first_chars act ((String.length act) - 1)
+	    else act
+	in
+	let best_match = ref (None) in 
+	let match_len  = ref (-1) in 
+	let len_act = String.length root_act in 
+	(* This function will be iterated on all input actions of m *)
+	let search_match (a: string) (r: rule_t) : unit = 
+	    let len_a = String.length a in 
+	    if a.[len_a - 1] = '*' && len_a - 1 <= len_act then 
+		(* If it finds a match, and it is a best match *)
+		if (Str.first_chars root_act (len_a - 1)) =
+		    (Str.first_chars a (len_a - 1)) 
+		    && len_a - 1 > !match_len then begin
+			(* Found a match a best match *)
+			best_match := Some r;
+			match_len := len_a - 1
+		    end
+        in
+        Hsetmap.iter search_match m.irules;
+        !best_match
+    end
 
 (** Returns the type of a rule. *)
 let get_rule_type (r: rule_t) : rule_type_t =
@@ -219,7 +283,7 @@ let get_rule_tran_as_pair r =
 ;;
 
 (** Returns the local and global MDDs for an input transition relation *) 
-let get_rule_ig_il_mdds r = 
+let get_rule_ig_il_mdds (r: rule_t) : Mlglu.mdd * Mlglu.mdd = 
     match get_rule_tran r with
       Loc (mdd)	-> raise WrongRuleType
     | Out (mdd)	-> raise WrongRuleType
@@ -227,13 +291,36 @@ let get_rule_ig_il_mdds r =
 ;;
 
 (** Returns the MDD for an output rule *) 
-let get_orule_mdds r = 
+let get_orule_mdd (r: rule_t) : Mlglu.mdd = 
     match get_rule_tran r with
 	Loc (mdd)	-> raise WrongRuleType
       | Out (mdd)	-> mdd 
       | Inp (mdd1, mdd2) -> raise WrongRuleType
 ;;
     
+(* ********  Making rules   *)
+
+(** Internal function to make a rule of any type. *)
+let mk_rule (typ: rule_type_t) (act: string) (wvars:VarSet.t) (tran: Mlglu.mdd list) : rule_t =
+  let rule = match typ with
+      Local  -> Loc (List.hd tran)
+    | Output -> Out (List.hd tran)
+    | Input -> Inp ((List.nth tran 0), (List.nth tran 1))
+  in 
+  {
+    act = act;
+    wvars = wvars;
+    rule = rule;
+  }
+  
+let mk_lrule act wvars tran : rule_t = 
+  mk_rule Local  act wvars [tran]
+
+let mk_orule act wvars tran : rule_t = 
+  mk_rule Output act wvars [tran]
+
+let mk_irule (act: string) wvars trang tranl : rule_t = 
+  mk_rule Input  act wvars [trang; tranl]
 
 (** Adds a rule to a module *) 
 let add_rule m r = 
@@ -243,31 +330,7 @@ let add_rule m r =
       | Input  -> Hsetmap.add m.irules act r
       | Output -> Hsetmap.add m.orules act r
 
-(** Iterators *)
-let iter_lrules m f = Hsetmap.iter_body f m.lrules
-let iter_irules m f = Hsetmap.iter_body f m.irules
-let iter_orules m f = Hsetmap.iter_body f m.orules
-let fold_lrules m f = Hsetmap.fold_body f m.lrules
-let fold_irules m f = Hsetmap.fold_body f m.irules
-let fold_orules m f = Hsetmap.fold_body f m.orules
-
-(** The function gets a rule, and clones it *)
-
-let rule_dup (r: rule_t) : rule_t = 
-  let act = r.act in 
-  (* no need to dupe a set, as it is functional *)
-  let wvars = r.wvars in 
-  let new_r = 
-    match r.rule with
-      Loc (m) | Out (m) -> Loc (Mlglu.mdd_dup m)
-    | Inp (m1, m2) -> Inp (Mlglu.mdd_dup m1, Mlglu.mdd_dup m2)
-  in 
-  { 
-    act = act;
-    wvars = wvars; 
-    rule = new_r;
-  }
-
+(** **************************************************************** *)
 
 (** The function takes a symbolic module and returns a clone. *)
 

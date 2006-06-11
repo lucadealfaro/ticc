@@ -17,12 +17,14 @@ exception Bad_typ;;
 (** Prints a (symbolic) rule. *)
 
 let print_rule sp r : unit =
-    if (Symmod.get_rule_act r) != Symprog.env_act then 
+    (* if (Symmod.get_rule_act r) != Symprog.env_act then *)
+    if true then 
 	begin
 	    let mgr = Symprog.get_mgr sp in
 	    Printf.printf "action %s:--------\n" (Symmod.get_rule_act r);
-	    (* Printf.printf "    modified vars: ";
-               Symutil.print_varset sp (Symmod.get_rule_wvars r); *)
+	    Printf.printf "Modified vars (wvars): ";
+            Symutil.print_varset sp (Symmod.get_rule_wvars r);
+	    Printf.printf "\n";
 	    let tran = Symmod.get_rule_tran r in
 	    match Symmod.get_rule_tran r with
 		Symmod.Loc m  -> 
@@ -41,12 +43,8 @@ let print_rule sp r : unit =
 		    flush stdout;
 		    Mlglu.mdd_print mgr ml;
 		    Printf.printf "\n\n";
-		    
 	end
-;;
 
-
-(** print_rulemod. *)
 
 let print_rulemod sp sm typ: unit = 
     let mgr = Symprog.get_mgr sp in
@@ -130,11 +128,17 @@ let print sp sm : unit =
     let mgr = Symprog.get_mgr sp in
     Printf.printf "\n===================================\n";
     Printf.printf "Printing symbolic module %s.\n" (Symmod.get_name sm);
-    Printf.printf "* Known variables:";
+    Printf.printf "* All variables:";
     Symutil.print_varset sp (Symmod.get_vars sm);
     Printf.printf "\n \n";
     Printf.printf "* History variables: ";
     Symutil.print_varset sp (Symmod.get_hvars sm);
+    Printf.printf "\n \n";
+    Printf.printf "* Local variables: ";
+    Symutil.print_varset sp (Symmod.get_lvars sm);
+    Printf.printf "\n \n";
+    Printf.printf "* Global variables: ";
+    Symutil.print_varset sp (Symmod.get_gvars sm);
     Printf.printf "\n \n";
     Printf.printf "* Input Invariant:\n";
     flush stdout;
@@ -184,10 +188,13 @@ let print_input_restriction sp sm (r: string) =
 	    let unchange_local = Symbuild.unchngd sp notw in
 	    let tr_tmp = Mlglu.mdd_and glob_tr loc_tr 1 1 in 
 	    let tr = Mlglu.mdd_and tr_tmp unchange_local 1 1 in
-	    (* Now builds the answer: restr = tr /\ iinv /\ not iinv *)
+	    (* Computes the set of reachable states of the module *)
+	    let reachset = Ops.reachable sp sm in 
+	    (* Now builds the answer: restr = tr /\ iinv /\ reachset /\ not iinv' *)
 	    let iinv' = Symutil.prime_mdd sp sm iinv in
-	    let violate_tr = Mlglu.mdd_and iinv iinv' 1 0 in 
-	    let restr = Mlglu.mdd_and tr violate_tr 1 1 in
+	    let restr = Mlglu.mdd_and 
+		(Mlglu.mdd_and (Mlglu.mdd_and tr iinv 1 1) reachset 1 1)
+		iinv' 1 0 in 
 	    (* At this point, what is left to do is to quantify out
 	       all primed local variables, since anyway their update
 	       is deterministic. *) 

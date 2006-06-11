@@ -28,6 +28,11 @@ val add : ('a, 'b) t -> 'a -> 'b -> unit
     If the key is already there, it modifies the data. *)
 val modify : ('a, 'b) t -> 'a -> 'b -> unit
 
+(** Adds an element to the mapping. 
+    If the element is already there, it combines it with the existing
+    element. *)
+val add_combine : ('a, 'b) t -> ('b -> 'b -> 'b) -> 'a -> 'b -> unit
+
 (** Removes an element from the mapping given the key *)
 val remove : ('a, 'b) t -> 'a -> unit
 

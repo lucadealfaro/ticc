@@ -400,7 +400,7 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 	  
 	  (* the result is
 	     ( (\exists allvars . 
-	        (taug /\ taul /\ set)[(V^l-w)'/(V^l-w)] )[allvars/allvars'] ) /\ iinv
+	        (taug /\ taul /\ set)[(V^l \ w)'/(V^l \ w)] )[allvars/allvars'] ) /\ iinv
 	     where w is the set of variables that can be rewritten by taul
 	  *)
 	  let local_notw = VarSet.diff local w in
@@ -420,7 +420,7 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     local and output rules of a module [sm].
     [set] is a predicat over _unprimed_ variables.
     The result is a symbolic representation of the set of states
-    that can be reached
+    that can be reached.
 
  *)
 let lo_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
@@ -457,7 +457,9 @@ let i_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
 
 (** This does both i_post and lo_post *)
 let loi_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-    i_post sp sm (lo_post sp sm set)
+    let lo_succ  = lo_post sp sm set in 
+    let i_succ = i_post sp sm set in 
+    Mlglu.mdd_or lo_succ i_succ 1 1 
 
 (** This function returns the set of states that are reachable from a given 
     initial set. *)
@@ -494,25 +496,35 @@ let reachable  (sp: Symprog.t) (sm: Symmod.t) =
 
 (** Given the name of a module, 
     it builds and returns the symbolic representation of the module. 
+    It takes care of strengthening output and input invariants, and 
+    conjoining them to the initial condition. 
 *)
 
 let mk_sym (mod_name: string) =
-  let m = 
-    try Prog.get_mod_top mod_name
-    with Not_found ->
-      Printf.printf " Error: Unknown module!";
-      raise Not_found
-  in
-  (* builds the symbolic module *)
-  let sm = Symbuild.mk_mod m Symprog.toplevel in
-  (* strengthen invariants to put module into normal form *)
-  let strong_iinv = win_i_safe  Symprog.toplevel sm (Symmod.get_iinv sm)
-  and strong_oinv = win_lo_safe  Symprog.toplevel sm (Symmod.get_oinv sm) in
-  Symmod.set_iinv sm strong_iinv;
-  Symmod.set_oinv sm strong_oinv;
-  (* adds it to the set of all symbolic modules *)
-  Symprog.add_mod_top sm;
-  sm
+    let mgr = Symprog.get_mgr Symprog.toplevel in
+    let m = 
+	try Prog.get_mod_top mod_name
+	with Not_found ->
+	    Printf.printf " Error: Unknown module!";
+	    raise Not_found
+    in
+    (* builds the symbolic module *)
+    let sm = Symbuild.mk_mod m Symprog.toplevel in
+    (* strengthen invariants to put module into normal form *)
+    let strong_iinv = win_i_safe  Symprog.toplevel sm (Symmod.get_iinv sm)
+    and strong_oinv = win_lo_safe  Symprog.toplevel sm (Symmod.get_oinv sm) in
+    Symmod.set_iinv sm strong_iinv;
+    Symmod.set_oinv sm strong_oinv;
+    let new_init = Mlglu.mdd_and (Mlglu.mdd_and (Symmod.get_init sm)
+	strong_iinv 1 1) strong_oinv 1 1 in 
+    Symmod.set_init sm new_init; 
+    if Mlglu.mdd_is_zero new_init then begin
+	Printf.printf "The module %s has an empty set of initial states!" mod_name; 
+	flush stdout
+    end; 
+    (* adds it to the set of all symbolic modules *)
+    Symprog.add_mod_top sm;
+    sm
 
 
 

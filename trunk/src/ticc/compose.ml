@@ -36,6 +36,7 @@ exception Incompatible_Modules
 (** Diagnostics *) 
 exception Internal_error_1
 exception Internal_error_2
+exception Internal_error_3
 
 
 (** **************** Composition of modules  ******************* *)
@@ -146,7 +147,7 @@ let is_composable (sp:Symprog.t) (m1:Symmod.t) (m2:Symmod.t) : bool =
     let v_i sm = VarSet.union (Symmod.get_lvars sm) (Symmod.get_hvars sm) in
     let v_1 = v_i m1 in
     let v_2 = v_i m2 in
-    let interferes wvars v = not(VarSet.is_empty (VarSet.inter wvars v)) in
+    let interferes wvars v = not (VarSet.is_empty (VarSet.inter wvars v)) in
     let check_for_interference sm1 sm2 sm2_v (r: rule_t) =
 	if !result then begin
 	    (* if result is false, we already know that [m1] and [m2] 
@@ -154,16 +155,16 @@ let is_composable (sp:Symprog.t) (m1:Symmod.t) (m2:Symmod.t) : bool =
 	    let act = Symmod.get_rule_act r in
 	    let wvars = Symmod.get_rule_wvars r in
 	    if (interferes wvars sm2_v)
-		&& not (Symmod.has_action sm2 act)
+		&& not (Symmod.has_input_action_wild sm2 act)
 	    then begin  
 		Printf.printf "Modules %s and %s have a composability problem.\n" 
 		    (Symmod.get_name sm1) (Symmod.get_name sm2); 
 		flush stdout;
-		Printf.printf "Action %s of Module %s modifies variables that are also part of Varset of module %s. The set of variables that is modified is " act (Symmod.get_name sm1) (Symmod.get_name sm2);
+		Printf.printf "Action %s of Module %s modifies variables that are also part of Varset of module %s.\nThe set of variables that is modified is " act (Symmod.get_name sm1) (Symmod.get_name sm2);
 		flush stdout;
 		Symutil.print_varset sp (VarSet.inter wvars sm2_v);
 		Printf.printf ".\n";
-		Printf.printf "However, Module %s do not have action %s\n \n" 
+		Printf.printf "However, Module %s does not have action %s\n \n" 
 		    (Symmod.get_name sm2) act;
 		flush stdout;
 		result := false
@@ -175,18 +176,16 @@ let is_composable (sp:Symprog.t) (m1:Symmod.t) (m2:Symmod.t) : bool =
     !result && has_disjoint_lvars sp m1 m2 && has_disjoint_lactions m1 m2
 ;;
 
-(** product. 
+
+(** Product. 
     This function computes the product of two modules [m1] 
     and [m2]. The order is given by [m1] product [m2].
     
     The function takes an argument [result_name] that can
     be used to name the result of the product. 
 
-    NEED TO BE DONE:
-
-    - fixing the clock bounds.
  *)
-let product (sp:Symprog.t) ?(result_name="") (m1:Symmod.t) (m2:Symmod.t)
+let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 	: Symmod.t =
     let mgr = Symprog.get_mgr sp in
     (*if the user does not choose a name, the concatenation
@@ -196,16 +195,39 @@ let product (sp:Symprog.t) ?(result_name="") (m1:Symmod.t) (m2:Symmod.t)
 	then (Symmod.get_name m1) ^ "*" ^ (Symmod.get_name m2)
 	else result_name
     in
-    let new_sm = Symmod.mk mgr sm_name in
-    let lvars1 = Symmod.get_lvars m1 in
-    let lvars2 = Symmod.get_lvars m2 in
+    let m12 = Symmod.mk mgr sm_name in
+
+    (* First, takes care of the basic things: variables, invariants,
+       initial condition, stateses.
+       Note that this code follows the product definition (def 15)                  
+       given in the FROCOS 05 paper.
+     *)
+    (* Variables *)
+    Symmod.set_vars  m12 (VarSet.union (Symmod.get_vars  m1) (Symmod.get_vars  m2)); 
+    Symmod.set_lvars m12 (VarSet.union (Symmod.get_lvars m1) (Symmod.get_lvars m2));
+    Symmod.set_gvars m12 (VarSet.union (Symmod.get_gvars m1) (Symmod.get_gvars m2));
+    Symmod.set_hvars m12 (VarSet.union (Symmod.get_hvars m1) (Symmod.get_hvars m2));
+    Symmod.set_cvars m12 (VarSet.union (Symmod.get_cvars m1) (Symmod.get_cvars m2));
+    (* Clock bounds *)
+    Symmod.set_clk_bounds m12 
+	(Hsetmap.unsafe_union (Symmod.get_bounds m1) (Symmod.get_bounds m2));
+    (* Invariants *)
+    Symmod.set_iinv m12 (Mlglu.mdd_and (Symmod.get_iinv m1) (Symmod.get_iinv m2) 1 1); 
+    Symmod.set_oinv m12 (Mlglu.mdd_and (Symmod.get_oinv m1) (Symmod.get_oinv m2) 1 1); 
+    (* Initial condition *)
+    Symmod.set_init m12 (Mlglu.mdd_and (Symmod.get_init m1) (Symmod.get_init m2) 1 1);
+    (* Statesets *)
+    Symmod.set_ssets m12
+	(Hsetmap.unsafe_union (Symmod.get_ssets m1) (Symmod.get_ssets m2));
+    (* The reachset we leave it alone; it is computed only upon request *)
+    (* Ok, now all that remains to be done are the rules *)
 
     (* this function adds a new rule in the product.
-       The function is called when the action that label
-       the rule [r] is not shared by the module [other_sm].
+       The function is called when the action that labels
+       the rule [r] does not synchronize with any action in the 
+       other module [other_sm].
      *)
-
-    let merge_unshared_action (other_sm:Symmod.t) (r:Symmod.rule_t) : unit = 
+    let add_nonsynch_action (other_sm: Symmod.t) (r: Symmod.rule_t) : unit = 
 	(* the resulting rule is the same the original rule, for Loc & Out *)
 	let new_rule =
 	    match (Symmod.get_rule_tran r) with
@@ -220,205 +242,155 @@ let product (sp:Symprog.t) ?(result_name="") (m1:Symmod.t) (m2:Symmod.t)
 		       needs to be fixed. 
 		     *)
 		    let other_hvars = get_hvars other_sm in
-		    (* the global variables of the other module cannot
-		       change *) 
+		    (* The global variables of the other module cannot
+		       change.  This comes from the FROCOS paper, and
+		       the reason is subtle: if an output transition
+		       of the environment by the same name changes
+		       some variable in other_hvars, then the other
+		       module should know about the transition!
+		       Hence, we put as condition that other_hvars
+		       should not be changed. *)
 		    let new_mdd_ig = Symbuild.and_same sp mdd_ig other_hvars in
 		    (* for the local part, wvars keeps track of which
 		       variables can change, so there is no need to
 		       change the transition relation. *) 
-		    let new_mdd_il = mdd_il in
 		    let new_wvars = r.wvars in
-		    Symmod.mk_irule (Symmod.get_rule_act r)
-			new_wvars mdd_ig mdd_il
+		    Symmod.mk_irule (Symmod.get_rule_act r) new_wvars mdd_ig mdd_il
 	in
-	add_rule new_sm new_rule
+	add_rule m12 new_rule
     in
 
-    (*
-      This function adds a new rule in the product.
-      The function is called when two modules
-      share a common action [act].
-      The action [act] is linked to the list
-      of rules [m1_rules] in the first module,
-      and to the list [m2_rules] in the second module.
+    (* The function adds a new rule to the product. 
+       It is called for a pair of input rules that synchronize. 
+       The new name of the action (due to regexp matching) is passed as an
+       argument. 
      *)
-    let merge_shared_action act (m1_rules:rule_t list) (m2_rules:rule_t list) =
-	(*
-	  This is just a sanity check, to check that there is no local
-	  rule among the shared ones.  
-	  The check is not that useful, as it is already done by the
-	  composability test, but just in case... 
-	 *)
-	let rec verify_no_lrule(rule_list:rule_t list) = 
-	    let is_loc r = 
-		if get_rule_type r = Local 
-		then raise Shared_Local_Rule
-	    in
-	    List.iter is_loc rule_list 
-	in
-	verify_no_lrule m1_rules;
-	verify_no_lrule m2_rules;
+    let add_input_input_synch_action (r1: Symmod.rule_t) (r2: Symmod.rule_t) 
+	    (new_name: string) : unit = 
+	(* the resulting rule is the same the original rule, for Loc & Out *)
+	(* gets the mdds *)
+	let (rho1_ig, rho1_il) = Symmod.get_rule_ig_il_mdds r1 in
+	let (rho2_ig, rho2_il) = Symmod.get_rule_ig_il_mdds r2 in
+	(* gets the wvars *)
+	let wvars1 = Symmod.get_rule_wvars r1 in 
+	let wvars2 = Symmod.get_rule_wvars r2 in
+	(* Computes the new wvars and transition relations. 
+	   Fortunately, the obvious works. *)
+	let new_wvars = VarSet.union wvars1 wvars2 in 
+	let new_ig = Mlglu.mdd_and rho1_ig rho2_ig 1 1 in 
+	let new_il = Mlglu.mdd_and rho1_il rho2_il 1 1 in 
+	(* Inserts the new rule *)
+	Symmod.add_rule m12 (Symmod.mk_irule new_name new_wvars new_ig new_il)
+    in 
 
-	(*
-          the following 8 lines of code are used to extract
-          the bdds corresponding to the input and the outputs
-          of the two modules. The body of a rule is FALSE
-          if the module does not contain a rule of the required type
-          (I/O) for the given action. 
-	 *)
-	let inp_m1 = find_rule_or_false sp act Input m1_rules in
-	let inp_m2 = find_rule_or_false sp act Input m2_rules in
-	let out_m1 = find_rule_or_false sp act Output m1_rules in
-	let out_m2 = find_rule_or_false sp act Output m2_rules in
-	(* gets the MDDs for the global and local parts of a rule *) 
-	let (rho1_ig, rho1_il) = Symmod.get_rule_ig_il_mdds inp_m1 in
-	let (rho2_ig, rho2_il) = Symmod.get_rule_ig_il_mdds inp_m2 in
-	(* gets the MDDs for the output transition relation *) 
-	let rho1_o   = Symmod.get_orule_mdds out_m1 in
-	let rho2_o   = Symmod.get_orule_mdds out_m2 in
-	(* gets the wvars *) 
-	let o_wvars1 = Symmod.get_rule_wvars out_m1 in
-	let o_wvars2 = Symmod.get_rule_wvars out_m2 in
-	let i_wvars1 = Symmod.get_rule_wvars inp_m1 in 
-	let i_wvars2 = Symmod.get_rule_wvars inp_m2 in 
-	(* ... and computes the ones of the new merged rule *) 
-	let o_wvars12 = VarSet.union o_wvars1 o_wvars2 in
-	let i_wvars12 = VarSet.union i_wvars1 i_wvars2 in 
-	let io_wvars  = VarSet.union o_wvars12 i_wvars12 in 
-	(* computes the transition relation for the new merged input
-           rule. note that for the local part, also i_wvars12 is relevant *) 
-	let rho12_il = Mlglu.mdd_and rho1_il rho2_il 1 1 in
-	let rho12_ig = Mlglu.mdd_and rho1_ig rho2_ig 1 1 in
-	(*
-	  In the following lines, we define rho12_o that 
-	  describe how an output of the product is obtained by synchronization
-	  of a local input of a module and an output of the other one.
-	  We recall that this new rule is a disjunction whose terms depend
-          on which module owns the output.
-	  
-	  [unchgnd_1] is an MDD that says that the variables in 
-	  the set of terms that must stay unchanged in the first
-	  part of the disjunction, and [unchgnd_2] is the set for the second 
-	  part. 
-	 *)
-	let unchgnd_1 = Symbuild.unchngd sp
-	    (VarSet.union
-                (* These are the local variables which do not change their value: the
-		   local variables of 1 (because we take here the local trans rel of
-		   2), minus the variables that appear as output in 1, since an output
-		   transition relation may also contain local variables.  Luca and Bo
-		   checked this, originally written by Marco and Axel, and agree, so
-		   it must be correct :-) *) 
-		(VarSet.diff i_wvars1 o_wvars1)
-		(* These are the global variables that keep their
-		   value: the ones that are controlled by module 2,
-		   and not changed by module 1. *) 
-		(VarSet.diff o_wvars2 o_wvars1)) in
-	let part1 = Symbuild.conj_mdd_list mgr rho1_o [rho2_il; unchgnd_1] in 
-
-	let unchgnd_2 = Symbuild.unchngd sp
-	    (VarSet.union
-		(VarSet.diff i_wvars2 o_wvars2)
-		(VarSet.diff o_wvars1 o_wvars2)) in
-	let part2 = Symbuild.conj_mdd_list mgr rho2_o [rho1_il; unchgnd_2] in 
-	
-	(* rho12_o define the output that is obtained from the conjunction of
-           one input with one output *)
-	let rho12_o = Mlglu.mdd_or part1 part2 1 1 in 
-
-	(*
-	  This rule add in the product an output rule that 
-	  is the result of the syncrhonization of the local input
-	  of one module with the output of the other one.
-	  We define the set of variables that can be written by this rule 
-	  as the union of the set of variables that can be rewritten 
-	  during the syncrhonization.  
-	  
-	 *)
-	add_rule new_sm (Symmod.mk_orule act io_wvars rho12_o);
-	(*
-          We add a rule for each input that is obtained by the synchronization
-          of an input of each module.
-          Notice that the set W associated to the rule
-          is the union of the sets W of the two local inputs that have 
-          participated to the creation of the new input.
-         *)
-	add_rule new_sm (Symmod.mk_irule act i_wvars12 rho12_ig rho12_il);
-    in
-
-    (* this function receives an action [action] as input.
-       The function extracts the rules for [action] in
-       modules [m1] and [m2]. Then, depending on the results,
-       it constructs a new rule in the product.
-       
-       Remark
-
-       The function can rises an exception if both rules are false.
-       In practice, it should not happen, but it is needed to complete
-       the pattern matching process.
+    (* The function adds a new rule to the product. 
+       It is called for a pair of input/output rules that synchronize. 
+       The new name of the action is taken from the name of the output action. 
      *)
+    let add_input_output_synch_action (inp_r: Symmod.rule_t) (out_r: Symmod.rule_t) 
+	    : unit = 
+	(* First, checks that ir is indeed an input rule, and or is indeed 
+	   an output rule. *)
+	if (Symmod.get_rule_type inp_r) != Input 
+	    || (Symmod.get_rule_type out_r) != Output then raise WrongRuleType;
+	(* Ok, now computes the new rule. *)
+	(* Modified variables *)
+	let i_wvars = Symmod.get_rule_wvars inp_r in 
+	let o_wvars = Symmod.get_rule_wvars out_r in 
+	let io_wvars = VarSet.union i_wvars o_wvars in 
+	(* Transition relation *)
+	let rho_o = Symmod.get_orule_mdd out_r in 
+	let (rho_ig, rho_il) = Symmod.get_rule_ig_il_mdds inp_r in
+	(* Now they must be combined *)
+	(* Is io_wvars fine?  Or do we have to add some unchanged variables? 
+	   I think it is fine.  In fact, o_wvars specifies which global and local1 
+	   variables change, i_wvars specifies which local2 variables can change. *)
+	let rho_io = Mlglu.mdd_and rho_o rho_il 1 1 in 
+	(* The name is taken from the output rule (due to possible regexp in the input one). *)
+	let act_io = Symmod.get_rule_act out_r in 
+	(* Builds the rule *)
+	let new_r = Symmod.mk_orule act_io io_wvars rho_io in 
+	(* Now it adds the rule.  The small complication is that a
+	   rule of the same name could already be present, a result of
+	   an input-output synchronization in the other direction. 
+	   We therefore construct a combinator function for this case. *)
+	let combine_o_rules (or1: rule_t) (or2: rule_t) : rule_t = 
+	    let wvars1 = Symmod.get_rule_wvars or1 in 
+	    let wvars2 = Symmod.get_rule_wvars or2 in 
+	    let rho1 = Symmod.get_orule_mdd or1 in 
+	    let rho2 = Symmod.get_orule_mdd or2 in 
+	    let wvars12 = VarSet.union wvars1 wvars2 in 
+	    let add_wvar1 = VarSet.diff wvars12 wvars1 in
+	    let add_wvar2 = VarSet.diff wvars12 wvars2 in
+	    let rho1w = Mlglu.mdd_and rho1 (Symbuild.unchngd sp add_wvar1) 1 1 in
+	    let rho2w = Mlglu.mdd_and rho2 (Symbuild.unchngd sp add_wvar2) 1 1 in
+	    let rho12 = Mlglu.mdd_or rho1w rho2w 1 1 in 
+	    Symmod.mk_orule act_io wvars12 rho12
+	in 
+	(* Adds the rule, combining it with previous rules if necessary. *)
+	Hsetmap.add_combine m12.orules combine_o_rules act_io new_r 
+    in 
 
-    let merge_action action =
-	let m1_rules = get_rules m1 action in
-	let m2_rules = get_rules m2 action in
-	match (m1_rules, m2_rules) with
-	    ([], [])	-> raise Internal_error_1 (* someone must have the act *)
-	  | (_,  [])	-> List.iter (merge_unshared_action m2) m1_rules
-	  | ([], _)	-> List.iter (merge_unshared_action m1) m2_rules
-	  | (_,  _)	-> merge_shared_action action m1_rules m2_rules
-    in
+    (* Ok, now that these helper functions have been declared, 
+       we need to go over the rules of the two modules, and add the resulting rules 
+       to the new module m12. *)
+
+    (* Let's start from local variables. *)
+    let add_locals1 (r: rule_t) : unit = add_nonsynch_action m2 r in 
+    Symmod.iter_lrules m1 add_locals1;
+    let add_locals2 (r: rule_t) : unit = add_nonsynch_action m1 r in 
+    Symmod.iter_lrules m1 add_locals2;
+
+    (* Then, outputs of 1 with inputs of 2 *)
+    let match_output_rule1 (r1: rule_t) : unit = 
+	match Symmod.best_rule_match m2 (Symmod.get_rule_act r1) with 
+	  Some r2 ->  add_input_output_synch_action r2 r1
+	| None -> add_nonsynch_action m2 r1
+    in Symmod.iter_orules m1 match_output_rule1; 
+
+    (* ... outputs of 2 with inputs of 1 ... *)
+    let match_output_rule2 (r2: rule_t) : unit = 
+	match Symmod.best_rule_match m1 (Symmod.get_rule_act r2) with 
+	  Some r1 -> add_input_output_synch_action r1 r2
+	| None -> add_nonsynch_action m1 r2
+    in Symmod.iter_orules m2 match_output_rule2;
+
+    (* For inputs, I keep a hash table of the pairs that have already been done. *)
+    let done_rules = Hset.mk () in 
     
-    (* this function receives a rule [next_rule] as input.
-       It first check if there exists a rule
-       with the same action name in the product.
-       If no, the function calls [merge_action] to handle it.
-       If yes, the function does nothing.
-       
-     *)
-    let check_for_merge (next_rule:rule_t) =
-	(* merge the actions represented by the rule, but don't
-	 * merge if we've already merged. *)
-	let action = Symmod.get_rule_act next_rule in
-	if not (Symmod.has_action new_sm action) then
-	    (* hasn't been merged yet *)
-	    merge_action action;
-    in
-    
+    (* Inputs of 1 with inputs of 2 *)
+    let match_input_rule1 (r1: rule_t) : unit = 
+	let act1 = Symmod.get_rule_act r1 in 
+	match Symmod.best_rule_match m2 act1 with 
+	  Some r2 -> begin
+	      let act2 = Symmod.get_rule_act r2 in 
+	      if not (Hset.mem done_rules (act1, act2))
+	      then begin
+		  Hset.add done_rules (act1, act2); 
+		  add_input_input_synch_action r1 r2 act1
+	      end
+	  end
+	| None -> add_nonsynch_action m2 r1
+    in Symmod.iter_irules m1 match_input_rule1; 
 
+    (* Inputs of 1 with inputs of 2 *)
+    let match_input_rule2 (r2: rule_t) : unit = 
+	let act2 = Symmod.get_rule_act r2 in
+	match Symmod.best_rule_match m1 act2 with 
+	  Some r1 -> begin
+	      let act1 = Symmod.get_rule_act r1 in 
+	      if not (Hset.mem done_rules (act1, act2))
+	      then begin
+		  Hset.add done_rules (act1, act2); 
+		  add_input_input_synch_action r1 r2 act2
+	      end
+	  end
+	| None -> add_nonsynch_action m1 r2
+    in Symmod.iter_irules m2 match_input_rule2; 
 
-    (* the following lines of code are used
-       to construct the tuple that defines the new module.
-       Particularly, the "iter rules" are used to build 
-       the rules of the new module.
-       Note that this version follows the product definition (def 15)                  
-       given in the FROCOS 05 paper.
-     *)
-    let vl12 = VarSet.union lvars1 lvars2 in
-    let vg12 = VarSet.union (Symmod.get_gvars m1) (Symmod.get_gvars m2) in
-    let vh12 = VarSet.union (Symmod.get_hvars m1) (Symmod.get_hvars m2) in
-    let vc12 = VarSet.union (Symmod.get_cvars m1) (Symmod.get_cvars m2) in
-    (* 5a. TODO: what about clock bounds? *)
-    let iinv = Mlglu.mdd_and (Symmod.get_iinv m1) (Symmod.get_iinv m2) 1 1 in
-    let oinv = Mlglu.mdd_and (Symmod.get_oinv m1) (Symmod.get_oinv m2) 1 1 in
-    VarSet.iter (Symmod.add_var new_sm)
-    	(List.fold_left VarSet.union vl12 [ vg12; vh12; vc12 ]);
-    VarSet.iter (Symmod.add_lvar new_sm) vl12;
-    VarSet.iter (Symmod.add_gvar new_sm) vg12;
-    VarSet.iter (Symmod.add_hvar new_sm) vh12;
-    (* TODO: VarSet.iter (Symmod.add_cvar new_sm) vc12; *)
-    Symmod.set_iinv new_sm iinv;
-    Symmod.set_oinv new_sm oinv;
+    (* All done *)
+    m12
 
-    
-    Symmod.iter_lrules m1 check_for_merge;
-    Symmod.iter_irules m1 check_for_merge;
-    Symmod.iter_orules m1 check_for_merge;
-    Symmod.iter_lrules m2 check_for_merge;
-    Symmod.iter_irules m2 check_for_merge;
-    Symmod.iter_orules m2 check_for_merge;
-
-    new_sm
-;;
 
 (** composition.
 
@@ -428,7 +400,6 @@ let product (sp:Symprog.t) ?(result_name="") (m1:Symmod.t) (m2:Symmod.t)
     The function takes an argument [result_name] that can
     be used to name the result of the composition. 
     
-
     Remark. The composition is done in 4 steps:
     1. Check if [m1] and [m2] are composable.
     2. Take the product of [m1] and [m2]
@@ -436,7 +407,7 @@ let product (sp:Symprog.t) ?(result_name="") (m1:Symmod.t) (m2:Symmod.t)
     4. Play the game using the set of good states
  *)
 
-let composition (sp:Symprog.t) win_algo ?(result_name="") (m1:Symmod.t) (m2:Symmod.t)
+let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 	: Symmod.t =
     let mgr = Symprog.get_mgr sp in
 
@@ -444,84 +415,80 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1:Symmod.t) (m2:Symm
     if not(is_composable sp m1 m2) then raise Modules_not_composable; 
 
     (* calculate product *)
-    let productm1m2 = product sp ~result_name:result_name m1 m2 in
+    let m12 = product sp ~result_name:result_name m1 m2 in
 
-    (*
-      This function takes two modules [m1] and [m2].
-      For an action [action], it builds on term
-      of the conjunction of Defn~15 of the
-      FROCOS paper.
-     *)
-
-    let build_good_term m1 m2 action = 
-        let m1_rules = get_rules m1 action in
-	let m2_rules = get_rules m2 action in
-	let out_m1 = find_rule_or_false sp action Output m1_rules in
-	let inp_m2 = find_rule_or_false sp action Input m2_rules in
-	let (rho2_ig,rho2_il) = Symmod.get_rule_tran_as_pair inp_m2 in
-	let (rho1_o, _)  = Symmod.get_rule_tran_as_pair out_m1 in
-        let wvars_1 = Symmod.get_rule_wvars out_m1 in
-        let unchngd_vars = VarSet.diff (Symmod.get_gvars m2) wvars_1 in
-	let unchngd_term = Symbuild.unchngd sp unchngd_vars in
-	let antecedent = Mlglu.mdd_and rho1_o unchngd_term 1 1 in
-	let consequent = rho2_ig in
-	let implication = Mlglu.mdd_or antecedent consequent 0 1 in
-	let vAll_12' = Symprog.prime_vars sp (Symmod.get_vars productm1m2) in
-        let finalTerm = Mlglu.mdd_consensus mgr implication vAll_12' in
-        finalTerm in
-
-
-    (*
-      The function build_good_states constructs a predicate that
-      represents the set of good states in the product of two modules
-      [m1] and [m2].
-
-      Algorithm
-
-      The function is defined to be iterated on the rules of [m1]
-      For each rule, the function checks if module [m2] has a
-      shared action with this rule. If yes, the function constructs
-      the set of good_states that concerns this action.
-      This set is then conjoined with the part that has already been
-      constructed. At the start, the set is true, supposing that all
-      states of the product are good states.
-     *)
-    let goodStates = ref (Mlglu.mdd_one mgr) in
-    let build_good_states (next_rule:rule_t) =
-	(* Look for shared actions, and if Input matches output,
-	 * then add the predicate to the list of good states.
-	 * If the action is not shared, then we don't have to do anything *)
-	let action = get_rule_act next_rule in
-	if (Symmod.has_action m2 action) then begin
-            (* Implement defn~21 *)
-            flush stdout;
-	    goodStates := Symbuild.conj_mdd_list mgr !goodStates
-		[(build_good_term m1 m2 action);
-		(build_good_term m2 m1 action)]
-        end
+    (* Now we must construct the set of good states, following Definition
+       21 (local compatibility) of the FROCOS paper. We do this by
+       iterating on the output rules of each module, and if the rule 
+       interferes with the other module, we match it with an input
+       rule.  We then ask that the output rule transition complies
+       with the input rule.  We use an auxiliary function, in order to
+       avoid having to write two separate iterations. *)
+    let build_good_term (mo: Symmod.t) (mi: Symmod.t) (m12: Symmod.t) : Mlglu.mdd = 
+	let vAll_12' = Symprog.prime_vars sp (Symmod.get_vars m12) in
+	(* This is the function that will be folded over all output rules *)
+	let check_output_rule (ro: rule_t) (good_term: Mlglu.mdd) : Mlglu.mdd = 
+	    let ro_wvars = Symmod.get_rule_wvars ro in 
+	    (* Find the best match for ro in mi *)
+	    match Symmod.best_rule_match mi (Symmod.get_rule_act ro) with 
+	      (* Not shared: do nothing *)
+	      None -> good_term 
+	    | Some ri -> begin 
+		  (* The transition of ro must be acceptable by ri *)
+		  (* Computes the hatted transition relations *)
+		  let rho_o = Symmod.get_orule_mdd ro in 
+		  let (rho_ig, rho_il) = Symmod.get_rule_ig_il_mdds ri in 
+		  let inv_o = Symmod.get_oinv mo in 
+		  let inv_i = Symmod.get_iinv mi in 
+		  let allv = Symmod.get_vars m12 in 
+		  let hat_rho_o = Mlglu.mdd_and rho_o  (Symutil.prime_mdd_vars sp inv_o allv) 1 1 in 
+		  let hat_rho_i = Mlglu.mdd_and rho_ig (Symutil.prime_mdd_vars sp inv_i allv) 1 1 in 
+		  (* Computed the unchanged variables relation *)
+		  let unch_vars = VarSet.diff (Symmod.get_gvars mi) ro_wvars in 
+		  let unch_term = Symbuild.unchngd sp unch_vars in 
+		  (* (hat_rho_o /\ unch_term) ==> hat_rho_i *)
+		  let conj = Mlglu.mdd_and hat_rho_o unch_term 1 1 in 
+		  let impl = Mlglu.mdd_or conj hat_rho_i 0 1 in 
+		  let good_part = Mlglu.mdd_consensus mgr impl vAll_12' in 
+		  Mlglu.mdd_and good_part good_term 1 1 
+	      end
+	in
+	Symmod.fold_orules mo check_output_rule (Mlglu.mdd_one mgr)
     in
-    (* get list of good states.  Since only shared actions matter,
-     * we only need to search through one module for its actions. *)
-    Symmod.iter_irules m1 build_good_states;
-    Symmod.iter_orules m1 build_good_states;
-    (* the set good_state is then used to restrict
-       the input invariant of the product *)
-    let iinv_12 = Symmod.get_iinv productm1m2 in
-    let safety_area = Mlglu.mdd_and !goodStates iinv_12 1 1 in
-    let winning_area = win_algo sp productm1m2 safety_area in
-    let iinv_composed = Mlglu.mdd_and iinv_12 winning_area 1 1 in
-    Symmod.set_iinv productm1m2 iinv_composed;
-    (* 
-       After computing the set of good states, we play the game to restrict the 
-       Input invariant of the product.
-     *)
-    let oinv_12 = Symmod.get_oinv productm1m2 in
-    let allowed_area = Mlglu.mdd_and iinv_composed oinv_12 1 1 in
-    let zero = Mlglu.mdd_zero mgr in
-    if (Mlglu.mdd_equal allowed_area zero) then raise Incompatible_Modules;
-    (* and return the composition *)
-    productm1m2
+    (* Strengthens the invariant of m12 to the set of good states *)
+    let term1 = build_good_term m1 m2 m12 in 
+    let term2 = build_good_term m2 m1 m12 in 
+
+    Printf.printf "Good term 1:\n"; (* debug block *)
+    flush stdout; 
+    Mlglu.mdd_print mgr term1; 
+    Printf.printf "Good term 2:\n"; 
+    flush stdout; 
+    Mlglu.mdd_print mgr term2; 
+    Printf.printf "----\n";
+    flush stdout; 
+    
+    let good_states = Mlglu.mdd_and term1 term2 1 1 in 
+    let inv12 = Symmod.get_iinv m12 in 
+    let new_inv12 = win_algo sp m12 (Mlglu.mdd_and good_states inv12 1 1) in 
+    Symmod.set_iinv m12 new_inv12; 
+    (* Now it must restrict the initial condition; if it becomes empty, the the 
+       modules are incompatible *)
+    let vars12 = Symmod.get_vars m12 in 
+    let lvars12 = Symmod.get_lvars m12 in 
+    let new_init = Mlglu.mdd_and (Symmod.get_init m12)
+	(Mlglu.mdd_smooth mgr new_inv12 (VarSet.diff vars12 lvars12)) 1 1 in 
+    Symmod.set_init m12 new_init; 
+    if Mlglu.mdd_is_zero new_init then begin
+	Printf.printf "The initial condition of module %s is empty: this is a sign of incompatibility!\n" 
+	    (Symmod.get_name m12); 
+	flush stdout;
+	raise Incompatible_Modules
+    end;
+    (* returns the composition *)
+    m12
 ;;
+
 
 (* End of functions needed for composition                                   *)
 (*---------------------------------------------------------------------------*)
@@ -574,6 +541,4 @@ let rec composition_test1 (sp:Symprog.t) win_algo ?(result_name="")
       (* TODO TODO TODO *)
       [m1]
   | _    -> composition_test1 sp win_algo ~result_name:result_name pairs
-
-
 

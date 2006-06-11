@@ -191,6 +191,18 @@ let modify m key el =
   then remove m key;
   add m key el
 
+(** Adds an element to the mapping. 
+    If the element is already there, it combines it with the existing
+    element. *)
+let add_combine m f key el = 
+    if mem m key then begin
+	let el' = find m key in 
+	let comb_el = f el el' in 
+	remove m key; 
+	add_new m key comb_el
+    end 
+    else add_new m key el 
+
 let isempty m = (m.size = 0)  
 
 (** This is a special iterator that iterates only on the 

@@ -16,16 +16,16 @@ print_symmod fire1;;
 print_symmod fire3;;
 print_symmod wfire2;;
 
-(*
-
 let c = compose fire1  controlunit;;
 let d = compose wfire2 controlunit;; 
 
 print_symmod c;;
 print_symmod d;;
 
+(*
 print_stateset (get_iinv c);;
 print_stateset (get_iinv d);;
+*)
 
 print_input_restriction c "disable";;
 print_input_restriction d "disable";;
@@ -33,4 +33,3 @@ print_input_restriction d "disable";;
 print_input_restriction c "smoke1";;
 print_input_restriction d "smoke2";;
 
-*)

@@ -1,4 +1,4 @@
-(** $Id: symbuild.ml,v 1.59 2006/01/21 09:09:48 luca Exp $ *)
+(** symbuild.ml *)
 
 open Ast
 
@@ -771,16 +771,18 @@ let mk_orule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit =
 let mk_env_rule (sp: Symprog.t) (sm: Symmod.t) : unit =
   let mgr = Symprog.get_mgr sp in
   
-  (* global part: history vars keep their value *)
+  (* Global part: history vars keep their value. 
+     For economy, we don't say anything about local variables
+     (it is enough to set wvars to the empty set *)
   let hvars = Symmod.get_hvars sm in
-  let g_mdd = and_same sp (Mlglu.mdd_one mgr) hvars in
-
-  (* pretend that no local var is mentioned,
-     so that all retain their value *)
-  let l_sym_wvars = VarSet.empty in
+  let lvars = Symmod.get_lvars sm in 
+  let unch_vars = VarSet.diff hvars lvars in 
+  let g_mdd = and_same sp (Mlglu.mdd_one mgr) unch_vars in
+  (* pretend that no local var is mentioned, so that all retain their value *)
+  let wvars = VarSet.empty in
   let l_mdd   = Mlglu.mdd_one mgr in
   (* add the resulting rule to the symbolic module [sm] *)
-  let symrule = Symmod.mk_irule Symprog.env_act l_sym_wvars g_mdd l_mdd in
+  let symrule = Symmod.mk_irule Symprog.env_act wvars g_mdd l_mdd in
   Symmod.add_rule sm symrule
 ;;
 
