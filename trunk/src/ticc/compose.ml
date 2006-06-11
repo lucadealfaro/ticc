@@ -450,7 +450,8 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
 		  let conj = Mlglu.mdd_and hat_rho_o unch_term 1 1 in 
 		  let impl = Mlglu.mdd_or conj hat_rho_i 0 1 in 
 		  let good_part = Mlglu.mdd_consensus mgr impl vAll_12' in 
-		  Mlglu.mdd_and good_part good_term 1 1 
+		  let result = Mlglu.mdd_and good_part good_term 1 1 in 
+		  result
 	      end
 	in
 	Symmod.fold_orules mo check_output_rule (Mlglu.mdd_one mgr)
@@ -458,16 +459,6 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
     (* Strengthens the invariant of m12 to the set of good states *)
     let term1 = build_good_term m1 m2 m12 in 
     let term2 = build_good_term m2 m1 m12 in 
-
-    Printf.printf "Good term 1:\n"; (* debug block *)
-    flush stdout; 
-    Mlglu.mdd_print mgr term1; 
-    Printf.printf "Good term 2:\n"; 
-    flush stdout; 
-    Mlglu.mdd_print mgr term2; 
-    Printf.printf "----\n";
-    flush stdout; 
-    
     let good_states = Mlglu.mdd_and term1 term2 1 1 in 
     let inv12 = Symmod.get_iinv m12 in 
     let new_inv12 = win_algo sp m12 (Mlglu.mdd_and good_states inv12 1 1) in 
@@ -482,8 +473,10 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
     if Mlglu.mdd_is_zero new_init then begin
 	Printf.printf "The initial condition of module %s is empty: this is a sign of incompatibility!\n" 
 	    (Symmod.get_name m12); 
-	flush stdout;
-	raise Incompatible_Modules
+	flush stdout
+	(* I think it's best not to raise an exception.  This way, one can still print the 
+	   modules and try to figure out what is wrong. *)
+	(* raise Incompatible_Modules *)
     end;
     (* returns the composition *)
     m12

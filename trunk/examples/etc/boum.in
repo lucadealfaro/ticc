@@ -11,9 +11,12 @@ parse "boum.si" ;;
 let a = mk_sym "A";;
 let b = mk_sym "B";;
 
+(*
 print_symmod a;;
 print_symmod b;;
+*)
 
 let c = compose a b;;
 
 print_symmod c;;
+

@@ -480,12 +480,12 @@ value mlglu_and (value f, value g, value f_phase, value g_phase)
 	mdd_t *result;
 	mdd_manager *f_mgr;
 	mdd_manager *g_mgr;
-	f_mgr = mdd_get_manager ((mdd_t *) Mdd_node (f));//Obtain the manager ofnode corresponding to value f
+	f_mgr = mdd_get_manager ((mdd_t *) Mdd_node (f));
 	g_mgr = mdd_get_manager ((mdd_t *) Mdd_node (g));
 	assert_mgr(f_mgr); // checks f_mgr is not null 
 	assert_mgr(g_mgr);
 	assert_same_mgr(f_mgr, g_mgr); //checks f_mgr and g_mgr are same
-	result = (mdd_t *) bdd_and ((bdd_t *) Mdd_node (f), (bdd_t *) Mdd_node (g), Int_val(f_phase), Int_val(g_phase)); //Note: explicit type conversions could be avoided since mdd_t = bdd_t          
+	result = (mdd_t *) bdd_and ((bdd_t *) Mdd_node (f), (bdd_t *) Mdd_node (g), Int_val(f_phase), Int_val(g_phase)); 
 
 	CAMLreturn (mlglu_nodeWrap (f_mgr, result));
 }

@@ -22,7 +22,7 @@ let print_rule sp r : unit =
 	begin
 	    let mgr = Symprog.get_mgr sp in
 	    Printf.printf "action %s:--------\n" (Symmod.get_rule_act r);
-	    Printf.printf "Modified vars (wvars): ";
+	    Printf.printf "Modifies only variables in: ";
             Symutil.print_varset sp (Symmod.get_rule_wvars r);
 	    Printf.printf "\n";
 	    let tran = Symmod.get_rule_tran r in
