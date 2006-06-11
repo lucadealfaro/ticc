@@ -4,7 +4,7 @@ module A:
     initial: x = 0 & y = 0 
 
     output boum: { true ==> x' = x + 1 }
-    input  boum: { local: true ==> x' = x + 1 }
+    input  boum: { local: true ==> x' := x + 1 }
 endmodule
 
 module B: 
@@ -13,5 +13,5 @@ module B:
     initial: x = 0 & y = 0 
 
     output boum: { true ==> x' = x + 1 }
-    input  boum: { local: true ==> x' = x + 1 }
+    input  boum: { local: true ==> x' := x + 1 }
 endmodule

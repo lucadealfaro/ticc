@@ -1,3 +1,9 @@
+(* 
+Action boum increases x both in A and in B.  Since A and B can also
+emit boum, the only way A and B are compatible is if x is kept in
+synch.  Luckily, it is. 
+*)
+
 open Ticc;;
 
 parse "boum.si" ;;
