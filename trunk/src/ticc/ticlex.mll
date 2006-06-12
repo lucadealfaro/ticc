@@ -38,7 +38,7 @@
 let digit  = ['0'-'9']
 let alpha  = ['a'-'z''A'-'Z']
 rule token = parse
-  | [' ' '\t'] 		{getpos lexbuf; token lexbuf}
+ | [' ' '\t'] 		{getpos lexbuf; token lexbuf}
  | "\n" 		{getpos lexbuf; incr_linenum lexbuf; token lexbuf}
  | "//"[^'\n']*'\n' 	{getpos lexbuf; incr_linenum lexbuf; token lexbuf}
  | "true"    		{getpos lexbuf; TRUE}
@@ -57,9 +57,6 @@ rule token = parse
  | "global"  		{getpos lexbuf; GLOBAL}
  | "local"   		{getpos lexbuf; LOCAL}
  | "clock"   		{getpos lexbuf; CLOCK}
-(* | "endinput" 		{getpos lexbuf; ENDINPUT}
-   | "endoutput" 		{getpos lexbuf; ENDOUTPUT}
-   | "endlocal" 		{getpos lexbuf; ENDLOCAL} *)
  | "==>"      		{getpos lexbuf; TO}
  | "else"    		{getpos lexbuf; ELSE}
  | "mod"                {getpos lexbuf; MOD}    
@@ -97,7 +94,7 @@ rule token = parse
  | digit+ as num 	{getpos lexbuf; NUM (int_of_string num)}
  | alpha(alpha|digit|'_'|'.')* as word 	 {getpos lexbuf; ID word}
  | alpha(alpha|digit|'_')*'*' as word 	 {getpos lexbuf; WILDID word}
- | eof       				 {getpos lexbuf; EOF (* raise
-							    End_of_file *)}
+ | "*"                                   {getpos lexbuf; WILDID "*"}	 
+ | eof       				 {getpos lexbuf; EOF (* raise End_of_file *)}
  | _         				 {getpos lexbuf; token lexbuf}   
 
