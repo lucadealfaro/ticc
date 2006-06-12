@@ -153,10 +153,11 @@ val set_not : state_set_t -> state_set_t
 
 (** {2 Simulation} *) 
 
-(** Random simulates a module, given its initial state as a ticc
-    expression for the given number of cycles. This last string
-    parameter will be used as the name of the html file containing
-    the simulation results. *)
+(** [simulate sm expr n file_name] random simulates the module
+    [sm], starting from states satisfying the Ticc expression [expr],
+    for [n] steps.  The result is saved in the HTML file
+    [file_name]. If [expr] is empty (that is, ""), the initial
+    condition of [sm] is used. *)
 val simulate : symbolic_module_t -> string -> int -> string -> unit
 
 (* **************************************************************** *)

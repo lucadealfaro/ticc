@@ -478,7 +478,7 @@ let reach (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
     !tot_set
 
 (** This function returns the set of reachable states of a module *)
-let reachable  (sp: Symprog.t) (sm: Symmod.t) = 
+let reachable  (sp: Symprog.t) (sm: Symmod.t) : Mlglu.mdd = 
     match sm.reachset with 
 	Some r -> r 
       | None -> begin

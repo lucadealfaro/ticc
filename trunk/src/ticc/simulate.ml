@@ -276,7 +276,11 @@ let generateHtmlFooter (outChannel: out_channel) : unit =
 let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
     (outputFile: string) : unit =
   let parsedState : stateset_t =
-    Symbuild.parse_stateset Symprog.toplevel expr
+      if expr = "" 
+      (* if no expression is given, use the initial condition *)
+      then Ops.reachable Symprog.toplevel sm 
+      (* otherwise, parser what the user gave *)
+      else Symbuild.parse_stateset Symprog.toplevel expr
   in
   let mgr = Symprog.get_mgr Symprog.toplevel in
   let zero = Mlglu.mdd_zero mgr in
