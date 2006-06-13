@@ -23,8 +23,8 @@ print_symmod c;;
 print_symmod d;;
 
 (*
-print_stateset (get_iinv c);;
-print_stateset (get_iinv d);;
+print_stateset (iinv c);;
+print_stateset (iinv d);;
 *)
 
 print_input_restriction c "disable";;

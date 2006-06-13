@@ -26,8 +26,8 @@ let d2 = compose c1 rudelectr;;
 
 let init  = mk_set "initcond";; 
 
-let c2i = get_iinv c2;;
-let d2i = get_iinv d2;;
+let c2i = iinv c2;;
+let d2i = iinv d2;;
 
 let c2init = set_and init c2i;;
 let d2init = set_and init d2i;;

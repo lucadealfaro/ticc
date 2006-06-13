@@ -24,15 +24,6 @@ exception Incompatible_Modules = Compose.Incompatible_Modules
 let compose = Compose.composition Symprog.toplevel Ops.win_i_safe;;
 let compose_alt = Compose.composition Symprog.toplevel Ops.win_i_safe_alt_1;;
 
-(*
-(** compose two lists of modules *)
-let compose2opt = Symops.pairwise_composition Symprog.toplevel true Symops.win_i_safe;;
-let compose2pes = Symops.pairwise_composition Symprog.toplevel false Symops.win_i_safe;;
-
-(** calculate an input invariant based on pairwise composition *)
-let calculate_inv = Symops.composition_test2 Symprog.toplevel Symops.win_i_safe;;
- *)
-
 (** Computes the local/output post of a module [sm] 
     and a stateset [set]. *)
 let lo_post (sm: Symmod.t) (set: stateset_t) : stateset_t =
@@ -41,6 +32,10 @@ let lo_post (sm: Symmod.t) (set: stateset_t) : stateset_t =
 (** Computes the input post of a module [sm] and a stateset [set]. *)
 let i_post (sm: Symmod.t) (set: stateset_t) : stateset_t =
   Ops.i_post Symprog.toplevel sm set
+
+(** Computes the post of a module [sm] and a stateset [set]. *)
+let post (sm: Symmod.t) (set: stateset_t) : stateset_t =
+  Ops.loi_post Symprog.toplevel sm set
 
 (** Computes the set of winning states for player Input w.r.t.
   the safety goal [set]. *)
@@ -57,10 +52,13 @@ let win_lo_safe (sm: Symmod.t) (set: stateset_t)
   ;;
 
 (** Returns the MDD representing the input invariant of module m *)
-let get_iinv m = Symmod.get_iinv m 
+let iinv m = Symmod.get_iinv m 
 
 (** Returns the MDD representing the output invariant of module m *)
-let get_oinv m = Symmod.get_oinv m 
+let oinv m = Symmod.get_oinv m 
+
+(** Returns the reachable states *)
+let reachable m = Ops.reachable Symprog.toplevel m 
 
 (** Parses a file. 
     When parse aborts because of an error, all the parsed stuff is

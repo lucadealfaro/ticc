@@ -25,34 +25,6 @@ type symbolic_module_t
     timed modules. *) 
 exception NoTimedSupport
 
-(** [compose m1 m2 m]  composes the symbolic modules [m1] and [m2], 
-    and leaves the result in [m]. 
-    The function takes a first optional parameter, which is the name
-    of the result.  If no name is provided, then a name is generated
-    from the names of m1 and m2, separated by '*'.  *)
-val compose : ?result_name:string -> symbolic_module_t -> symbolic_module_t -> symbolic_module_t
-
-val compose_alt : ?result_name:string -> symbolic_module_t -> symbolic_module_t -> symbolic_module_t
-
-(*
-(** [compose2opt ml1 ml2 l]  composes the list of symbolic modules 
-    [ml1] and [m2], and leaves the result in [l]. 
-    The function takes a first optional parameter, which is the name
-    of the result.  If no name is provided, then a name is generated
-    from the names of m1 and m2, separated by '*'.  *)
-val compose2opt : ?result_name:string -> symbolic_module_t list -> symbolic_module_t list -> symbolic_module_t list
-
-(** [compose2pes ml1 ml2 l]  composes the list of symbolic modules 
-    [ml1] and [m2], and leaves the result in [l]. 
-    The function takes a first optional parameter, which is the name
-    of the result.  If no name is provided, then a name is generated
-    from the names of m1 and m2, separated by '*'.  *)
-val compose2pes : ?result_name:string -> symbolic_module_t list -> symbolic_module_t list -> symbolic_module_t list
-
-(** calculate an input invariant based on pairwise composition *)
-val calculate_inv : symbolic_module_t list -> stateset_t
- *)
-
 (** This exception can be thrown by [compose] to indicate that the
     symbolic modules are not composable. *)
 exception Modules_not_composable 
@@ -61,13 +33,12 @@ exception Modules_not_composable
     symbolic modules being composed are incompatible. *)
 exception Incompatible_Modules
 
-(** [lo_post m set] computes the Post of [set], in symbolic module [m],
-    with respect to local and output actions. *)
-val lo_post : symbolic_module_t -> stateset_t -> stateset_t
-
-(** [i_post m set] compustes the Post of [set], in the symbolic module
-    [m], with respect to input actions. *)
-val i_post : symbolic_module_t -> stateset_t -> stateset_t
+(** [compose m1 m2 m]  composes the symbolic modules [m1] and [m2], 
+    and leaves the result in [m]. 
+    The function takes a first optional parameter, which is the name
+    of the result.  If no name is provided, then a name is generated
+    from the names of m1 and m2, separated by '*'.  *)
+val compose : ?result_name:string -> symbolic_module_t -> symbolic_module_t -> symbolic_module_t
 
 (** [win_i_safe m set] computes the set of states of the symbolic
     module [m] from which Input can win the safety game with goal of
@@ -81,11 +52,17 @@ val win_lo_safe : symbolic_module_t -> stateset_t -> stateset_t
 
 (** [get_iinv m] returns the MDD representing the input invariant of
     module [m] *)
-val get_iinv : symbolic_module_t -> stateset_t
+val iinv : symbolic_module_t -> stateset_t
 
 (** [get_oinv m] returns the MDD representing the output invariant of
     module [m] *)
-val get_oinv : symbolic_module_t -> stateset_t
+val oinv : symbolic_module_t -> stateset_t
+
+(** [reachable m] returns the MDD representing the reachable states of 
+    module [m].  The answer is cached, so it does not cost more to ask 
+    multiple times. *)
+val reachable : symbolic_module_t -> stateset_t
+
 
 (* **************************************************************** *)
 
@@ -227,6 +204,21 @@ val ctl_or: stateset_t -> stateset_t -> stateset_t
     operators, returns only states that satisfy both invariants. *)
 val ctl_not: symbolic_module_t -> stateset_t -> stateset_t
 
+(* **************************************************************** *)
+
+(** {2 Post Operators} *) 
+
+(** [lo_post m set] computes the Post of [set], in symbolic module [m],
+    with respect to local and output actions. *)
+val lo_post : symbolic_module_t -> stateset_t -> stateset_t
+
+(** [i_post m set] compustes the Post of [set], in the symbolic module
+    [m], with respect to input actions. *)
+val i_post : symbolic_module_t -> stateset_t -> stateset_t
+
+(** [post m set] compustes the Post of [set], in the symbolic module
+    [m], with respect to input, output, and local actions. *)
+val post : symbolic_module_t -> stateset_t -> stateset_t
 
 (* **************************************************************** *)
 
