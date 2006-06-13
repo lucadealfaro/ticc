@@ -6,7 +6,7 @@
 
 (** This is the type of a symbolic representation of a set of
     states.  MDDs are used, but you don't need to know the details. *)
-type state_set_t
+type stateset_t
 
 (** This is the type of a symbolic module. *)
 type symbolic_module_t
@@ -50,7 +50,7 @@ val compose2opt : ?result_name:string -> symbolic_module_t list -> symbolic_modu
 val compose2pes : ?result_name:string -> symbolic_module_t list -> symbolic_module_t list -> symbolic_module_t list
 
 (** calculate an input invariant based on pairwise composition *)
-val calculate_inv : symbolic_module_t list -> state_set_t
+val calculate_inv : symbolic_module_t list -> stateset_t
  *)
 
 (** This exception can be thrown by [compose] to indicate that the
@@ -63,29 +63,29 @@ exception Incompatible_Modules
 
 (** [lo_post m set] computes the Post of [set], in symbolic module [m],
     with respect to local and output actions. *)
-val lo_post : symbolic_module_t -> state_set_t -> state_set_t
+val lo_post : symbolic_module_t -> stateset_t -> stateset_t
 
 (** [i_post m set] compustes the Post of [set], in the symbolic module
     [m], with respect to input actions. *)
-val i_post : symbolic_module_t -> state_set_t -> state_set_t
+val i_post : symbolic_module_t -> stateset_t -> stateset_t
 
 (** [win_i_safe m set] computes the set of states of the symbolic
     module [m] from which Input can win the safety game with goal of
     staying forever in the set [set]. *)
-val win_i_safe : symbolic_module_t -> state_set_t -> state_set_t
+val win_i_safe : symbolic_module_t -> stateset_t -> stateset_t
     
 (** [win_lo_safe m set] computes the set of states of the symbolic
     module [m] from which Output can win the safety game with goal of
     staying forever in the set [set]. *)
-val win_lo_safe : symbolic_module_t -> state_set_t -> state_set_t
+val win_lo_safe : symbolic_module_t -> stateset_t -> stateset_t
 
 (** [get_iinv m] returns the MDD representing the input invariant of
     module [m] *)
-val get_iinv : symbolic_module_t -> state_set_t
+val get_iinv : symbolic_module_t -> stateset_t
 
 (** [get_oinv m] returns the MDD representing the output invariant of
     module [m] *)
-val get_oinv : symbolic_module_t -> state_set_t
+val get_oinv : symbolic_module_t -> stateset_t
 
 (* **************************************************************** *)
 
@@ -106,12 +106,12 @@ val mk_sym : string -> symbolic_module_t
 
 (** Given the name of the stateset, it build the symbolic
     representation of the stateset (an MDD), and returns it. *)
-val mk_set : string -> state_set_t
+val mk_set : string -> stateset_t
 
 (** Given a string containing an expression, returns the symbolic
     representation of the set of states that satisfy the
     expression. *)
-val parse_stateset : string -> state_set_t
+val parse_stateset : string -> stateset_t
 
 (** [clone mod_name1 mod_name2] clones a parsed (not symbolic)
     module with name [mod_name1], producing a parsed module
@@ -127,27 +127,27 @@ val sym_clone : Symmod.t -> Symmod.t
 
 (** [set_equal set1 set2] returns a boolean indicating whether the
     symbolic sets [set1] and [set2] are equal or not. *) 
-val set_equal : state_set_t -> state_set_t -> bool
+val set_equal : stateset_t -> stateset_t -> bool
 
 (** [set_is_subset set1 set2] returns a boolean indicating whether the 
     symbolic set [set1] is a subset of [set2]. *) 
-val set_is_subset : state_set_t -> state_set_t -> bool
+val set_is_subset : stateset_t -> stateset_t -> bool
 
 (** [set_is_empty set] returns a boolean indicating whether the
     symbolic set [set] is empty. *) 
-val set_is_empty : state_set_t -> bool 
+val set_is_empty : stateset_t -> bool 
 
 (** Logical and of statesets *)
-val set_and : state_set_t -> state_set_t -> state_set_t
+val set_and : stateset_t -> stateset_t -> stateset_t
 
 (** Logical or of statesets *) 
-val set_or : state_set_t -> state_set_t -> state_set_t
+val set_or : stateset_t -> stateset_t -> stateset_t
 
 (** Logical implication of statesets *) 
-val set_impl : state_set_t -> state_set_t -> state_set_t
+val set_impl : stateset_t -> stateset_t -> stateset_t
 
 (** Logical not of statesets *) 
-val set_not : state_set_t -> state_set_t
+val set_not : stateset_t -> stateset_t
 
 (* **************************************************************** *)
 
@@ -159,6 +159,62 @@ val set_not : state_set_t -> state_set_t
     [file_name]. If [expr] is empty (that is, ""), the initial
     condition of [sm] is used. *)
 val simulate : symbolic_module_t -> string -> int -> string -> unit
+
+(* **************************************************************** *)
+
+
+(** {2 CTL Operators} *) 
+
+(** {3 Existential Operators} *)
+
+(** [ctl_e_until sm b r] computes \exists ([b] Until [r]) for module [sm] *)
+val ctl_e_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
+
+(** [ctl_e_waitfor sm b r] computes \exists ([b] Waitfor [r]) for module [sm] *)
+val ctl_e_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
+
+(** [ctl_e_f sm b r] computes \exists F [r] for module [sm] *)
+val ctl_e_f: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_e_g sm b r] computes \exists G [r] for module [sm] *)
+val ctl_e_g: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_e_next sm b r] computes \exists X [r] for module [sm] *)
+val ctl_e_next: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_e_input_next sm b r] computes \exists X^I [r] for module [sm], 
+    where X^I is the next operator when only input actions can be taken. *)
+val ctl_e_input_next: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_e_output_next sm b r] computes \exists X^O [r] for module [sm], 
+    where X^O is the next operator when only output actions can be taken. *)
+val ctl_e_output_next: symbolic_module_t -> stateset_t -> stateset_t
+
+(** {3 Universal Operators} *)
+
+(** [ctl_a_until sm b r] computes \forall ([b] Until [r]) for module [sm] *)
+val ctl_a_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
+
+(** [ctl_a_waitfor sm b r] computes \forall ([b] Waitfor [r]) for module [sm] *)
+val ctl_a_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
+
+(** [ctl_a_f sm b r] computes \forall F [r] for module [sm] *)
+val ctl_a_f: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_a_g sm b r] computes \forall G [r] for module [sm] *)
+val ctl_a_g: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_a_next sm b r] computes \forall X [r] for module [sm] *)
+val ctl_a_next: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_a_input_next sm b r] computes \forall X^I [r] for module [sm], 
+    where X^I is the next operator when only input actions can be taken. *)
+val ctl_a_input_next: symbolic_module_t -> stateset_t -> stateset_t
+
+(** [ctl_a_output_next sm b r] computes \forall X^O [r] for module [sm], 
+    where X^O is the next operator when only output actions can be taken. *)
+val ctl_a_output_next: symbolic_module_t -> stateset_t -> stateset_t
+
 
 (* **************************************************************** *)
 
@@ -175,7 +231,7 @@ val print_debug_toplevel : unit -> unit
 
 (** [print_stateset set] prints the MDD representation of the set
     [set].  Note: this is going to be readable only for simple sets! *)
-val print_stateset : state_set_t -> unit
+val print_stateset : stateset_t -> unit
 
 (** Prints the list of modules that have been parsed so far.  This
     does NOT include the symbolic modules, such as those that have

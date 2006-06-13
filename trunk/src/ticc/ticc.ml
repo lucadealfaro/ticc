@@ -3,7 +3,7 @@
 
 (** This is the type of a symbolic representation of a set of
     states. *)
-type state_set_t = Symmod.stateset_t
+type stateset_t = Symmod.stateset_t
 
 (** This is the type of a symbolic module. *)
 type symbolic_module_t = Symmod.t 
@@ -35,24 +35,24 @@ let calculate_inv = Symops.composition_test2 Symprog.toplevel Symops.win_i_safe;
 
 (** Computes the local/output post of a module [sm] 
     and a stateset [set]. *)
-let lo_post (sm: Symmod.t) (set: state_set_t) : state_set_t =
+let lo_post (sm: Symmod.t) (set: stateset_t) : stateset_t =
   Ops.lo_post Symprog.toplevel sm set
  
 (** Computes the input post of a module [sm] and a stateset [set]. *)
-let i_post (sm: Symmod.t) (set: state_set_t) : state_set_t =
+let i_post (sm: Symmod.t) (set: stateset_t) : stateset_t =
   Ops.i_post Symprog.toplevel sm set
 
 (** Computes the set of winning states for player Input w.r.t.
   the safety goal [set]. *)
-let win_i_safe (sm: Symmod.t) (set: state_set_t) 
-  : state_set_t  = 
+let win_i_safe (sm: Symmod.t) (set: stateset_t) 
+  : stateset_t  = 
   Ops.win_i_safe Symprog.toplevel sm set
   ;;
 
 (** Computes the set of winning states for player Output w.r.t.
   the safety goal [set]. *)
-let win_lo_safe (sm: Symmod.t) (set: state_set_t) 
-  : state_set_t  = 
+let win_lo_safe (sm: Symmod.t) (set: stateset_t) 
+  : stateset_t  = 
   Ops.win_lo_safe Symprog.toplevel sm set
   ;;
 
@@ -96,7 +96,7 @@ let mk_set (set_name: string) =
 (** Given a string containing an expression, returns the symbolic
     representation of the set of states that satisfy the
     expression. *)
-let parse_stateset (exp_string: string) : state_set_t =
+let parse_stateset (exp_string: string) : stateset_t =
   Symbuild.parse_stateset Symprog.toplevel exp_string
 
 (** clones an enumerative module *)
@@ -185,4 +185,85 @@ let print_bool b =
   if b 
   then print_string "true"
   else print_string "false"
+
+(* **************************************************************** *)
+(* CTL *)
+
+(* Existential *)
+
+let ctl_e_until (sm: symbolic_module_t) 
+	(b: stateset_t) (r: stateset_t) : stateset_t = 
+    Ops.e_until Symprog.toplevel sm b r
+
+let ctl_e_waitfor (sm: symbolic_module_t) 
+	(b: stateset_t) (r: stateset_t) : stateset_t = 
+    Ops.e_waitfor Symprog.toplevel sm b r 
+
+let ctl_e_f (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    let mgr = Symprog.get_mgr Symprog.toplevel in 
+    let one = Mlglu.mdd_one mgr in 
+    Ops.e_until Symprog.toplevel sm one r
+
+let ctl_e_g (sm: symbolic_module_t) (b: stateset_t) : stateset_t = 
+    let mgr = Symprog.get_mgr Symprog.toplevel in 
+    let zero = Mlglu.mdd_zero mgr in 
+    ctl_e_waitfor sm b zero 
+
+let ctl_e_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    Ops.e_pre Symprog.toplevel sm r 
+
+let ctl_e_input_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    Ops.e_input_pre Symprog.toplevel sm r 
+
+let ctl_e_output_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    Ops.e_output_pre Symprog.toplevel sm r 
+
+
+(* Universal *)
+
+(** Uses: \forall \box B = \not \exists \diam \not B *)
+let ctl_a_g (sm: symbolic_module_t) (b: stateset_t) : stateset_t = 
+    let iinv = Symmod.get_iinv sm in 
+    let oinv = Symmod.get_oinv sm in 
+    let result = Mlglu.mdd_not (ctl_e_f sm (Mlglu.mdd_not b)) in 
+    Mlglu.mdd_and (Mlglu.mdd_and result oinv 1 1) iinv 1 1 
+
+(** Uses: \forall (B \waitfor R) 
+    = \not \exists (\not R \Until (\not R \inters \not B)) *)
+let ctl_a_waitfor (sm: symbolic_module_t) 
+	(b: stateset_t) (r: stateset_t) : stateset_t = 
+    let not_b = Mlglu.mdd_not b in 
+    let not_r = Mlglu.mdd_not r in 
+    let not_b_and_not_r = Mlglu.mdd_and not_b not_r 1 1 in 
+    let iinv = Symmod.get_iinv sm in 
+    let oinv = Symmod.get_oinv sm in 
+    let result = Mlglu.mdd_not (ctl_e_until sm not_r not_b_and_not_r) in 
+    Mlglu.mdd_and (Mlglu.mdd_and result oinv 1 1) iinv 1 1 
+
+(** Uses: \forall (B \until R) 
+    = \not \exists (\not R \waitfor (\not R \inters \not B)) *)
+let ctl_a_until (sm: symbolic_module_t) 
+	(b: stateset_t) (r: stateset_t) : stateset_t = 
+    let not_b = Mlglu.mdd_not b in 
+    let not_r = Mlglu.mdd_not r in 
+    let not_b_and_not_r = Mlglu.mdd_and not_b not_r 1 1 in 
+    let iinv = Symmod.get_iinv sm in 
+    let oinv = Symmod.get_oinv sm in 
+    let result = Mlglu.mdd_not (ctl_e_waitfor sm not_r not_b_and_not_r) in 
+    Mlglu.mdd_and (Mlglu.mdd_and result oinv 1 1) iinv 1 1 
+
+let ctl_a_f (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    let mgr = Symprog.get_mgr Symprog.toplevel in 
+    let one = Mlglu.mdd_one mgr in 
+    ctl_a_until sm one r
+
+let ctl_a_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    Ops.apre Symprog.toplevel sm r
+
+let ctl_a_input_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    Ops.i_apre Symprog.toplevel sm r
+
+let ctl_a_output_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
+    Ops.lo_apre Symprog.toplevel sm r
+
 

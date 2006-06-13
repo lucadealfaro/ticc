@@ -20,3 +20,10 @@ let c = compose a b;;
 
 print_symmod c;;
 
+let t = parse_stateset "A.x = 1 & B.x = 1";;
+let r = parse_stateset "A.x = 2 & B.x = 2";;
+let s = parse_stateset "A.x < 2 & B.x + 1 < 3";;
+print_stateset (ctl_e_f c t);;
+print_stateset (ctl_a_f c t);;
+print_stateset (ctl_e_until c s r);;
+print_stateset (ctl_a_until c s r);;
