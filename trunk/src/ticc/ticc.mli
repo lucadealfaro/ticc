@@ -96,7 +96,7 @@ val parse_stateset : string -> stateset_t
 val clone : string -> string -> unit
 
 (** [sym_clone m] returns a clone of the symbolic module m *)
-val sym_clone : Symmod.t -> Symmod.t 
+val sym_clone : symbolic_module_t -> symbolic_module_t
 
 (* **************************************************************** *)
 
@@ -144,51 +144,51 @@ val simulate : symbolic_module_t -> string -> int -> string -> unit
 
 (** {3 Existential Operators} *)
 
-(** [ctl_e_until sm b r] computes \exists ([b] Until [r]) for module [sm] *)
+(** [ctl_e_until sm phi gamma] computes \exists ([phi] Until [gamma]) for module [sm] *)
 val ctl_e_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
-(** [ctl_e_waitfor sm b r] computes \exists ([b] Waitfor [r]) for module [sm] *)
+(** [ctl_e_waitfor sm phi gamma] computes \exists ([phi] Waitfor [gamma]) for module [sm] *)
 val ctl_e_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
-(** [ctl_e_f sm b r] computes \exists F [r] for module [sm] *)
+(** [ctl_e_f sm phi] computes \exists F [phi] for module [sm] *)
 val ctl_e_f: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_e_g sm b r] computes \exists G [r] for module [sm] *)
+(** [ctl_e_g sm phi] computes \exists G [phi] for module [sm] *)
 val ctl_e_g: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_e_next sm b r] computes \exists X [r] for module [sm] *)
+(** [ctl_e_next sm phi] computes \exists X [phi] for module [sm] *)
 val ctl_e_next: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_e_input_next sm b r] computes \exists X^I [r] for module [sm], 
+(** [ctl_e_input_next sm phi] computes \exists X^I [phi] for module [sm], 
     where X^I is the next operator when only input actions can be taken. *)
 val ctl_e_input_next: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_e_output_next sm b r] computes \exists X^O [r] for module [sm], 
+(** [ctl_e_output_next sm phi] computes \exists X^O [phi] for module [sm], 
     where X^O is the next operator when only output actions can be taken. *)
 val ctl_e_output_next: symbolic_module_t -> stateset_t -> stateset_t
 
 (** {3 Universal Operators} *)
 
-(** [ctl_a_until sm b r] computes \forall ([b] Until [r]) for module [sm] *)
+(** [ctl_a_until sm phi gamma] computes \forall ([phi] Until [gamma]) for module [sm] *)
 val ctl_a_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
-(** [ctl_a_waitfor sm b r] computes \forall ([b] Waitfor [r]) for module [sm] *)
+(** [ctl_a_waitfor sm phi gamma] computes \forall ([phi] Waitfor [gamma]) for module [sm] *)
 val ctl_a_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
-(** [ctl_a_f sm b r] computes \forall F [r] for module [sm] *)
+(** [ctl_a_f sm phi] computes \forall F [phi] for module [sm] *)
 val ctl_a_f: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_a_g sm b r] computes \forall G [r] for module [sm] *)
+(** [ctl_a_g sm phi] computes \forall G [phi] for module [sm] *)
 val ctl_a_g: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_a_next sm b r] computes \forall X [r] for module [sm] *)
+(** [ctl_a_next sm phi] computes \forall X [phi] for module [sm] *)
 val ctl_a_next: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_a_input_next sm b r] computes \forall X^I [r] for module [sm], 
+(** [ctl_a_input_next sm phi] computes \forall X^I [phi] for module [sm], 
     where X^I is the next operator when only input actions can be taken. *)
 val ctl_a_input_next: symbolic_module_t -> stateset_t -> stateset_t
 
-(** [ctl_a_output_next sm b r] computes \forall X^O [r] for module [sm], 
+(** [ctl_a_output_next sm phi] computes \forall X^O [phi] for module [sm], 
     where X^O is the next operator when only output actions can be taken. *)
 val ctl_a_output_next: symbolic_module_t -> stateset_t -> stateset_t
 
