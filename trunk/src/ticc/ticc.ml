@@ -266,4 +266,12 @@ let ctl_a_input_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t =
 let ctl_a_output_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
     Ops.lo_apre Symprog.toplevel sm r
 
+let ctl_and = set_and
+let ctl_or  = set_or
 
+let ctl_not sm b = 
+    let iinv = Symmod.get_iinv sm in 
+    let oinv = Symmod.get_oinv sm in 
+    let compl = set_not b in 
+    Mlglu.mdd_and (Mlglu.mdd_and compl oinv 1 1) iinv 1 1 
+    

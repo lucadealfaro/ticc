@@ -215,6 +215,18 @@ val ctl_a_input_next: symbolic_module_t -> stateset_t -> stateset_t
     where X^O is the next operator when only output actions can be taken. *)
 val ctl_a_output_next: symbolic_module_t -> stateset_t -> stateset_t
 
+(** {3 Logical Operators} *)
+
+(** These are the same as [set_and], [set_or]. *)
+val ctl_and: stateset_t -> stateset_t -> stateset_t
+val ctl_or: stateset_t -> stateset_t -> stateset_t
+
+(** This is different from [set_not].  [set_not] simply complements a set. 
+    [ctl_not] complements the set, then conjoins the complement with the 
+    input and the output invariant.  Thus, [ctl_not], like the other CTL 
+    operators, returns only states that satisfy both invariants. *)
+val ctl_not: symbolic_module_t -> stateset_t -> stateset_t
+
 
 (* **************************************************************** *)
 
