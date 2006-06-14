@@ -17,7 +17,6 @@ exception Bad_typ;;
 (** Prints a (symbolic) rule. *)
 
 let print_rule sp r : unit =
-    (* if (Symmod.get_rule_act r) != Symprog.env_act then *)
     if true then 
 	begin
 	    let mgr = Symprog.get_mgr sp in
@@ -29,10 +28,12 @@ let print_rule sp r : unit =
 	    match Symmod.get_rule_tran r with
 		Symmod.Loc m  -> 
 		    Printf.printf "----[local]:\n"; 
+		    Printf.printf "Owned by module %s\n" (Symmod.get_owner_module r); 
 		    flush stdout;
 		    Mlglu.mdd_print mgr m;
 	      | Symmod.Out m -> 
 		    Printf.printf "----[output]:\n";
+		    Printf.printf "Owned by module %s\n" (Symmod.get_owner_module r); 
 		    flush stdout;
 		    Mlglu.mdd_print mgr m; 
 	      | Symmod.Inp (mg, ml) -> 
@@ -71,44 +72,44 @@ let print_rulemodact sp sm act : unit =
     Printf.printf "\n";
     Printf.printf "   PRINTING the rule(s) for the action %s of SYMBOLIC MODULE: %s.\n\n"  act (Symmod.get_name sm);
     let mgr = Symprog.get_mgr sp in
-    let rules_act = get_rules sm act in
-    let rec print_rules_act rules_list = 
-	match rules_list with
-	    [] ->  ()
-	  | r::rs -> match Symmod.get_rule_tran r with
-		Symmod.Loc m  -> 
-	            Printf.printf "[local part]:\n"; 
-                    Printf.printf "modified vars:\n ";
-                    Symutil.print_varset sp (Symmod.get_rule_wvars r);
-                    Printf.printf "\n \n";
-	            flush stdout;
-	            Mlglu.mdd_print mgr m;
-                    Printf.printf "\n\n";
-                    print_rules_act rs;
-              | Symmod.Out m -> 
-	            Printf.printf "[output part]:\n\n";
-                    Printf.printf "modified vars:\n ";
-                    Symutil.print_varset sp (Symmod.get_rule_wvars r);
-                    Printf.printf "\n \n";
-	            flush stdout;
-	            Mlglu.mdd_print mgr m;
-                    Printf.printf "\n\n";
-                    print_rules_act rs;
-              | Symmod.Inp (mg, ml) -> 
-                    Printf.printf "[input part]:\n";
-                    Printf.printf "modified vars:\n ";
-                    Symutil.print_varset sp (Symmod.get_rule_wvars r);
-                    Printf.printf "\n \n";
-	            Printf.printf "[input global part]:\n";
-                    flush stdout;
-	            Mlglu.mdd_print mgr mg; 
-                    Printf.printf "\n";
-	            Printf.printf "[input local part]:\n";
-	            flush stdout;
-	            Mlglu.mdd_print mgr ml;
-	            Printf.printf "\n\n"
+    let print_r r = 
+	if act = Symmod.get_rule_act r then 
+	    match Symmod.get_rule_tran r with
+	      Symmod.Loc m  -> 
+		  Printf.printf "[local part]:\n"; 
+		  Printf.printf "Owned by module %s\n" (Symmod.get_owner_module r); 
+		  Printf.printf "modified vars:\n ";
+		  Symutil.print_varset sp (Symmod.get_rule_wvars r);
+		  Printf.printf "\n \n";
+		  flush stdout;
+		  Mlglu.mdd_print mgr m;
+		  Printf.printf "\n\n";
+            | Symmod.Out m -> 
+		  Printf.printf "[output part]:\n\n";
+		  Printf.printf "Owned by module %s\n" (Symmod.get_owner_module r); 
+		  Printf.printf "modified vars:\n ";
+		  Symutil.print_varset sp (Symmod.get_rule_wvars r);
+		  Printf.printf "\n \n";
+		  flush stdout;
+		  Mlglu.mdd_print mgr m;
+		  Printf.printf "\n\n";
+            | Symmod.Inp (mg, ml) -> 
+		  Printf.printf "[input part]:\n";
+		  Printf.printf "modified vars:\n ";
+		  Symutil.print_varset sp (Symmod.get_rule_wvars r);
+		  Printf.printf "\n \n";
+		  Printf.printf "[input global part]:\n";
+		  flush stdout;
+		  Mlglu.mdd_print mgr mg; 
+		  Printf.printf "\n";
+		  Printf.printf "[input local part]:\n";
+		  flush stdout;
+		  Mlglu.mdd_print mgr ml;
+		  Printf.printf "\n\n"
     in
-    print_rules_act rules_act               
+    Symmod.iter_irules sm print_r; 
+    Symmod.iter_lrules sm print_r; 
+    Symmod.iter_orules sm print_r; 
 ;;
 
 

@@ -41,31 +41,6 @@ exception Internal_error_3
 
 (** **************** Composition of modules  ******************* *)
 
-(** Search through a list of rules [rule_list] for a rule 
-    for action [act] of type [typ]. 
-    If it finds it, returns it. 
-    If it does not find it, returns a new rule for action [act], 
-    corresponding to the empty transition relation, so that 
-    an incompatibility will result. 
- *)
-let rec find_rule_or_false (sp:Symprog.t) (act: string) 
-	(typ: Symmod.rule_type_t) (rule_list: Symmod.rule_t list)
-	: Symmod.rule_t =
-    match rule_list with
-	[]	->
-	    (* if there is no rule for an action, then the
-	     * model cannot accept that action.  Set the mdd
-	     * to "false".  I pass a list of two, because mk_rule
-	     * will do the correct thing, based on the rule type. *)
-	    let mgr = Symprog.get_mgr sp in
-	    Symmod.mk_rule typ act VarSet.empty
-		[(Mlglu.mdd_zero mgr); (Mlglu.mdd_zero mgr)]
-      | r::rs	->
-	    if (Symmod.get_rule_type r) = typ 
-	    then r 
-	    else find_rule_or_false sp act typ rs
-;;
-
 
 (** has_disjoint_lvars: Check for disjoint sets of local variables.
     This function checks if two modules [m1] and [m2]
@@ -294,6 +269,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 	if (Symmod.get_rule_type inp_r) != Input 
 	    || (Symmod.get_rule_type out_r) != Output then raise WrongRuleType;
 	(* Ok, now computes the new rule. *)
+	let owner_mod = Symmod.get_owner_module out_r in 
 	(* Modified variables *)
 	let i_wvars = Symmod.get_rule_wvars inp_r in 
 	let o_wvars = Symmod.get_rule_wvars out_r in 
@@ -309,26 +285,12 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 	(* The name is taken from the output rule (due to possible regexp in the input one). *)
 	let act_io = Symmod.get_rule_act out_r in 
 	(* Builds the rule *)
-	let new_r = Symmod.mk_orule act_io io_wvars rho_io in 
+	let new_r = Symmod.mk_orule act_io owner_mod io_wvars rho_io in 
 	(* Now it adds the rule.  The small complication is that a
 	   rule of the same name could already be present, a result of
 	   an input-output synchronization in the other direction. 
 	   We therefore construct a combinator function for this case. *)
-	let combine_o_rules (or1: rule_t) (or2: rule_t) : rule_t = 
-	    let wvars1 = Symmod.get_rule_wvars or1 in 
-	    let wvars2 = Symmod.get_rule_wvars or2 in 
-	    let rho1 = Symmod.get_orule_mdd or1 in 
-	    let rho2 = Symmod.get_orule_mdd or2 in 
-	    let wvars12 = VarSet.union wvars1 wvars2 in 
-	    let add_wvar1 = VarSet.diff wvars12 wvars1 in
-	    let add_wvar2 = VarSet.diff wvars12 wvars2 in
-	    let rho1w = Mlglu.mdd_and rho1 (Symbuild.unchngd sp add_wvar1) 1 1 in
-	    let rho2w = Mlglu.mdd_and rho2 (Symbuild.unchngd sp add_wvar2) 1 1 in
-	    let rho12 = Mlglu.mdd_or rho1w rho2w 1 1 in 
-	    Symmod.mk_orule act_io wvars12 rho12
-	in 
-	(* Adds the rule, combining it with previous rules if necessary. *)
-	Hsetmap.add_combine m12.orules combine_o_rules act_io new_r 
+	Symmod.add_rule m12 new_r
     in 
 
     (* Ok, now that these helper functions have been declared, 

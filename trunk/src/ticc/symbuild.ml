@@ -691,13 +691,15 @@ let mk_sset (sp: Symprog.t) (sm: Symmod.t) (name: string) (e: Ast.t) : unit =
 *)
 let mk_lrule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.lrule_t) : unit =
   let act = Rule.get_lname r in
+  (* This is the name of the module where the action originated *)
+  let mod_name = Symmod.get_name sm in 
   let gc_list = Rule.get_lgc_list r in
   let wvars   = Rule.get_lwvars r in
   let mdd     = disjoin_gc_list sp gc_list wvars in
   (* propagate set of written vars *)
   let sym_wvars = Symprog.get_id_of_varset sp wvars in
   (* add the resulting rule to the symbolic module [sm] *)
-  let symrule = Symmod.mk_lrule act sym_wvars mdd in
+  let symrule = Symmod.mk_lrule act mod_name sym_wvars mdd in
   Symmod.add_rule sm symrule
 ;;
 
@@ -754,6 +756,8 @@ let mk_irule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.irule_t) : unit =
 *)
 let mk_orule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit =
   let act = Rule.get_oname r in
+  (* This is the name of the module where the action originated *)
+  let mod_name = Symmod.get_name sm in 
   let gc_list = Rule.get_ogc_list r in
   (* get the set of all variables that are mentioned primed in any line of [r] *)
   let wvars   = Rule.get_owvars r in
@@ -761,7 +765,7 @@ let mk_orule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit =
   (* propagate set of written vars *)
   let sym_wvars = Symprog.get_id_of_varset sp wvars in
   (* add the resulting rule to the symbolic module [sm] *)
-  let symrule = Symmod.mk_orule act sym_wvars mdd in
+  let symrule = Symmod.mk_orule act mod_name sym_wvars mdd in
   Symmod.add_rule sm symrule
 ;;
 
