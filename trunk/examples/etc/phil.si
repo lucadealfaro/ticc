@@ -5,9 +5,9 @@
 var F1, F2, F3 : bool
 
 //The initial condition 
-//All forks are free initially
+//All forks are free initially (Fi true implies free )
 
-stateset initcond: ~F1 & ~F2 & ~F3
+stateset initcond: F1 & F2 & F3
 
 module Phil1:
        

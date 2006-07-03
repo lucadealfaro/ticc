@@ -28,7 +28,7 @@ let eat  = (set_or (set_or eat1 eat2) eat3);;
 (* print_stateset hungry;; *)
 
 (* scheduler liveness *) 
-let live  = set_impl hungry (ctl_e_f comp eat);;
+let live  = (ctl_a_g comp (set_impl hungry (ctl_e_f comp eat)));;
 print_stateset live;; 
 
 (*  starvation for philosopher 1 *)
