@@ -26,16 +26,16 @@ module Phil1:
        
        output grabF3:{ 
 	      s = 1 ==> s' = 2;       // s = 2 --> go for left fork, have none
-	      s = 2 & F3 ==> s' = 4;  // s = 4 --> have the left fork 
+	      s = 2 & F3 ==> s' = 4 & F3' = false; // s = 4 --> have the left fork 
               s = 2 & !F3 ==> s' = 2; // (stay) s=2 --> left  busy, have none
-	      s = 5 & F3 ==> s' = 8;  // s = 8 --> have both forks 
+	      s = 5 & F3 ==> s' = 8 & F3' = false; // s = 8 --> have both forks 
               s = 5 & !F3 ==> s' = 7  // s = 7 --> right busy, have left fork
        } 
        output grabF1:{
 	      s = 1 ==> s' = 3;       // s = 3 --> go for right fork, have none
-	      s = 3 & F1 ==> s' = 5;  // s = 5 --> have right fork
+	      s = 3 & F1 ==> s' = 5 &  F1' = false; // s = 5 --> have right fork
 	      s = 3 & !F1 ==> s' = 3; // (stay) s=3 --> right busy, have none
-	      s = 4 & F1 ==> s' = 8;  // s = 8 --> have both forks
+	      s = 4 & F1 ==> s' = 8 &  F1' = false; // s = 8 --> have both forks
 	      s = 4 & !F1 ==> s' = 6  // s = 6 --> left busy, have right fork
        }
        output eat1:{
@@ -70,16 +70,16 @@ module Phil2:
        
        output grabF1:{
 	      s = 1 ==> s' = 2;
-	      s = 2 & F1 ==> s' = 4;
+	      s = 2 & F1 ==> s' = 4 & F1' = false;
               s = 2 & !F1 ==> s' = 2;
-	      s = 5 & F1 ==> s' = 8;
+	      s = 5 & F1 ==> s' = 8 & F1' = false;
               s = 5 & !F1 ==> s' = 7
        } 
        output grabF2:{
 	      s = 1 ==> s' = 3;
-	      s = 3 & F2 ==> s' = 5;
+	      s = 3 & F2 ==> s' = 5 & F2' = false;
 	      s = 3 & !F2 ==> s' = 3;
-	      s = 4 & F2 ==> s' = 8;
+	      s = 4 & F2 ==> s' = 8 & F2' = false;
 	      s = 4 & !F2 ==> s' = 6 
        }
        output eat2:{
@@ -114,16 +114,16 @@ module Phil3:
        
        output grabF2:{
 	      s = 1 ==> s' = 2;
-	      s = 2 & F2 ==> s' = 4;
+	      s = 2 & F2 ==> s' = 4 & F2' = false;
               s = 2 & !F2 ==> s' = 2;
-	      s = 5 & F2 ==> s' = 8;
+	      s = 5 & F2 ==> s' = 8 & F2' = false;
               s = 5 & !F2 ==> s' = 7
        } 
        output grabF3:{
 	      s = 1 ==> s' = 3;
-	      s = 3 & F3 ==> s' = 5;
+	      s = 3 & F3 ==> s' = 5 & F3' = false;
 	      s = 3 & !F3 ==> s' = 3;
-	      s = 4 & F3 ==> s' = 8;
+	      s = 4 & F3 ==> s' = 8 & F3' = false;
 	      s = 4 & !F3 ==> s' = 6 
        }
        output eat3:{
