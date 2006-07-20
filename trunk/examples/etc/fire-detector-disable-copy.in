@@ -1,0 +1,18 @@
+open Ticc;;
+
+parse "fire-detector-disable.si" ;;
+
+clone "FireDetector1" "FireDetector4";;
+
+(* print_toplevel () ;; *)
+
+let fire1 = mk_sym "FireDetector1";;
+let fire3 = mk_sym "FireDetector3";;
+let wfire2 = mk_sym "Faulty_FireDetector2";;
+let controlunit = mk_sym "ControlUnit";;
+let disable = mk_sym "Disable";;
+
+let c = compose fire1  controlunit;;
+let d = compose wfire2 controlunit;; 
+
+print_list_symmodules;; 
