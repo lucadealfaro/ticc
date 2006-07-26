@@ -197,12 +197,13 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
     (* The reachset we leave it alone; it is computed only upon request *)
     (* Ok, now all that remains to be done are the rules *)
 
-    (* this function adds a new rule in the product.
+    (* This function adds a new rule in the product.
        The function is called when the action that labels
        the rule [r] does not synchronize with any action in the 
        other module [other_sm].
      *)
     let add_nonsynch_action (other_sm: Symmod.t) (r: Symmod.rule_t) : unit = 
+
 	(* the resulting rule is the same the original rule, for Loc & Out *)
 	let new_rule =
 	    match (Symmod.get_rule_tran r) with
@@ -242,6 +243,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
      *)
     let add_input_input_synch_action (r1: Symmod.rule_t) (r2: Symmod.rule_t) 
 	    (new_name: string) : unit = 
+
 	(* the resulting rule is the same the original rule, for Loc & Out *)
 	(* gets the mdds *)
 	let (rho1_ig, rho1_il) = Symmod.get_rule_ig_il_mdds r1 in
@@ -258,7 +260,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 	Symmod.add_rule m12 (Symmod.mk_irule new_name new_wvars new_ig new_il)
     in 
 
-    (* The function adds a new rule to the product. 
+    (* The function adds a new output rule to the product. 
        It is called for a pair of input/output rules that synchronize. 
        The new name of the action is taken from the name of the output action. 
      *)
@@ -276,7 +278,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 	let io_wvars = VarSet.union i_wvars o_wvars in 
 	(* Transition relation *)
 	let rho_o = Symmod.get_orule_mdd out_r in 
-	let (rho_ig, rho_il) = Symmod.get_rule_ig_il_mdds inp_r in
+	let (_, rho_il) = Symmod.get_rule_ig_il_mdds inp_r in
 	(* Now they must be combined *)
 	(* Is io_wvars fine?  Or do we have to add some unchanged variables? 
 	   I think it is fine.  In fact, o_wvars specifies which global and local1 
@@ -297,7 +299,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
        we need to go over the rules of the two modules, and add the resulting rules 
        to the new module m12. *)
 
-    (* Let's start from local variables. *)
+    (* Let's start from local rules. *)
     let add_locals1 (r: rule_t) : unit = add_nonsynch_action m2 r in 
     Symmod.iter_lrules m1 add_locals1;
     let add_locals2 (r: rule_t) : unit = add_nonsynch_action m1 r in 
@@ -307,14 +309,16 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
     let match_output_rule1 (r1: rule_t) : unit = 
 	match Symmod.best_rule_match m2 (Symmod.get_rule_act r1) with 
 	  Some r2 ->  add_input_output_synch_action r2 r1
-	| None -> add_nonsynch_action m2 r1
+	| None -> if not (Symmod.has_action m2 (Symmod.get_rule_act r1)) then
+	    add_nonsynch_action m2 r1
     in Symmod.iter_orules m1 match_output_rule1; 
 
     (* ... outputs of 2 with inputs of 1 ... *)
     let match_output_rule2 (r2: rule_t) : unit = 
 	match Symmod.best_rule_match m1 (Symmod.get_rule_act r2) with 
 	  Some r1 -> add_input_output_synch_action r1 r2
-	| None -> add_nonsynch_action m1 r2
+	| None -> if not (Symmod.has_action m1 (Symmod.get_rule_act r2)) then
+	    add_nonsynch_action m1 r2
     in Symmod.iter_orules m2 match_output_rule2;
 
     (* For inputs, I keep a hash table of the pairs that have already been done. *)
@@ -332,10 +336,12 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 		  add_input_input_synch_action r1 r2 act1
 	      end
 	  end
-	| None -> add_nonsynch_action m2 r1
+	| None -> if not (Symmod.has_action m2 act1) then
+	    (** What if act1 is a wildcard? *)
+	    add_nonsynch_action m2 r1
     in Symmod.iter_irules m1 match_input_rule1; 
 
-    (* Inputs of 1 with inputs of 2 *)
+    (* Inputs of 2 with inputs of 1 *)
     let match_input_rule2 (r2: rule_t) : unit = 
 	let act2 = Symmod.get_rule_act r2 in
 	match Symmod.best_rule_match m1 act2 with 
@@ -347,7 +353,9 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 		  add_input_input_synch_action r1 r2 act2
 	      end
 	  end
-	| None -> add_nonsynch_action m1 r2
+	| None -> if not (Symmod.has_action m1 act2) then
+	    (** What if act2 is a wildcard? *)
+	    add_nonsynch_action m1 r2
     in Symmod.iter_irules m2 match_input_rule2; 
 
     (* All done *)
@@ -425,7 +433,7 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
     let inv12 = Symmod.get_iinv m12 in 
     let new_inv12 = win_algo sp m12 (Mlglu.mdd_and good_states inv12 1 1) in 
     Symmod.set_iinv m12 new_inv12; 
-    (* Now it must restrict the initial condition; if it becomes empty, the the 
+    (* Now it must restrict the initial condition; if it becomes empty, then the 
        modules are incompatible *)
     let vars12 = Symmod.get_vars m12 in 
     let lvars12 = Symmod.get_lvars m12 in 
