@@ -392,3 +392,9 @@ let symbolic_clone mgr (m : t) : t =
   iter_orules m (add_rule m1); 
   (* all done *)
   m1
+
+(*****************************************************************)
+
+(** Sets the reachset *)
+
+let set_reachset (m: t) (b: Mlglu.mdd option) : unit = m.reachset <- b
