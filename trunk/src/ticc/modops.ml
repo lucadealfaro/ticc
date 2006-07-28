@@ -72,7 +72,7 @@ let close_input_action (sp: Symprog.t) (sm: Symmod.t) (a_name: string) : Symmod.
   (* We need to erase the reachset, as it might have changed *)
   Symmod.set_reachset new_sm None;
   (* In case of timed modules, we need also to recompute the I-live states *)
-  if is_timed new_sm then begin
+  if Symmod.is_timed new_sm then begin
     let strong_iinv = Ops.win_i_safe  Symprog.toplevel new_sm (Symmod.get_iinv sm) in 
     let new_init = Mlglu.mdd_and (Symmod.get_init new_sm) strong_iinv 1 1 in 
     Symmod.set_iinv new_sm strong_iinv;
