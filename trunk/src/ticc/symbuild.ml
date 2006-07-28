@@ -735,15 +735,14 @@ let mk_irule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.irule_t) : unit =
      \exists  wvars' . l_mdd 
      This moves the blocking from the local part, to the global part, 
      where it belongs. *) 
-  let l_wvars   = Rule.get_iwlvars r in
-  let l_sym_wvars  = Symprog.get_id_of_varset sp l_wvars in
-  let l_sym_wvars' = Symprog.prime_vars sp l_sym_wvars in
-  let local_nonblock = Mlglu.mdd_smooth mgr l_mdd l_sym_wvars' in 
+  let sym_wvars  = Symprog.get_id_of_varset sp wvars in
+  let sym_wvars' = Symprog.prime_vars sp sym_wvars in
+  let local_nonblock = Mlglu.mdd_smooth mgr l_mdd sym_wvars' in 
   let g_mdd = Mlglu.mdd_and g_mdd local_nonblock 1 1 in 
   (* add the resulting rule to the symbolic module [sm] *)
   (** In the following line, 
       should it be l_mdd (as it is) or local_nonblock?? - Marco *)
-  let symrule = Symmod.mk_irule act l_sym_wvars g_mdd l_mdd in
+  let symrule = Symmod.mk_irule act sym_wvars g_mdd l_mdd in
   Symmod.add_rule sm symrule;
 ;;
 
@@ -767,6 +766,25 @@ let mk_orule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit =
   (* add the resulting rule to the symbolic module [sm] *)
   let symrule = Symmod.mk_orule act mod_name sym_wvars mdd in
   Symmod.add_rule sm symrule
+;;
+
+(** If an output rule does not match any input rule of the module,
+    then we add an input rule of the same name, with transition
+    relation "false", to explicitly reject the input.  This has been
+    added so that regular expressions as input action names work
+    properly in composition. *)
+let mk_reject_rule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit = 
+  (* Check if there is a matching input rule *)
+  let act_name = Rule.get_oact r in 
+  if (Symmod.best_rule_match sm act_name) = None then begin
+    (* There is no input rule.  Makes one, with transition relation "false". *)
+    let mgr = Symprog.get_mgr sp in
+    (* will be used for global and local transition relations *)
+    let mdd_false = Mlglu.mdd_zero mgr in 
+    (* no wvars, I think this is ok *) 
+    let symrule = Symmod.mk_irule act_name VarSet.empty mdd_false mdd_false in 
+    Symmod.add_rule sm symrule
+  end
 ;;
 
 
@@ -854,7 +872,17 @@ let mk_mod (m: Mod.t) (sp: Symprog.t) : Symmod.t =
   Mod.iter_lrules m (mk_lrule sp sym_mod);
   Mod.iter_irules m (mk_irule sp sym_mod);
   Mod.iter_orules m (mk_orule sp sym_mod);
+
+  (* For all the output rules that are not matched by an input
+     rule, adds an input rule with "false" as transition relation, so
+     that a module explicitly rejects the inputs it cannot accept.
+     This has been added, due to the introduction of regular
+     expressions as input rules. *)
+  Mod.iter_orules m (mk_reject_rule sp sym_mod); 
+
+  (* Makes the environment rule *)
   mk_env_rule sp sym_mod;
+
   sym_mod
 ;;
 

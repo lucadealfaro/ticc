@@ -288,10 +288,9 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 	let act_io = Symmod.get_rule_act out_r in 
 	(* Builds the rule *)
 	let new_r = Symmod.mk_orule act_io owner_mod io_wvars rho_io in 
-	(* Now it adds the rule.  The small complication is that a
-	   rule of the same name could already be present, a result of
-	   an input-output synchronization in the other direction. 
-	   We therefore construct a combinator function for this case. *)
+	(* Now it adds the rule.  Note that a module can have more
+	   than one rule with the same name, as a result of 
+	   an input-output synchronization in the other direction. *)
 	Symmod.add_rule m12 new_r
     in 
 
@@ -309,16 +308,14 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
     let match_output_rule1 (r1: rule_t) : unit = 
 	match Symmod.best_rule_match m2 (Symmod.get_rule_act r1) with 
 	  Some r2 ->  add_input_output_synch_action r2 r1
-	| None -> if not (Symmod.has_action m2 (Symmod.get_rule_act r1)) then
-	    add_nonsynch_action m2 r1
+	| None -> add_nonsynch_action m2 r1
     in Symmod.iter_orules m1 match_output_rule1; 
 
     (* ... outputs of 2 with inputs of 1 ... *)
     let match_output_rule2 (r2: rule_t) : unit = 
 	match Symmod.best_rule_match m1 (Symmod.get_rule_act r2) with 
 	  Some r1 -> add_input_output_synch_action r1 r2
-	| None -> if not (Symmod.has_action m1 (Symmod.get_rule_act r2)) then
-	    add_nonsynch_action m1 r2
+	| None -> add_nonsynch_action m1 r2
     in Symmod.iter_orules m2 match_output_rule2;
 
     (* For inputs, I keep a hash table of the pairs that have already been done. *)
@@ -336,9 +333,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 		  add_input_input_synch_action r1 r2 act1
 	      end
 	  end
-	| None -> if not (Symmod.has_action m2 act1) then
-	    (** What if act1 is a wildcard? *)
-	    add_nonsynch_action m2 r1
+	| None -> add_nonsynch_action m2 r1
     in Symmod.iter_irules m1 match_input_rule1; 
 
     (* Inputs of 2 with inputs of 1 *)
@@ -353,9 +348,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 		  add_input_input_synch_action r1 r2 act2
 	      end
 	  end
-	| None -> if not (Symmod.has_action m1 act2) then
-	    (** What if act2 is a wildcard? *)
-	    add_nonsynch_action m1 r2
+	| None -> add_nonsynch_action m1 r2
     in Symmod.iter_irules m2 match_input_rule2; 
 
     (* All done *)

@@ -2,7 +2,7 @@ open Ticc;;
 
 parse "fire-detector-disable.si" ;;
 
-clone "FireDetector1" "FireDetector4";;
+(* clone "FireDetector1" "FireDetector4";; *)
 
 (* print_toplevel () ;; *)
 
@@ -15,4 +15,5 @@ let disable = mk_sym "Disable";;
 let c = compose fire1  controlunit;;
 let d = compose wfire2 controlunit;; 
 
-print_list_symmodules;; 
+print_list_modules ();; 
+print_string "\nciao sono qui\n";;
