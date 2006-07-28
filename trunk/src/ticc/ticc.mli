@@ -63,6 +63,9 @@ val oinv : symbolic_module_t -> stateset_t
     multiple times. *)
 val reachable : symbolic_module_t -> stateset_t
 
+(** [close m a] closes the symbolic module [m] with respect to input
+    action [a], so that [a] is no longer accepted as input. *)
+val close : symbolic_module_t -> string -> unit 
 
 (* **************************************************************** *)
 

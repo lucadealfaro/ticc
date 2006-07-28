@@ -20,6 +20,51 @@ exception Modules_not_composable = Compose.Modules_not_composable
     modules being composed are incompatible. *)
 exception Incompatible_Modules = Compose.Incompatible_Modules
 
+(** Parses a file. 
+    When parse aborts because of an error, all the parsed stuff is
+    lost, so that you can try to parse the file again after correcting
+    the problem. *)
+let parse (f: string) = 
+  let cin = open_in f in 
+  let lexbuf = Lexing.from_channel cin in
+  Ticparse.design Ticlex.token lexbuf;
+  (* copy the new declarations to toplevel *) 
+  Prog.fold_to_top ()
+  
+(** Given the name of a module, 
+    it builds and returns the symbolic representation of the module. 
+*)
+let mk_sym = Modops.mk_sym
+
+
+(** Given the name of a stateset, build a symbolic representation for
+    it. *) 
+let mk_set (set_name: string) = 
+  let a = 
+    try Prog.get_sset_top set_name
+    with Not_found -> 
+      Printf.printf " Error: Unknown stateset!";
+      raise Not_found
+  in
+  let st = Symbuild.mk_bool Symprog.toplevel a in 
+  (* For some reason, it does not seem to be necessary to add st to
+     the symbolic top level... go figure. *) 
+  st
+
+(** Given a string containing an expression, returns the symbolic
+    representation of the set of states that satisfy the
+    expression. *)
+let parse_stateset (exp_string: string) : stateset_t =
+  Symbuild.parse_stateset Symprog.toplevel exp_string
+
+(** clones an enumerative module *)
+let clone = Prog.clone_modp Prog.toplevel;;
+
+(** clones a symbolic module *)
+let sym_clone (m: Symmod.t) : Symmod.t = 
+  let mgr = Symprog.get_mgr Symprog.toplevel in 
+  Symmod.symbolic_clone mgr m
+
 (** compose two modules *)
 let compose = Compose.composition Symprog.toplevel Ops.win_i_safe;;
 let compose_alt = Compose.composition Symprog.toplevel Ops.win_i_safe_alt_1;;
@@ -60,50 +105,15 @@ let oinv m = Symmod.get_oinv m
 (** Returns the reachable states *)
 let reachable m = Ops.reachable Symprog.toplevel m 
 
-(** Parses a file. 
-    When parse aborts because of an error, all the parsed stuff is
-    lost, so that you can try to parse the file again after correcting
-    the problem. *)
-let parse (f: string) = 
-  let cin = open_in f in 
-  let lexbuf = Lexing.from_channel cin in
-  Ticparse.design Ticlex.token lexbuf;
-  (* copy the new declarations to toplevel *) 
-  Prog.fold_to_top ()
-  
-(** Given the name of a module, 
-    it builds and returns the symbolic representation of the module. 
-*)
-let mk_sym = Ops.mk_sym
+(** Closes a module wrt. an action *)
+let close m a = Modops.close_input_action Symprog.toplevel m a 
 
-
-(** Given the name of a stateset, build a symbolic representation for
-    it. *) 
-let mk_set (set_name: string) = 
-  let a = 
-    try Prog.get_sset_top set_name
-    with Not_found -> 
-      Printf.printf " Error: Unknown stateset!";
-      raise Not_found
-  in
-  let st = Symbuild.mk_bool Symprog.toplevel a in 
-  (* For some reason, it does not seem to be necessary to add st to
-     the symbolic top level... go figure. *) 
-  st
-
-(** Given a string containing an expression, returns the symbolic
-    representation of the set of states that satisfy the
-    expression. *)
-let parse_stateset (exp_string: string) : stateset_t =
-  Symbuild.parse_stateset Symprog.toplevel exp_string
-
-(** clones an enumerative module *)
-let clone = Prog.clone_modp Prog.toplevel;;
-
-(** clones a symbolic module *)
-let sym_clone (m: Symmod.t) : Symmod.t = 
-  let mgr = Symprog.get_mgr Symprog.toplevel in 
-  Symmod.symbolic_clone mgr m
+(** Random simulates a module, given its initial state as a ticc
+    expression for the given number of cycles. *)
+let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
+    (outFile: string) : unit =
+  Simulate.simulate sm expr nCycles outFile
+;;
 
 (** Comparisons between mdds *)
 
@@ -117,13 +127,6 @@ let set_and  b1 b2 = Mlglu.mdd_and b1 b2 1 1
 let set_or   b1 b2 = Mlglu.mdd_or  b1 b2 1 1
 let set_impl b1 b2 = Mlglu.mdd_or  b1 b2 0 1
 let set_not  b     = Mlglu.mdd_not b
-
-(** Random simulates a module, given its initial state as a ticc
-    expression for the given number of cycles. *)
-let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
-    (outFile: string) : unit =
-  Simulate.simulate sm expr nCycles outFile
-;;
 
 (** prints the top level *)
 let print_toplevel () = 

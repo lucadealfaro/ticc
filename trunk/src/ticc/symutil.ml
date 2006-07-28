@@ -57,3 +57,19 @@ let unprime_mdd symtop sm a =
   unprime_mdd_vars symtop a vAll
 
  
+(** This function creates an input rule with false transition
+    relation.  In detail, if the module has the input rule already,
+    its transition relation is set to false.  Otherwise, a new input
+    rule is added, with false transition relation. *)
+let mk_false_irule (sp: Symprog.t) (sm: Symmod.t) (a_name: string) : unit = 
+  (* removes the rule, if present *)
+  if Symmod.has_iaction sm a_name then
+    Symmod.remove_irule sm a_name; 
+  (* adds the input rule, with false transition relation *)
+  let mgr = Symprog.get_mgr sp in
+  (* will be used for global and local transition relations *)
+  let mdd_false = Mlglu.mdd_zero mgr in 
+  (* no wvars, I think this is ok *) 
+  let symrule = Symmod.mk_irule a_name VarSet.empty mdd_false mdd_false in 
+  Symmod.add_rule sm symrule
+    

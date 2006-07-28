@@ -775,16 +775,10 @@ let mk_orule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit =
     properly in composition. *)
 let mk_reject_rule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit = 
   (* Check if there is a matching input rule *)
-  let act_name = Rule.get_oact r in 
-  if (Symmod.best_rule_match sm act_name) = None then begin
+  let a_name = Rule.get_oact r in 
+  if (Symmod.best_rule_match sm a_name) = None then
     (* There is no input rule.  Makes one, with transition relation "false". *)
-    let mgr = Symprog.get_mgr sp in
-    (* will be used for global and local transition relations *)
-    let mdd_false = Mlglu.mdd_zero mgr in 
-    (* no wvars, I think this is ok *) 
-    let symrule = Symmod.mk_irule act_name VarSet.empty mdd_false mdd_false in 
-    Symmod.add_rule sm symrule
-  end
+    Symutil.mk_false_irule sp sm a_name
 ;;
 
 

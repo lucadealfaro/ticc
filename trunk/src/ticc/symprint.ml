@@ -170,42 +170,41 @@ let print sp sm : unit =
     input invariant, in a symbolic module [sm]. *)
 let print_input_restriction sp sm (r: string) = 
     flush stdout; 
-    Printf.printf "\n------------------------"; 
-    Printf.printf "\nRestriction of input action %s:\n" r; 
     let mgr = Symprog.get_mgr sp in
     let iinv = Symmod.get_iinv sm in
-    let r = Symmod.get_irule sm r in 
-    match r with 
-	None -> Printf.printf "\nNo such action."
-      | Some ir -> begin
-	    let (glob_tr, loc_tr) = Symmod.get_rule_tran_as_pair ir in
-	    (* The transition relation is tr = glob_tr /\ loc_tr /\ uncha, 
-	       where uncha is an assertion saying that the local
-	       variables that are not mentioned do not change their
-	       value. *) 
-	    let w = Symmod.get_rule_wvars ir in
-	    let alllocal = Symmod.get_lvars sm in
-	    let notw = VarSet.diff alllocal w in
-	    let unchange_local = Symbuild.unchngd sp notw in
-	    let tr_tmp = Mlglu.mdd_and glob_tr loc_tr 1 1 in 
-	    let tr = Mlglu.mdd_and tr_tmp unchange_local 1 1 in
-	    (* Computes the set of reachable states of the module *)
-	    let reachset = Ops.reachable sp sm in 
-	    (* Now builds the answer: restr = tr /\ iinv /\ reachset /\ not iinv' *)
-	    let iinv' = Symutil.prime_mdd sp sm iinv in
-	    let restr = Mlglu.mdd_and 
-		(Mlglu.mdd_and (Mlglu.mdd_and tr iinv 1 1) reachset 1 1)
-		iinv' 1 0 in 
-	    (* At this point, what is left to do is to quantify out
-	       all primed local variables, since anyway their update
-	       is deterministic. *) 
-	    let local_variables = Symmod.get_lvars sm in 
-	    let local_variables' = Symprog.prime_vars sp local_variables in
-	    let result = Mlglu.mdd_smooth mgr restr local_variables' in
-	    flush stdout; 
-	    Mlglu.mdd_print mgr result;
-	    flush stdout
-	end;
-	    Printf.printf "\n------------- end of restriction\n" 
+    if Symmod.has_iaction sm r then begin 
+      Printf.printf "\n------------------------"; 
+      Printf.printf "\nRestriction of input action %s:\n" r; 
+      let ir = Symmod.get_irule sm r in 
+      let (glob_tr, loc_tr) = Symmod.get_rule_tran_as_pair ir in
+      (* The transition relation is tr = glob_tr /\ loc_tr /\ uncha, 
+	 where uncha is an assertion saying that the local
+	 variables that are not mentioned do not change their
+	 value. *) 
+      let w = Symmod.get_rule_wvars ir in
+      let alllocal = Symmod.get_lvars sm in
+      let notw = VarSet.diff alllocal w in
+      let unchange_local = Symbuild.unchngd sp notw in
+      let tr_tmp = Mlglu.mdd_and glob_tr loc_tr 1 1 in 
+      let tr = Mlglu.mdd_and tr_tmp unchange_local 1 1 in
+      (* Computes the set of reachable states of the module *)
+      let reachset = Ops.reachable sp sm in 
+      (* Now builds the answer: restr = tr /\ iinv /\ reachset /\ not iinv' *)
+      let iinv' = Symutil.prime_mdd sp sm iinv in
+      let restr = Mlglu.mdd_and 
+	(Mlglu.mdd_and (Mlglu.mdd_and tr iinv 1 1) reachset 1 1)
+	iinv' 1 0 in 
+      (* At this point, what is left to do is to quantify out
+	 all primed local variables, since anyway their update
+	 is deterministic. *) 
+      let local_variables = Symmod.get_lvars sm in 
+      let local_variables' = Symprog.prime_vars sp local_variables in
+      let result = Mlglu.mdd_smooth mgr restr local_variables' in
+      flush stdout; 
+      Mlglu.mdd_print mgr result;
+      flush stdout; 
+      Printf.printf "\n------------- end of restriction\n" 
+    end
+    else 
+      Printf.printf "\nNo input action named %s in the module.\n" r
 ;;
-

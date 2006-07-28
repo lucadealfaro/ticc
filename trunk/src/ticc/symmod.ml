@@ -181,12 +181,6 @@ let rule_dup (r: rule_t) : rule_t =
 	rule = new_r;
     }
 
-(** Gets an input rule, using perfect equality as the criterion 
-    (no wildcard match) *)
-let get_irule (m: t) (act: string) : rule_t option = 
-    try Some (Hsetmap.find m.irules act)
-    with Not_found -> None
-
 (** Checks whether a module has a given action.  The check is done by 
     text equality, disregarding wildcards. *)
 let has_action (m: t) act : bool =
@@ -196,10 +190,13 @@ let has_iaction (m: t) act : bool = Hsetmap.mem m.irules act
 let has_oaction (m: t) act : bool = Hsetmap.mem m.lrules act
 let has_laction (m: t) act : bool = Hsetmap.mem m.orules act
 
-(** Gets a rule, or list of rules, given the name *)
-let get_iaction (m: t) (act: string) : rule_t = Hsetmap.find m.irules act
-let get_laction (m: t) (act: string) : rule_t = Hsetmap.find m.lrules act
-let get_oaction (m: t) (act: string) : rule_t list = Hsetmap.find m.orules act
+(** Gets a rule, or list of rules, given the name of the action *)
+let get_lrule (m: t) (act: string) : rule_t = Hsetmap.find m.lrules act
+let get_orule (m: t) (act: string) : rule_t list = Hsetmap.find m.orules act
+let get_irule (m: t) (act: string) : rule_t = Hsetmap.find m.irules act
+
+(** Removes an input rule.  *)
+let remove_irule (m: t) (act: string) : unit = Hsetmap.remove m.irules act 
 
 (** Checks whether a module has a given input action, giving either a
     perfect match (if any), or the longest wildcard match. *)
@@ -330,25 +327,26 @@ let mk_rule (typ: rule_type_t) (act: string) (mod_name: string) (wvars:VarSet.t)
     belonging originally to a symbolic module of name [mn], 
     with set of modified variables [wvars], 
     and with transition relation [tran]. *)
-let mk_lrule act mn wvars tran : rule_t = 
+let mk_lrule (act: string) (mn: string) (wvars: VarSet.t) (tran: Mlglu.mdd) : rule_t = 
     mk_rule Local  act mn wvars [tran]
 
 (** [mk_orule act mn wvars tran] makes an output rule, for action [act], 
     belonging originally to a symbolic module of name [mn], 
     with set of modified variables [wvars], 
     and with transition relation [tran]. *)
-let mk_orule act mn wvars tran : rule_t = 
+let mk_orule (act: string) (mn: string) (wvars: VarSet.t) (tran: Mlglu.mdd) : rule_t = 
     mk_rule Output act mn wvars [tran]
 
 (** [mk_orule act wvars trang tranl] makes an input rule, for action [act], 
     with set of modified variables [wvars], 
     with global transition relation [gtran], 
     and with local transition relation [ltran]. *)
-let mk_irule (act: string) wvars trang tranl : rule_t = 
+let mk_irule (act: string) (wvars: VarSet.t) (trang: Mlglu.mdd) (tranl: Mlglu.mdd) : rule_t = 
+    (* note that the module name is not important for input rules *)
     mk_rule Input  act "" wvars [trang; tranl]
 
 (** Adds a rule to a module *) 
-let add_rule m r = 
+let add_rule (m : t) (r : rule_t) : unit = 
     let act = get_rule_act r in
     match get_rule_type r with
 	Local  -> Hsetmap.add m.lrules act r
