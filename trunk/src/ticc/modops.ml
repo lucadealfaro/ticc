@@ -86,6 +86,32 @@ let close_input_action (sp: Symprog.t) (sm: Symmod.t) (a_name: string) : Symmod.
   (* and returns it *)
   new_sm
 
+(* **************************************************************** *)
+(*                                                                  *)
+(*  Forgets a module                                                *)
+(*                                                                  *)
+(* **************************************************************** *)
+
+(** This apparently silly function enables the garbage collector to
+    collect all the MDDs associated with the module.  Warning: strange
+    things might happen if you then try to use the module! Use with
+    care!  If you wonder why this is here, rather than in symmod.ml
+    where it belongs - well, in symmod we cannot get the mdd manager,
+    as symprog is above symmod, not below it, in the hierarchy.  Crazy
+    eh?
+*)
+let forget_module (sp: Symprog.t) (sm: Symmod.t) : unit = 
+  let mgr =  Symprog.get_mgr sp in
+  let mdd1 = Mlglu.mdd_one mgr in 
+  Symmod.set_init sm mdd1; 
+  Symmod.set_reachset sm None; 
+  Symmod.clear_ssets sm; 
+  Symmod.set_iinv sm mdd1; 
+  Symmod.set_oinv sm mdd1; 
+  Symmod.clear_lrules sm; 
+  Symmod.clear_irules sm; 
+  Symmod.clear_orules sm
+;;
 
 
 

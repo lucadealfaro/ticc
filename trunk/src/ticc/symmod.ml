@@ -120,10 +120,16 @@ let set_hvars (m: t) (vs: VarSet.t) = m.hvars <- vs
 let set_cvars (m: t) (vs: VarSet.t) = m.cvars <- vs
 let set_clk_bounds (m: t) (bounds: (varid_t, int) Hsetmap.t) = m.clock_bound <- bounds
 let set_ssets (m: t) (set : (string, Mlglu.mdd) Hsetmap.t) = m.ssets <- set 
-
 let set_iinv m phi = m.iinv <- phi
 let set_oinv m phi = m.oinv <- phi
 let set_init m phi = m.init <- phi
+let set_reachset (m: t) (b: Mlglu.mdd option) : unit = m.reachset <- b
+(* these are used mostly to forget a module *)
+let clear_ssets  m = Hsetmap.erase m.ssets
+let clear_lrules m = Hsetmap.erase m.lrules
+let clear_irules m = Hsetmap.erase m.irules
+let clear_orules m = Hsetmap.erase m.orules
+
 let get_iinv m = m.iinv
 let get_oinv m = m.oinv
 let get_init m = m.init 
@@ -393,8 +399,3 @@ let symbolic_clone mgr (m : t) : t =
   (* all done *)
   m1
 
-(*****************************************************************)
-
-(** Sets the reachset *)
-
-let set_reachset (m: t) (b: Mlglu.mdd option) : unit = m.reachset <- b

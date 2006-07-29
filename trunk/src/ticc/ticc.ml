@@ -108,6 +108,9 @@ let reachable m = Ops.reachable Symprog.toplevel m
 (** Closes a module wrt. an action *)
 let close m a = Modops.close_input_action Symprog.toplevel m a 
 
+(** Forgets a module *)
+let forget = Modops.forget_module Symprog.toplevel 
+
 (** Random simulates a module, given its initial state as a ticc
     expression for the given number of cycles. *)
 let simulate (sm: Symmod.t) (expr: string) (nCycles: int)

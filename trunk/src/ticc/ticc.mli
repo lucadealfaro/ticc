@@ -67,6 +67,12 @@ val reachable : symbolic_module_t -> stateset_t
     action [a], so that [a] is no longer accepted as input. *)
 val close : symbolic_module_t -> string -> symbolic_module_t
 
+(** [forget m] forgets all the MDDs associated with the module [m], so 
+    that the garbage collector can collect them.  Useful for getting
+    rid of large intermediate results.  The effect of calling
+    subsequent functions on [m] is undefined!  Use with care! *)
+val forget : symbolic_module_t -> unit
+
 (* **************************************************************** *)
 
 (** {2 Parsing / Input functions}
