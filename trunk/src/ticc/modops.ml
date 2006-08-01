@@ -38,8 +38,7 @@ let mk_sym (mod_name: string) =
     Printf.printf "\nThe module %s has an empty set of initial states!\n" mod_name; 
     flush stdout
   end; 
-  (* adds it to the set of all symbolic modules *)
-  Symprog.add_mod_top sm;
+  (** the result *)
   sm
 
 
@@ -81,9 +80,7 @@ let close_input_action (sp: Symprog.t) (sm: Symmod.t) (a_name: string) : Symmod.
       flush stdout
     end
   end;  
-  (* adds it to the set of all symbolic modules *)
-  Symprog.add_mod_top new_sm;
-  (* and returns it *)
+  (** the result *)
   new_sm
 
 (* **************************************************************** *)

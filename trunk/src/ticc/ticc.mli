@@ -251,9 +251,6 @@ val print_stateset : stateset_t -> unit
     been created via operations. *) 
 val print_list_modules : unit -> unit
 
-(** Prints the list of symbolic modules *)
-val print_list_symmodules : unit -> unit
-
 (** Prints all the global variables *)
 val print_vars : unit -> unit
 

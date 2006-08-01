@@ -26,8 +26,6 @@ type t = {
   id_to_var_p: (varid_t, (Var.t * bool)) Hsetmap.t; 
   (** Bijection between unprimed and primed MDD ids *)
   id_to_pid: (varid_t, varid_t) Biject.t; 
-  (** Set of symbolic modules *)
-  smods  : (string, Symmod.t) Hsetmap.t;
 }
 
 exception ID_not_unprimed
@@ -48,7 +46,6 @@ let mk (n: string) : t =
     var_to_ids  = Hsetmap.mk ();
     id_to_var_p = Hsetmap.mk ();
     id_to_pid   = Biject.mk (); 
-    smods       = Hsetmap.mk ();
   }
 
 (** This is the symbolic toplevel we use by default *)
@@ -57,23 +54,6 @@ let toplevel = mk "Toplevel"
 
 (** Gets mdd manager *)
 let get_mgr (s: t) : Mlglu.mdd_manager = s.mgr
-
-
-(** ********** Modules ********************************** *)
-
-let add_mod p m = Hsetmap.add p.smods (Symmod.get_name m) m
-
-let add_mod_top = add_mod toplevel 
-
-(** Lists the modules *)
-let list_modules p : unit =
-  let pr_mod_name m = 
-    print_string "\n";
-    print_string (Symmod.get_name m)
-  in
-  Hsetmap.iter_body pr_mod_name p.smods
-
-let list_modules_top () = list_modules toplevel 
 
 (** ********** Variables ********************************** *)
 

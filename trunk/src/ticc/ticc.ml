@@ -151,11 +151,6 @@ let print_list_modules () =
   Prog.list_modules_top (); 
   print_string "\n"
 
-(** prints the list of known modules (just the names) *)
-let print_list_symmodules () = 
-  Symprog.list_modules_top (); 
-  print_string "\n"
-
 (** prints the global variables *) 
 let print_vars () = 
   Prog.print_vars_top (); 
