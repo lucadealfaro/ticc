@@ -22,25 +22,23 @@ let c0 = compose breaks calls;;
 let c1 = compose c0 plumber;; 
 let c2 = compose c1 electrician;;
 
-let d2 = compose c1 rudelectr;;
+(* let d2 = compose c1 rudelectr;;
 
 let init  = mk_set "initcond";; 
 
 let c2i = iinv c2;;
 let d2i = iinv d2;;
-
 let c2init = set_and init c2i;;
 let d2init = set_and init d2i;;
 
-print_string "\n c2init is empty? (should not be): ";; (* this should not be empty *)
+print_string "\n c2init: ";; (* this should not be empty *)
 print_bool (set_is_empty c2init);;
-print_string "\n d2init is empty? (should be): ";; (* this should be empty *)
+print_string "\n d2init: ";; (* this should be empty *)
 print_bool (set_is_empty d2init);;
 print_string "\n";;
+*)
 
-(*
 let c3 = compose c2 floors;;
 let c4 = compose c3 walls;;
 let c  = compose c4 clean;;
-*)
 

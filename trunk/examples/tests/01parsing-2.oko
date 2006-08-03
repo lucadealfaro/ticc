@@ -1,11 +1,17 @@
 
 ===================================
 Printing symbolic module ControlUnit.
-* Known variables:
+* All variables:
 { ControlUnit.s }
  
 * History variables: 
 { ControlUnit.s }
+ 
+* Local variables: 
+{ ControlUnit.s }
+ 
+* Global variables: 
+{ }
  
 * Input Invariant:
 (1) 
@@ -13,14 +19,21 @@ Printing symbolic module ControlUnit.
 * Output Invariant:
 (1) 
 
+* Initial Condition:
+(1) 
 * Rules:
 
 action FD:--------
+Modifies only variables in: 
+{ ControlUnit.s }
 ----[output]:
+Owned by module ControlUnit
 (
  (ControlUnit.s = 1)(
    (ControlUnit.s' = 2)) ) 
 action fire:--------
+Modifies only variables in: 
+{ ControlUnit.s }
 ----[input global]:
 (
  (ControlUnit.s = 0)) 
@@ -30,17 +43,41 @@ action fire:--------
    (ControlUnit.s' = 1)) ) 
 
 
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action FD:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(0) 
+----[input local]:
+(0) 
+
+
 endmodule
 ===================================
 
 
 ===================================
 Printing symbolic module FireDetector1.
-* Known variables:
+* All variables:
 { FireDetector1.s }
  
 * History variables: 
 { FireDetector1.s }
+ 
+* Local variables: 
+{ FireDetector1.s }
+ 
+* Global variables: 
+{ }
  
 * Input Invariant:
 (1) 
@@ -48,14 +85,30 @@ Printing symbolic module FireDetector1.
 * Output Invariant:
 (1) 
 
+* Initial Condition:
+(1) 
 * Rules:
 
 action fire:--------
+Modifies only variables in: 
+{ FireDetector1.s }
 ----[output]:
+Owned by module FireDetector1
 (
  (FireDetector1.s = 1)(
    (FireDetector1.s' = 2)) ) 
 action fire:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action _env_action:--------
+Modifies only variables in: 
+{ }
 ----[input global]:
 (1) 
 ----[input local]:
@@ -63,6 +116,8 @@ action fire:--------
 
 
 action smoke1:--------
+Modifies only variables in: 
+{ FireDetector1.s }
 ----[input global]:
 (
  (FireDetector1.s = 0)) 

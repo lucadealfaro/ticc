@@ -25,10 +25,16 @@ endmodule
 
 ===================================
 Printing symbolic module Walker.
-* Known variables:
+* All variables:
 { stepr stepl }
  
 * History variables: 
+{ stepr stepl }
+ 
+* Local variables: 
+{ }
+ 
+* Global variables: 
 { stepr stepl }
  
 * Input Invariant:
@@ -53,10 +59,31 @@ Printing symbolic module Walker.
     + 
    (stepl = 4)) ) 
 
+* Initial Condition:
+(
+ (stepr = 2)(
+   (stepl = 2)
+    + 
+   (stepl = 3)) 
+  + 
+ (stepr = 3)(
+   (stepl = 2)
+    + 
+   (stepl = 3)
+    + 
+   (stepl = 4)) 
+  + 
+ (stepr = 4)(
+   (stepl = 3)
+    + 
+   (stepl = 4)) ) 
 * Rules:
 
 action forward:--------
+Modifies only variables in: 
+{ stepr stepl }
 ----[output]:
+Owned by module Walker
 (
  (stepr = 0)(
    (stepr' = 0)(
@@ -192,7 +219,10 @@ action forward:--------
      (stepl = 3)(
        (stepl' = 4)) ) ) ) 
 action backward:--------
+Modifies only variables in: 
+{ stepr stepl }
 ----[output]:
+Owned by module Walker
 (
  (stepr = 0)(
    (stepr' = 0)(
@@ -327,7 +357,111 @@ action backward:--------
       + 
      (stepl = 4)(
        (stepl' = 3)) ) ) ) 
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(
+ (stepr = 0)(
+   (stepr' = 0)(
+     (stepl = 0)(
+       (stepl' = 0)) 
+      + 
+     (stepl = 1)(
+       (stepl' = 1)) 
+      + 
+     (stepl = 2)(
+       (stepl' = 2)) 
+      + 
+     (stepl = 3)(
+       (stepl' = 3)) 
+      + 
+     (stepl = 4)(
+       (stepl' = 4)) ) ) 
+  + 
+ (stepr = 1)(
+   (stepr' = 1)(
+     (stepl = 0)(
+       (stepl' = 0)) 
+      + 
+     (stepl = 1)(
+       (stepl' = 1)) 
+      + 
+     (stepl = 2)(
+       (stepl' = 2)) 
+      + 
+     (stepl = 3)(
+       (stepl' = 3)) 
+      + 
+     (stepl = 4)(
+       (stepl' = 4)) ) ) 
+  + 
+ (stepr = 2)(
+   (stepr' = 2)(
+     (stepl = 0)(
+       (stepl' = 0)) 
+      + 
+     (stepl = 1)(
+       (stepl' = 1)) 
+      + 
+     (stepl = 2)(
+       (stepl' = 2)) 
+      + 
+     (stepl = 3)(
+       (stepl' = 3)) 
+      + 
+     (stepl = 4)(
+       (stepl' = 4)) ) ) 
+  + 
+ (stepr = 3)(
+   (stepr' = 3)(
+     (stepl = 0)(
+       (stepl' = 0)) 
+      + 
+     (stepl = 1)(
+       (stepl' = 1)) 
+      + 
+     (stepl = 2)(
+       (stepl' = 2)) 
+      + 
+     (stepl = 3)(
+       (stepl' = 3)) 
+      + 
+     (stepl = 4)(
+       (stepl' = 4)) ) ) 
+  + 
+ (stepr = 4)(
+   (stepr' = 4)(
+     (stepl = 0)(
+       (stepl' = 0)) 
+      + 
+     (stepl = 1)(
+       (stepl' = 1)) 
+      + 
+     (stepl = 2)(
+       (stepl' = 2)) 
+      + 
+     (stepl = 3)(
+       (stepl' = 3)) 
+      + 
+     (stepl = 4)(
+       (stepl' = 4)) ) ) ) 
+----[input local]:
+(1) 
+
+
+action forward:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(0) 
+----[input local]:
+(0) 
+
+
 action pushed:--------
+Modifies only variables in: 
+{ }
 ----[input global]:
 (
  (stepr = 0)(
@@ -585,6 +719,15 @@ action pushed:--------
        (stepl' = 4)) ) ) ) 
 ----[input local]:
 (1) 
+
+
+action backward:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(0) 
+----[input local]:
+(0) 
 
 
 endmodule

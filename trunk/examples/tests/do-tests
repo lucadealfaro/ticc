@@ -57,7 +57,7 @@ for test_file in files:
         print "FAILED! (error during execution)"
     else:
         # No error during execution.  Now compares the file with what should have been.
-        (status, out) = commands.getstatusoutput ("diff -bB " + ok_file + " " + out_file + " > " + diff_file)
+        (status, out) = commands.getstatusoutput ("diff -cbB " + ok_file + " " + out_file + " > " + diff_file)
         if status != 0:
             print "FAILED! (output differs); time = ", end_time - start_time
         else:

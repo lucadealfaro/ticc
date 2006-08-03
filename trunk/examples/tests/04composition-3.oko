@@ -1,102 +1,93 @@
 
 ===================================
 Printing symbolic module User3*User2*Printer*User1.
-* Known variables:
+* All variables:
 { busy user size User1.s User2.s User3.s }
  
 * History variables: 
 { busy User1.s User2.s User3.s }
+ 
+* Local variables: 
+{ User1.s User2.s User3.s }
+ 
+* Global variables: 
+{ busy user size }
  
 * Input Invariant:
 (
  (busy = 0)(
    (User1.s = 1)(
      (User2.s = 1)(
-       (User3.s = 1)) ) ) 
-  + 
- (busy = 1)(
-   (User2.s = 0)(
-     (User3.s = 1)) 
-    + 
-   (User2.s = 1)) ) 
+       (User3.s = 1)) ) ) ) 
 
 * Output Invariant:
 (1) 
 
+* Initial Condition:
+(
+ (User1.s = 1)(
+   (User2.s = 1)(
+     (User3.s = 1)) ) ) 
 * Rules:
 
 action ack:--------
+Modifies only variables in: 
+{ busy User1.s User2.s User3.s }
 ----[output]:
+Owned by module Printer
 (
  (busy = 1)(
    (busy' = 0)(
      (User1.s' = 0)(
-       (User2.s = 0)(
-         (User2.s' = 0)(
-           (User3.s = 0)(
-             (User3.s' = 0)) ) ) ) ) ) ) 
+       (User2.s' = 0)(
+         (User3.s' = 0)) ) ) ) ) 
 action print:--------
+Modifies only variables in: 
+{ user size User1.s }
 ----[output]:
+Owned by module User1
 (
  (busy = 0)(
    (user' = 1)(
      (User1.s = 0)(
-       (User1.s' = 1)(
-         (User2.s = 0)(
-           (User2.s' = 0)(
-             (User3.s = 0)(
-               (User3.s' = 0)) 
-              + 
-             (User3.s = 1)(
-               (User3.s' = 1)) ) ) 
-          + 
-         (User2.s = 1)(
-           (User2.s' = 1)(
-             (User3.s = 0)(
-               (User3.s' = 0)) 
-              + 
-             (User3.s = 1)(
-               (User3.s' = 1)) ) ) ) ) ) 
-    + 
+       (User1.s' = 1)) ) ) ) 
+action print:--------
+Modifies only variables in: 
+{ user size User2.s }
+----[output]:
+Owned by module User2
+(
+ (busy = 0)(
    (user' = 2)(
-     (User1.s = 0)(
-       (User1.s' = 0)(
-         (User2.s = 0)(
-           (User2.s' = 0)(
-             (User3.s = 0)(
-               (User3.s' = 1)) ) 
-            + 
-           (User2.s' = 1)(
-             (User3.s = 0)(
-               (User3.s' = 0)) 
-              + 
-             (User3.s = 1)(
-               (User3.s' = 1)) ) ) 
-          + 
-         (User2.s = 1)(
-           (User2.s' = 1)(
-             (User3.s = 0)(
-               (User3.s' = 1)) ) ) ) ) 
-      + 
-     (User1.s = 1)(
-       (User1.s' = 1)(
-         (User2.s = 0)(
-           (User2.s' = 0)(
-             (User3.s = 0)(
-               (User3.s' = 1)) ) 
-            + 
-           (User2.s' = 1)(
-             (User3.s = 0)(
-               (User3.s' = 0)) 
-              + 
-             (User3.s = 1)(
-               (User3.s' = 1)) ) ) 
-          + 
-         (User2.s = 1)(
-           (User2.s' = 1)(
-             (User3.s = 0)(
-               (User3.s' = 1)) ) ) ) ) ) ) ) 
+     (User2.s = 0)(
+       (User2.s' = 1)) ) ) ) 
+action print:--------
+Modifies only variables in: 
+{ user size User3.s }
+----[output]:
+Owned by module User3
+(
+ (busy = 0)(
+   (user' = 2)(
+     (User3.s = 0)(
+       (User3.s' = 1)) ) ) ) 
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(
+ (busy = 0)(
+   (busy' = 0)) 
+  + 
+ (busy = 1)(
+   (busy' = 1)) ) 
+----[input local]:
+(1) 
+
+
 action ack:--------
+Modifies only variables in: 
+{ User1.s User2.s User3.s }
 ----[input global]:
 (0) 
 ----[input local]:
@@ -104,6 +95,8 @@ action ack:--------
 
 
 action print:--------
+Modifies only variables in: 
+{ }
 ----[input global]:
 (
  (busy = 0)(

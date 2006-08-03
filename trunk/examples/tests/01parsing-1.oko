@@ -1,10 +1,16 @@
 
 ===================================
 Printing symbolic module Printer.
-* Known variables:
+* All variables:
 { busy }
  
 * History variables: 
+{ busy }
+ 
+* Local variables: 
+{ }
+ 
+* Global variables: 
 { busy }
  
 * Input Invariant:
@@ -13,14 +19,44 @@ Printing symbolic module Printer.
 * Output Invariant:
 (1) 
 
+* Initial Condition:
+(1) 
 * Rules:
 
 action ack:--------
+Modifies only variables in: 
+{ busy }
 ----[output]:
+Owned by module Printer
 (
  (busy = 1)(
    (busy' = 0)) ) 
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(
+ (busy = 0)(
+   (busy' = 0)) 
+  + 
+ (busy = 1)(
+   (busy' = 1)) ) 
+----[input local]:
+(1) 
+
+
+action ack:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(0) 
+----[input local]:
+(0) 
+
+
 action print:--------
+Modifies only variables in: 
+{ }
 ----[input global]:
 (
  (busy = 0)(
@@ -35,11 +71,17 @@ endmodule
 
 ===================================
 Printing symbolic module User1.
-* Known variables:
+* All variables:
 { busy user size User1.s }
  
 * History variables: 
 { busy User1.s }
+ 
+* Local variables: 
+{ User1.s }
+ 
+* Global variables: 
+{ busy user size }
  
 * Input Invariant:
 (1) 
@@ -47,17 +89,38 @@ Printing symbolic module User1.
 * Output Invariant:
 (1) 
 
+* Initial Condition:
+(1) 
 * Rules:
 
 action print:--------
+Modifies only variables in: 
+{ busy user size User1.s }
 ----[output]:
+Owned by module User1
 (
  (busy = 0)(
    (busy' = 1)(
      (user' = 1)(
        (User1.s = 0)(
          (User1.s' = 1)) ) ) ) ) 
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(
+ (busy = 0)(
+   (busy' = 0)) 
+  + 
+ (busy = 1)(
+   (busy' = 1)) ) 
+----[input local]:
+(1) 
+
+
 action ack:--------
+Modifies only variables in: 
+{ User1.s }
 ----[input global]:
 (1) 
 ----[input local]:
@@ -70,6 +133,8 @@ action ack:--------
 
 
 action print:--------
+Modifies only variables in: 
+{ }
 ----[input global]:
 (1) 
 ----[input local]:

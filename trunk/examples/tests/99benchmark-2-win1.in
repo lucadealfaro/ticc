@@ -21,7 +21,7 @@ try let compostion = buildmodel pr 100 in
     print_endline "Composition built successfully.";
     let w = win_i_safe compostion x0 in
     print_endline "Safety condition has been calculated.";
-    print_stateset w
+    (* print_stateset w *)
 with _ -> print_endline "Exception was raised.";;
 
 flush stdout;;

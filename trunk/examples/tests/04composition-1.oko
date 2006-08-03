@@ -1,11 +1,17 @@
 
 ===================================
 Printing symbolic module ControlUnit*FireDetector1.
-* Known variables:
+* All variables:
 { ControlUnit.s FireDetector1.s }
  
 * History variables: 
 { ControlUnit.s FireDetector1.s }
+ 
+* Local variables: 
+{ ControlUnit.s FireDetector1.s }
+ 
+* Global variables: 
+{ }
  
 * Input Invariant:
 (
@@ -24,21 +30,42 @@ Printing symbolic module ControlUnit*FireDetector1.
 * Output Invariant:
 (1) 
 
+* Initial Condition:
+(
+ (ControlUnit.s = 0)
+  + 
+ (ControlUnit.s = 1)(
+   (FireDetector1.s = 0)
+    + 
+   (FireDetector1.s = 2)) 
+  + 
+ (ControlUnit.s = 2)(
+   (FireDetector1.s = 0)
+    + 
+   (FireDetector1.s = 2)) ) 
 * Rules:
 
 action fire:--------
+Modifies only variables in: 
+{ ControlUnit.s FireDetector1.s }
 ----[output]:
+Owned by module FireDetector1
 (
  (ControlUnit.s = 0)(
    (ControlUnit.s' = 1)(
      (FireDetector1.s = 1)(
        (FireDetector1.s' = 2)) ) ) ) 
 action FD:--------
+Modifies only variables in: 
+{ ControlUnit.s }
 ----[output]:
+Owned by module ControlUnit
 (
  (ControlUnit.s = 1)(
    (ControlUnit.s' = 2)) ) 
 action fire:--------
+Modifies only variables in: 
+{ ControlUnit.s }
 ----[input global]:
 (
  (ControlUnit.s = 0)) 
@@ -48,7 +75,18 @@ action fire:--------
    (ControlUnit.s' = 1)) ) 
 
 
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
 action smoke1:--------
+Modifies only variables in: 
+{ FireDetector1.s }
 ----[input global]:
 (
  (FireDetector1.s = 0)) 
@@ -56,6 +94,15 @@ action smoke1:--------
 (
  (FireDetector1.s = 0)(
    (FireDetector1.s' = 1)) ) 
+
+
+action FD:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(0) 
+----[input local]:
+(0) 
 
 
 endmodule
