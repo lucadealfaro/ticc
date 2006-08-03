@@ -15,6 +15,15 @@ type varid_t = Vset.varid_t;;
 (** Time is not supported yet. *) 
 exception NoTimedSupport;; 
 
+
+(** This function conjoins [set] with the Input and Output invariants 
+    of a module [sm]. *)
+let conjoin_w_invs (sm: Symmod.t) (set: Mlglu.mdd) : Mlglu.mdd = 
+  let iinv = Symmod.get_iinv sm in 
+  let oinv = Symmod.get_oinv sm in 
+  Mlglu.mdd_and (Mlglu.mdd_and set iinv 1 1) oinv 1 1 
+
+
 (* **************************************************************** *)
 (*                                                                  *)
 (* Pre / Post Operators                                             *)
@@ -34,6 +43,8 @@ exception NoTimedSupport;;
     [sm] is the module for which this is done, and [sp] is the
     symbolic program top. 
     [set] must be a predicate over _unprimed_ vars. 
+
+    Note: the result is NOT conjoined with the set of I or O invariants. 
  *)
 let pre_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) 
     (r: Symmod.rule_t) : stateset_t = 
@@ -75,6 +86,7 @@ let pre_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     transition to [set]. 
     If [do_input] is true, does all input rules. 
     If [do_output] is true, does all output rules. 
+    Note: the result is NOT conjoined with any invariant. 
  *)
 let internal_pre (do_input: bool) (do_output: bool) (sp: Symprog.t) (sm: Symmod.t) 
 	(set: stateset_t) : stateset_t = 
@@ -92,10 +104,17 @@ let internal_pre (do_input: bool) (do_output: bool) (sp: Symprog.t) (sm: Symmod.
     !result
 
 (** Pre for Input, Output, and all rules. 
+    To be used only for CTL: they are conjoined with the I and O invarnants.
+    Use [internal_pre] otherwise. 
  *)
-let e_input_pre  = internal_pre true  false
-let e_output_pre = internal_pre false true
-let e_pre      = internal_pre true  true 
+let e_input_pre (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t = 
+  conjoin_w_invs sm (internal_pre true false sp sm set)
+
+let e_output_pre (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t = 
+  conjoin_w_invs sm (internal_pre false true sp sm set)
+
+let e_pre (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t = 
+  conjoin_w_invs sm (internal_pre true true sp sm set)
 
 	    
 (** Given a set of states [passage_set] and a set of states
@@ -108,71 +127,72 @@ let e_pre      = internal_pre true  true
 
     The function returns a pair, consisting of the new set, and of a flag, 
     telling us whether the set has been enlarged. 
+
+    Note that no invariant is conjoined with the set that is returned. 
  *)
 let rule_until (sp: Symprog.t) (sm: Symmod.t) 
-	(passage_set: stateset_t) (target_set: stateset_t) 
+    (passage_set: stateset_t) (target_set: stateset_t) 
     (r: Symmod.rule_t) : stateset_t * bool = 
-    
-    let mgr = Symprog.get_mgr sp in
-    (* w is the set of variables that are changed, for output or local
-       rules, and for input rules, it is the set of local variables that
-       are changed.  See symmod.ml for more information *) 
-    let w  = Symmod.get_rule_wvars r in 
-    let w' = Symprog.prime_vars sp w in 
-    
-    match (Symmod.get_rule_tran r) with 
-      Symmod.Loc tau | Symmod.Out tau -> 
-	  (* awkward variable declaration *)
-	  let tot_set = ref (Mlglu.mdd_zero mgr) in 
-	  let frontier = ref (Mlglu.mdd_zero mgr) in 
-	  let enlarged = ref false in 
-	  tot_set := Mlglu.mdd_and target_set (Symmod.get_oinv sm) 1 1;
-	  frontier := !tot_set;
-	  while not (Mlglu.mdd_is_zero !frontier) do
-	      (* set' = frontier [w' / w] *)
-	      let set' = Symutil.prime_mdd_vars sp !frontier w in 
-	      (* pre_front = \exists W' . (\tau /\ set') *) 
-	      let pre_front = Mlglu.mdd_and_smooth mgr tau set' w' in
-	      let pre_front' = 
-		  if Mlglu.mdd_is_one passage_set 
-		  then pre_front
-		  else Mlglu.mdd_and pre_front passage_set 1 1 
-	      in
-	      frontier := Mlglu.mdd_and pre_front' !tot_set 1 0; 
-	      if not (Mlglu.mdd_is_zero !frontier) then enlarged := true; 
-	      tot_set  := Mlglu.mdd_or  !tot_set !frontier 1 1
-	  done;
-	  (!tot_set, !enlarged)
-      | Symmod.Inp (taug, taul) -> 
-	  (* awkward variable declaration *)
-	  let tot_set = ref (Mlglu.mdd_zero mgr) in 
-	  let frontier = ref (Mlglu.mdd_zero mgr) in 
-	  let enlarged = ref false in 
-	  tot_set := Mlglu.mdd_and target_set (Symmod.get_iinv sm) 1 1;
-	  frontier := !tot_set;
-	  (* gets global variables of the module *) 
-	  let gv = Symmod.get_gvars sm in 
-	  let gv' = Symprog.prime_vars sp gv in 
-	  let v = VarSet.union w gv in 
-	  while not (Mlglu.mdd_is_zero !frontier) do
-	      (* The result is: 
-		 \exists gv' . (\tau_I_g \und \exists w' . 
-		 (\tau^I_l \und frontier [gv', w' / gv, w])). 
-		 Computes this in stages *) 
-	      let set' = Symutil.prime_mdd_vars sp !frontier v in 
-	      let partial = Mlglu.mdd_and_smooth mgr taul set' w' in 
-	      let pre_front = Mlglu.mdd_and_smooth mgr taug partial gv' in 
-	      let pre_front' = 
-		  if Mlglu.mdd_is_one passage_set 
-		  then pre_front
-		  else Mlglu.mdd_and pre_front passage_set 1 1 
-	      in
-	      frontier := Mlglu.mdd_and pre_front' !tot_set 1 0; 
-	      if not (Mlglu.mdd_is_zero !frontier) then enlarged := true; 
-	      tot_set  := Mlglu.mdd_or  !tot_set !frontier 1 1
-	  done;
-	  (!tot_set, !enlarged)
-	    
+  
+  let mgr = Symprog.get_mgr sp in
+  (* w is the set of variables that are changed, for output or local
+     rules, and for input rules, it is the set of local variables that
+     are changed.  See symmod.ml for more information *) 
+  let w  = Symmod.get_rule_wvars r in 
+  let w' = Symprog.prime_vars sp w in 
+  
+  match (Symmod.get_rule_tran r) with 
+    Symmod.Loc tau | Symmod.Out tau -> 
+      (* awkward variable declaration *)
+      let tot_set = ref target_set in 
+      let frontier = ref target_set in 
+      let enlarged = ref false in 
+      while not (Mlglu.mdd_is_zero !frontier) do
+	let frontier_and_oinv = Mlglu.mdd_and !frontier (Symmod.get_oinv sm) 1 1 in 
+	(* set' = frontier_and_oinv [w' / w] *)
+	let set' = Symutil.prime_mdd_vars sp frontier_and_oinv w in 
+	(* pre_front = \exists W' . (\tau /\ set') *) 
+	let pre_front = Mlglu.mdd_and_smooth mgr tau set' w' in
+	let pre_front' = 
+	  if Mlglu.mdd_is_one passage_set 
+	  then pre_front
+	  else Mlglu.mdd_and pre_front passage_set 1 1 
+	in
+	frontier := Mlglu.mdd_and pre_front' !tot_set 1 0; 
+	if not (Mlglu.mdd_is_zero !frontier) then enlarged := true; 
+	tot_set  := Mlglu.mdd_or  !tot_set !frontier 1 1
+      done;
+      (!tot_set, !enlarged)
+  | Symmod.Inp (taug, taul) -> 
+      (* awkward variable declaration *)
+      let tot_set = ref target_set in 
+      let frontier = ref target_set in 
+      let enlarged = ref false in 
+      (* gets global variables of the module *) 
+      let gv = Symmod.get_gvars sm in 
+      let gv' = Symprog.prime_vars sp gv in 
+      let v = VarSet.union w gv in 
+      while not (Mlglu.mdd_is_zero !frontier) do
+	(* The result is: 
+	   \exists gv' . (\tau_I_g \und \exists w' . 
+	   (\tau^I_l \und frontier [gv', w' / gv, w])). 
+	   Computes this in stages *) 
+	let frontier_and_iinv = Mlglu.mdd_and !frontier (Symmod.get_iinv sm) 1 1 in 
+	let set' = Symutil.prime_mdd_vars sp frontier_and_iinv v in 
+	let partial = Mlglu.mdd_and_smooth mgr taul set' w' in 
+	let pre_front = Mlglu.mdd_and_smooth mgr taug partial gv' in 
+	let pre_front' = 
+	  if Mlglu.mdd_is_one passage_set 
+	  then pre_front
+	  else Mlglu.mdd_and pre_front passage_set 1 1 
+	in
+	frontier := Mlglu.mdd_and pre_front' !tot_set 1 0; 
+	if not (Mlglu.mdd_is_zero !frontier) then enlarged := true; 
+	tot_set  := Mlglu.mdd_or  !tot_set !frontier 1 1
+      done;
+      (!tot_set, !enlarged)
+	
+
 (** Given a set of states [passage_set] and a set of states
     [target_set], this function computes the set of states 
     that satisfies the formula [passage_set] Until [target_set] in 0,
@@ -181,7 +201,10 @@ let rule_until (sp: Symprog.t) (sm: Symmod.t)
     If [do_output] is true, it considers all output rules. 
 
     Algorithm: uses rule_until, cycling over all local and output rules
-    until the set cannot be enlarged any further. *)
+    until the set cannot be enlarged any further. 
+
+    Note: the answer is not conjoined with any invariant. 
+*)
 let internal_until  (do_input: bool) (do_output: bool) 
 	(sp: Symprog.t) (sm: Symmod.t) 
 	(passage_set: stateset_t) (target_set: stateset_t) : stateset_t =
@@ -216,7 +239,11 @@ let i_pre_star sp sm =
     let mgr = Symprog.get_mgr sp in
     internal_until true false sp sm (Mlglu.mdd_one mgr) 
 
-let e_until = internal_until true true 
+(** CTL operator for exists until *)
+let e_until (sp: Symprog.t) (sm: Symmod.t) 
+    (passage_set: stateset_t) (target_set: stateset_t) : stateset_t =
+  let set = internal_until true true sp sm passage_set target_set in 
+  conjoin_w_invs sm set 
 
 (** Algorithm: \nu X . (target_set \union (passage_set \inters epre(X)))
  *)
@@ -228,12 +255,12 @@ let e_waitfor (sp: Symprog.t) (sm: Symmod.t)
     result := Mlglu.mdd_or target_set passage_set 1 1;
     frontier := !result; 
     while not (Mlglu.mdd_is_zero !frontier) do 
-	let passg_and_pre = Mlglu.mdd_and passage_set (e_pre sp sm !result) 1 1 in 
+	let passg_and_pre = Mlglu.mdd_and passage_set (internal_pre true true sp sm !result) 1 1 in 
 	let targ_union_above = Mlglu.mdd_or passg_and_pre target_set 1 1 in 
 	frontier := Mlglu.mdd_and !result targ_union_above 1 0;
 	result := targ_union_above
     done; 
-    !result
+    conjoin_w_invs sm !result
 
 
 (* **************************************************************** *)
@@ -249,11 +276,7 @@ let e_waitfor (sp: Symprog.t) (sm: Symmod.t)
 
     Let \phi be the set, and R be the set of output or local rules of [sm]. 
 
-    lo_apre (X) = [ \bigwedge_{r \in R} \neg \Pre_r (\neg X) ] /\ iinv /\ oinv
-
-    Note that we conjoin this with iinv and oinv, otherwise we also get the states
-    that violate the invariant. 
-
+    lo_apre (X) = [ \bigwedge_{r \in R} \neg \Pre_r (\neg X) ]
  *)
 
 let internal_apre  (do_input: bool) (do_output: bool) 
@@ -272,14 +295,18 @@ let internal_apre  (do_input: bool) (do_output: bool)
 	Symmod.iter_orules sm do_one_rule;
 	Symmod.iter_lrules sm do_one_rule
     end; 
-    let iinv = Symmod.get_iinv sm in 
-    let oinv = Symmod.get_oinv sm in 
-    Mlglu.mdd_and (Mlglu.mdd_and !result iinv 1 1) oinv 1 1 
+    !result
 
+(** These operators are to be used only for CTL, since they conjoin the result with the invariant *)
 
-let lo_apre = internal_apre false true
-let i_apre  = internal_apre true  false
-let apre    = internal_apre true true
+let lo_apre (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t = 
+  conjoin_w_invs sm (internal_apre false true sp sm set)
+
+let i_apre (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t = 
+  conjoin_w_invs sm (internal_apre true false sp sm set)
+
+let apre (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t = 
+  conjoin_w_invs sm (internal_apre true true sp sm set)
 
 
 (** Computes \forall (passage_set Until target_set)
@@ -294,7 +321,7 @@ let a_until (sp: Symprog.t) (sm: Symmod.t)
     result := target_set; 
     frontier := !result; 
     while not (Mlglu.mdd_is_zero !frontier) do 
-	let apre_frontier = apre sp sm !result in 
+	let apre_frontier = internal_apre true true sp sm !result in 
 	let frontier' = Mlglu.mdd_and apre_frontier passage_set 1 1 in 
 	frontier := Mlglu.mdd_and frontier' !result 1 0; 
 	result   := Mlglu.mdd_or  !frontier  !result 1 1
@@ -431,7 +458,8 @@ let reachable  (sp: Symprog.t) (sm: Symmod.t) : Mlglu.mdd =
 (* **************************************************************** *)
 (* Winning functions for games *)
 
-(** Winning set of a safety game.
+(** Winning set of a safety game.  This is the least efficient implementation; 
+    see win_i_safe below for a faster one. 
     Given a set [set] of states and a module [sm], this function
     computes the set of states from which the Input player has
     a strategy to stay in the set [set].
@@ -453,12 +481,12 @@ let win_i_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     let finished = ref false in 
     (* repeat until result => apre *)
     while (not !finished) do
-	let apre = lo_apre sp sm !result in
-	let contains = Mlglu.mdd_or !result apre 0 1 in
+	let apre_set = internal_apre false true sp sm !result in
+	let contains = Mlglu.mdd_or !result apre_set 0 1 in
 	if Mlglu.mdd_is_one contains then
 	    finished := true
 	else
-	    result := Mlglu.mdd_and !result apre 1 1;
+	    result := Mlglu.mdd_and !result apre_set 1 1;
     done;
     !result
 
@@ -475,7 +503,9 @@ let win_i_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     3. Complement the result. 
 
     REMARKS: [set] should be included in both invariants.
-             To win a safety game, it's better not to move. 
+    If [set] is included in both invariants, so is the result of 
+    this function, since lo_pre_star never shrinks a set. 
+    To win a safety game, it's better not to move. 
  *)
 
 let win_i_safe (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
@@ -484,6 +514,7 @@ let win_i_safe (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
 
 
 (** Winning set of a safety game.
+    There is a more efficient implementation; see below. 
     Given a set [set] of states and a module [sm], this function
     computes the set of states from which the Output/Local player has
     a strategy to stay in the set [set].
@@ -505,27 +536,18 @@ let win_lo_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     let finished = ref false in 
     (* repeat until result => apre *)
     while (not !finished) do
-	let apre = i_apre sp sm !result in
-	let contains = Mlglu.mdd_or !result apre 0 1 in
+	let apre_set = internal_apre true false sp sm !result in
+	let contains = Mlglu.mdd_or !result apre_set 0 1 in
 	if Mlglu.mdd_is_one contains then
 	    finished := true
 	else
-	    result := Mlglu.mdd_and !result apre 1 1;
+	    result := Mlglu.mdd_and !result apre_set 1 1;
     done;
     !result
 
+(** This is the faster alternative.  [set] should be included in both
+    invariants, and this guarantees that also the return value is.  *)
 let win_lo_safe (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-    let mgr = Symprog.get_mgr sp in
-    Mlglu.mdd_not (i_pre_star sp sm (Mlglu.mdd_not set))
-
-
-(** Post for a rule. 
-    This function computes the set of states that can be reached from
-    a set [set] by one application of the rule [r].
-    [sm] is the module for which this is done, and [sp] is the 
-    symbolic program top.
-    [set] is a predicate over _unprimed_ variables.
-    the result is a symbolic representation of the set of states 
-    that can be reached.
- *)
+  let mgr = Symprog.get_mgr sp in
+  Mlglu.mdd_not (i_pre_star sp sm (Mlglu.mdd_not set))
 

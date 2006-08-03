@@ -217,15 +217,12 @@ let ctl_e_input_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t =
 let ctl_e_output_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
     Ops.e_output_pre Symprog.toplevel sm r 
 
-
 (* Universal *)
 
 (** Uses: \forall \box B = \not \exists \diam \not B *)
 let ctl_a_g (sm: symbolic_module_t) (b: stateset_t) : stateset_t = 
-    let iinv = Symmod.get_iinv sm in 
-    let oinv = Symmod.get_oinv sm in 
     let result = Mlglu.mdd_not (ctl_e_f sm (Mlglu.mdd_not b)) in 
-    Mlglu.mdd_and (Mlglu.mdd_and result oinv 1 1) iinv 1 1 
+    Ops.conjoin_w_invs sm result
 
 (** Uses: \forall (B \waitfor R) 
     = \not \exists (\not R \Until (\not R \inters \not B)) *)
@@ -234,10 +231,8 @@ let ctl_a_waitfor (sm: symbolic_module_t)
     let not_b = Mlglu.mdd_not b in 
     let not_r = Mlglu.mdd_not r in 
     let not_b_and_not_r = Mlglu.mdd_and not_b not_r 1 1 in 
-    let iinv = Symmod.get_iinv sm in 
-    let oinv = Symmod.get_oinv sm in 
     let result = Mlglu.mdd_not (ctl_e_until sm not_r not_b_and_not_r) in 
-    Mlglu.mdd_and (Mlglu.mdd_and result oinv 1 1) iinv 1 1 
+    Ops.conjoin_w_invs sm result
 
 (** Uses: \forall (B \until R) 
     = \not \exists (\not R \waitfor (\not R \inters \not B)) *)
@@ -246,10 +241,8 @@ let ctl_a_until (sm: symbolic_module_t)
     let not_b = Mlglu.mdd_not b in 
     let not_r = Mlglu.mdd_not r in 
     let not_b_and_not_r = Mlglu.mdd_and not_b not_r 1 1 in 
-    let iinv = Symmod.get_iinv sm in 
-    let oinv = Symmod.get_oinv sm in 
     let result = Mlglu.mdd_not (ctl_e_waitfor sm not_r not_b_and_not_r) in 
-    Mlglu.mdd_and (Mlglu.mdd_and result oinv 1 1) iinv 1 1 
+    Ops.conjoin_w_invs sm result
 
 let ctl_a_f (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
     let mgr = Symprog.get_mgr Symprog.toplevel in 
@@ -269,8 +262,5 @@ let ctl_and = set_and
 let ctl_or  = set_or
 
 let ctl_not sm b = 
-    let iinv = Symmod.get_iinv sm in 
-    let oinv = Symmod.get_oinv sm in 
-    let compl = set_not b in 
-    Mlglu.mdd_and (Mlglu.mdd_and compl oinv 1 1) iinv 1 1 
+    Ops.conjoin_w_invs sm (set_not b)
     
