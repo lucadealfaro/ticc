@@ -144,7 +144,9 @@ let print_debug_toplevel () =
 (** prints the set of states [x] *)
 let print_stateset x =
   let mgr = Mlglu.mdd_get_manager x in
-  Mlglu.mdd_print mgr x
+  flush stdout; 
+  Mlglu.mdd_print mgr x; 
+  flush stdout
 
 (** prints the list of known modules (just the names) *)
 let print_list_modules () = 
