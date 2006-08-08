@@ -1,0 +1,19 @@
+open Ticc;;
+parse "printer-large.si";;
+let pr = mk_sym "Printer";;
+
+let compose model n =
+    let user = mk_sym ("User"^(string_of_int n)) in
+    compose model user
+in
+let rec buildmodel curmodel n=
+    if n > 0
+    then buildmodel (compose curmodel n) (n-1)
+    else curmodel
+in
+try let compostion = buildmodel pr 100 in
+    print_endline "Composition built successfully."
+with _ -> print_endline "Exception was raised.";;
+
+flush stdout;;
+

@@ -1,0 +1,26 @@
+(*
+ * Buffered-Receiver example
+ *)
+
+open Ticc;;
+
+parse "buffered-receiver.si";;
+
+let buffer = mk_sym "Buffer";;
+let receiver = mk_sym "Receiver";;
+
+
+print_symmod buffer;;
+print_symmod receiver;;
+
+
+let composition = compose buffer receiver;;
+
+print_symmod composition;;
+
+(* Let's also print the input restriction on the composition *)
+print_input_restriction composition "snd";;
+
+(* Now simulate the final composed module for 16 cycles *)
+simulate composition "Receiver.busy & Buffer.msgs < 2" 16 "buffered-receiver.html";;
+

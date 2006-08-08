@@ -1,0 +1,6 @@
+(* $Id: test-script-2,v 1.2 2005/06/23 21:20:08 luca Exp $ *)
+
+open Ticc;;
+parse "../../examples/printer2.ti";;
+print_toplevel ();;
+

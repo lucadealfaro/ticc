@@ -1,0 +1,15 @@
+open Ticc;;
+parse "../../examples/printer-fig6.ti";;
+let printer = mk_sym "Printer";;
+let user1   = mk_sym "User1";;
+print_symmod printer;;
+print_symmod user1;;
+flush stdout;;
+let x0 = parse_stateset "busy = false";;
+let w = win_safety user1 x0;;
+print_stateset w;;
+flush stdout;;
+
+
+
+

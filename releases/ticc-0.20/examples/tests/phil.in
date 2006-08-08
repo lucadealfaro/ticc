@@ -1,0 +1,37 @@
+open Ticc;;
+
+parse "phil.si";;
+
+let phil1 = mk_sym "Phil1";;
+let phil2 = mk_sym "Phil2";;
+let phil3 = mk_sym "Phil3";;
+
+let init = mk_set "initcond";;
+
+let comp12 = compose phil1 phil2;;
+let comp = compose comp12 phil3;;
+
+let trying1 = parse_stateset "Phil1.s = 1";;
+let trying2 = parse_stateset "Phil2.s = 1";;
+let trying3 = parse_stateset "Phil3.s = 1";;
+
+
+let hungry1 = parse_stateset "Phil1.s > 0 & Phil1.s < 8";;
+let hungry2 = parse_stateset "Phil2.s > 0 & Phil3.s < 8";;
+let hungry3 = parse_stateset "Phil3.s > 0 & Phil3.s < 8";;
+let hungry  = (set_or (set_or hungry1 hungry2) hungry3);; 
+
+let eat1 = parse_stateset "Phil1.s = 8 | Phil1.s = 9";;
+let eat2 = parse_stateset "Phil2.s = 8 | Phil2.s = 9";;
+let eat3 = parse_stateset "Phil3.s = 8 | Phil3.s = 9";;
+let eat  = (set_or (set_or eat1 eat2) eat3);;
+(* print_stateset hungry;; *)
+
+(* scheduler liveness *) 
+let live  = (ctl_a_g comp (set_impl hungry (ctl_e_f comp eat)));;
+print_stateset live;; 
+
+(*  starvation for philosopher 1 *)
+let p1starvation = (ctl_a_g comp (set_impl trying1 (ctl_e_g comp (set_not eat1))));;
+print_stateset p1starvation;;
+

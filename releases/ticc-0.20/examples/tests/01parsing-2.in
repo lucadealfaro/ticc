@@ -1,0 +1,8 @@
+open Ticc;;
+parse "fire-detector.si";;
+let cu = mk_sym "ControlUnit";;
+let fd1   = mk_sym "FireDetector1";;
+print_symmod cu;;
+print_symmod fd1;;
+flush stdout;;
+

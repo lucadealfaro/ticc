@@ -1,0 +1,28 @@
+module ControlUnit:
+    var s: [0..3]
+
+    input fire : { local: s = 1 ==> s' := 2  }
+    output FD  : { s = 2 ==> s' = 3  }
+endmodule
+
+
+module FireDetector1:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke1 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector2:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke2 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+stateset ciao : ControlUnit.s = 1

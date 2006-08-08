@@ -1,0 +1,1992 @@
+
+module ControlUnit:
+    var s: [0..3]
+
+    input fire : { local: s = 1 ==> s' := 2  }
+    output FD  : { s = 2 ==> s' = 3  }
+endmodule
+
+
+module FireDetector1:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke1 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector2:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke2 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector3:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke3 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector4:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke4 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector5:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke5 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector6:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke6 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector7:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke7 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector8:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke8 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector9:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke9 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+
+module FireDetector10:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke10 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector11:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke11 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector12:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke12 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector13:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke13 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector14:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke14 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector15:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke15 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector16:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke16 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector17:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke17 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector18:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke18 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector19:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke19 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector20:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke20 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector21:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke21 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector22:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke22 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector23:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke23 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector24:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke24 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector25:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke25 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector26:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke26 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector27:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke27 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector28:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke28 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector29:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke29 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector30:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke30 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector31:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke31 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector32:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke32 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector33:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke33 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector34:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke34 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector35:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke35 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector36:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke36 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector37:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke37 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector38:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke38 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector39:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke39 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector40:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke40 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector41:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke41 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector42:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke42 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector43:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke43 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector44:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke44 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector45:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke45 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector46:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke46 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector47:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke47 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector48:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke48 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector49:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke49 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector50:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke50 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector51:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke51 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector52:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke52 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector53:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke53 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector54:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke54 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector55:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke55 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector56:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke56 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector57:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke57 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector58:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke58 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector59:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke59 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector60:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke60 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector61:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke61 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector62:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke62 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector63:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke63 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector64:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke64 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector65:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke65 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector66:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke66 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector67:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke67 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector68:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke68 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector69:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke69 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector70:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke70 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector71:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke71 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector72:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke72 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector73:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke73 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector74:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke74 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector75:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke75 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector76:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke76 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector77:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke77 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector78:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke78 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector79:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke79 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector80:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke80 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector81:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke81 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector82:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke82 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector83:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke83 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector84:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke84 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector85:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke85 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector86:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke86 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector87:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke87 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector88:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke88 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector89:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke89 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector90:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke90 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector91:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke91 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector92:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke92 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector93:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke93 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector94:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke94 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector95:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke95 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector96:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke96 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector97:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke97 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector98:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke98 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector99:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke99 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector100:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke100 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector101:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke101 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector102:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke102 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector103:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke103 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector104:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke104 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector105:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke105 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector106:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke106 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector107:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke107 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector108:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke108 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector109:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke109 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+
+module FireDetector110:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke110 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector111:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke111 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector112:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke112 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector113:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke113 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector114:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke114 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector115:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke115 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector116:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke116 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector117:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke117 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector118:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke118 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector119:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke119 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector120:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke120 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector121:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke121 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector122:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke122 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector123:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke123 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector124:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke124 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector125:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke125 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector126:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke126 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector127:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke127 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector128:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke128 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector129:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke129 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector130:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke130 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector131:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke131 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector132:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke132 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector133:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke133 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector134:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke134 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector135:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke135 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector136:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke136 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector137:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke137 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector138:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke138 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector139:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke139 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector140:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke140 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector141:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke141 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector142:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke142 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector143:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke143 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector144:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke144 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector145:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke145 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector146:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke146 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector147:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke147 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector148:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke148 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector149:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke149 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector150:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke150 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector151:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke151 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector152:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke152 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector153:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke153 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector154:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke154 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector155:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke155 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector156:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke156 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector157:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke157 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector158:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke158 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector159:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke159 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector160:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke160 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector161:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke161 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector162:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke162 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector163:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke163 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector164:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke164 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector165:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke165 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector166:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke166 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector167:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke167 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector168:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke168 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector169:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke169 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector170:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke170 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector171:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke171 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector172:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke172 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector173:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke173 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector174:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke174 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector175:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke175 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector176:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke176 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector177:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke177 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector178:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke178 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector179:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke179 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector180:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke180 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector181:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke181 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector182:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke182 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector183:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke183 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector184:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke184 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector185:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke185 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector186:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke186 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector187:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke187 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector188:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke188 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector189:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke189 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector190:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke190 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+module FireDetector191:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke191 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector192:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke192 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector193:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke193 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector194:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke194 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector195:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke195 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector196:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke196 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector197:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke197 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector198:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke198 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector199:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke199 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+
+module FireDetector200:
+    var t: [0..3]
+
+    input fire : { }	// accept fire msgs, but do nothing
+    input smoke200 : { local: t = 1	==> t' := 2  }
+    output fire : { t = 2		==> t' = 3  }
+
+endmodule
+
+

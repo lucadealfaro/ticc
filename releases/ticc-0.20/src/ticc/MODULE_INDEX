@@ -1,0 +1,23 @@
+act.ml		Action declarations
+approx.ml	Approximate composition (experimental)
+ast.ml		Abstract syntax tree for expressions
+biject.ml	Support module implementing bijective mappings via hash tables
+compose.ml	Composition of symbolic modules
+hset.ml		Support module implementing sets via hash tables
+hsetmap.ml	Support module implementing a rich version of hash mappings
+mod.ml		Syntactical representation of a module
+modops.ml	Global operations on symbolic modules (creation, var management)
+ops.ml		Pre/post/until... operations on a symbolic module, also CTL support
+prog.ml		Syntactic representation for sets of modules and their variables
+rule.ml		Syntactic representation of a rule (set of guarded commands)
+simulate.ml	Simulation for symbolic modules
+symbuild.ml	Building the symbolic representation of a module 
+symmod.ml	Symbolic modules and their access functions
+symprog.ml	Symbolic programs (sets of modules) w. access functions
+symtemp.ml	Support module implementing temporary BDD variables for symbuild
+symutil.ml	Support module containing basic mdd manipulation for ticc
+ticc.ml		Top-level module, defining what the user can do 
+ticlex.mll	Lexer
+ticparser.mly	Parser
+typecheck.ml	Type checker (also fixes some data structures after parsing)
+var.ml		Syntactic representation of variables
