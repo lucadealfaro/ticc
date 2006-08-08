@@ -26,16 +26,21 @@ doc:
 
 dist: apidoc
 	rm -rf ticc-$(VERSION)
-	@echo Building tar distribution: ticc-$(VERSION).tgz
-	tar cfvz ticc-$(VERSION).tgz \
-		--exclude .svn    --exclude .cvsignore \
+	mkdir -p ticc-$(VERSION)
+	@echo Creating temporary build replica
+	tar -cf - --exclude .svn --exclude .cvsignore \
 		--exclude "*.cmi" --exclude "*.cmo" \
 		--exclude "*.out" --exclude "*.diff" \
 		--exclude "doc/"  --exclude "*~" \
 		--exclude "*.o" --exclude "*.a" --exclude "examples/etc" \
 		--exclude "*.tgz" \
 		--exclude "ticc-$(VERSION)" \
-		.
+		. | tar -C ticc-$(VERSION) -xf -
+	@echo Building tar distribution: ticc-$(VERSION).tar.gz
+	rm -f ticc-$(VERSION).tar ticc-$(VERSION).tar.gz
+	tar cvfz ticc-$(VERSION).tgz ticc-$(VERSION)
+	rm -rf ticc-$(VERSION)
+
 
 
 
