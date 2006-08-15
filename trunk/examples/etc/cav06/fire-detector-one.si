@@ -1,0 +1,15 @@
+module ControlUnit:
+    var s: [0..2] // 0=waiting, 1=alarm raised, 2=fd called
+    initial: s = 0
+    input fire:     { local: s = 0 | s = 1 ==> s' := 1 
+                       else  s = 2         ==>         } 
+    output call_fd: { s = 1 ==> s' = 2 }
+endmodule
+
+module FireDetector:
+    var s: [0..1] // 0=idle, 1=smoke detected
+    initial: s = 0
+    input smoke:  { local: s = 0 | s = 1 ==> s' := 1 }
+    output fire:   { s = 1        ==> s'  = 2 }
+endmodule
+
