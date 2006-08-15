@@ -1,0 +1,26 @@
+open Ticc;;
+
+parse "fire-detector-two.si" ;;
+
+let controlunit = mk_sym "ControlUnit";;
+let detector1 = mk_sym "FireDetector1";;
+let detector2 = mk_sym "FireDetector2";;
+
+let c = compose detector1 controlunit;;
+let d = compose detector2 c;; 
+
+print_string "Restriction of action smoke1 in composition:";;
+print_input_restriction d "smoke1";;
+
+print_string "\n Note that this means that, even from the initial state, no smoke can be detected.\n"
+
+(*
+print_string "=-==-==-====--=-=-=--=-=\n";;
+print_symmod detector1;;
+print_string "=-==-==-====--=-=-=--=-=\n";;
+print_symmod c;;
+print_string "=-==-==-====--=-=-=--=-=\n";;
+print_symmod d;;
+print_string "=-==-==-====--=-=-=--=-=\n";;
+*)
+
