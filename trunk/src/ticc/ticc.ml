@@ -102,6 +102,9 @@ let iinv m = Symmod.get_iinv m
 (** Returns the MDD representing the output invariant of module m *)
 let oinv m = Symmod.get_oinv m 
 
+(** Returns the MDD representing the initial states of the module m *)
+let initial m = Symmod.get_init m
+
 (** Returns the reachable states *)
 let reachable m = Ops.reachable Symprog.toplevel m 
 

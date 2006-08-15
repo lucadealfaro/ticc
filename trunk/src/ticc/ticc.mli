@@ -58,6 +58,10 @@ val iinv : symbolic_module_t -> stateset_t
     module [m] *)
 val oinv : symbolic_module_t -> stateset_t
 
+(** [initial m] return the MDD representing the set of initial states
+    of module [m] *)
+val initial : symbolic_module_t -> stateset_t
+
 (** [reachable m] returns the MDD representing the reachable states of 
     module [m].  The answer is cached, so it does not cost more to ask 
     multiple times. *)

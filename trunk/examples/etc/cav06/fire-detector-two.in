@@ -9,10 +9,14 @@ let detector2 = mk_sym "FireDetector2";;
 let c = compose detector1 controlunit;;
 let d = compose detector2 c;; 
 
-print_string "Restriction of action smoke1 in composition:";;
+if set_is_empty ( set_and (initial d) (iinv d) ) 
+   then print_string "\nControlUnit, FireDetector1, FireDetector2 are not compatible.\n"
+   else print_string "\nControlUnit, FireDetector1, FireDetector2 are compatible.\n";;
+
+print_string "\nRestriction of action smoke1 in composition:";;
 print_input_restriction d "smoke1";;
 
-print_string "\n Note that this means that, even from the initial state, no smoke can be detected.\n"
+print_string "\nNote that this means that, even from the initial state, no smoke can be detected.\n"
 
 (*
 print_string "=-==-==-====--=-=-=--=-=\n";;
