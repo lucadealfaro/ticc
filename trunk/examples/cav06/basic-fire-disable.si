@@ -1,0 +1,27 @@
+module ControlUnit:
+    var s: [0..3] // 0=waiting, 1=alarm raised, 2=fd called, 3=disabled
+    initial: s = 0
+
+    input fire:     { local: s = 0 ==> s' := 1 }
+    input disable:  { local: true ==> s' := 3 }
+    output call_fd: { s = 1 ==> s' = 2 }
+endmodule
+
+module FireDetector1:
+    var s: [0..2] // 0=idle, 1=smoke detected, 2=inactive or alarm raised
+    initial: s = 0
+
+    input smoke1:  { local: s = 0 ==> s' := 1 }
+    output fire:   { s = 1        ==> s'  = 2 }
+    input disable: { local: true  ==> s' := 2 }
+endmodule
+
+module WrongFireDetector1: // This one does not disable
+    var s: [0..2] // 0=idle, 1=smoke detected, 2=inactive or alarm raised
+    initial: s = 0
+
+    input smoke1:  { local: s = 0 ==> s' := 1 }
+    output fire:   { s = 1        ==> s'  = 2 }
+    // disable disregarded
+endmodule
+
