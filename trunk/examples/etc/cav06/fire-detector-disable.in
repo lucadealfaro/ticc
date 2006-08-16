@@ -1,0 +1,43 @@
+open Ticc;;
+
+parse "fire-detector-disable.si" ;;
+
+clone "FireDetector1" "FireDetector4";;
+
+let fire1       = mk_sym "FireDetector1";;
+let wfire1      = mk_sym "Faulty_FireDetector1";;
+let fire2       = mk_sym "FireDetector2";;
+let controlunit = mk_sym "ControlUnit";;
+let disable     = mk_sym "Disable";;
+
+let c = compose fire1  controlunit;;
+let d = compose wfire1 controlunit;; 
+
+print_string "Restriction of action disable in correct composition:";;
+print_input_restriction c "disable";;
+print_string "Restriction of action disable in defective composition:";;
+print_input_restriction d "disable";;
+
+print_string "Restriction of action smoke2 in correct composition:";;
+print_input_restriction c "smoke1";;
+print_string "Restriction of action smoke2 in defective composition:";;
+print_input_restriction d "smoke1";;
+
+(* Uncomment what follows if you wish to run a bigger example *)
+(*
+print_string "\n\n=======*******======\n\n";;
+
+let c2 = compose fire2 (compose  fire1 controlunit);;
+let d2 = compose fire2 (compose wfire1 controlunit);; 
+
+print_string "Restriction of action disable in c2:";;
+print_input_restriction c2 "disable";;
+print_string "Restriction of action disable in d2:";;
+print_input_restriction d2 "disable";;
+
+print_string "Restriction of action smoke2 in c2:";;
+print_input_restriction c2 "smoke1";;
+print_string "Restriction of action smoke2 in d2:";;
+print_input_restriction d2 "smoke1";;
+*)
+
