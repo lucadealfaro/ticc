@@ -11,14 +11,8 @@ module FireDetector1:
     initial: s = 0
     input smoke1:  { local: s = 0 | s = 1 ==> s' := 1 
                      else   s = 2 ==>        } // do nothing
+    input fire:    { } // other modules can detect fire too       
     output fire:   { s = 1        ==> s'  = 2 }
-
-    // If you uncomment the following line, the FireDetector can 
-    // accept input fire from other modules, and the composition of 
-    // ControlUnit, FireDetector1, and FireDetector2 will work 
-    // as expected. 
-
-    // input fire:    { } 
 endmodule
 
 module FireDetector2:
@@ -26,10 +20,8 @@ module FireDetector2:
     initial: s = 0
     input smoke2:  { local: s = 0 | s = 1 ==> s' := 1 
                      else   s = 2 ==>        } // do nothing
+    input fire:    { } // other modules can detect fire too       
     output fire:   { s = 1        ==> s'  = 2 }
-
-    // See above comments; if you uncomment, it will work. 
-    // input fire:    { } 
 endmodule
 
 

@@ -1,6 +1,6 @@
 open Ticc;;
 
-parse "fire-detector-two.si" ;;
+parse "fire-detector-two-fireok.si" ;;
 
 let controlunit = mk_sym "ControlUnit";;
 let detector1 = mk_sym "FireDetector1";;
