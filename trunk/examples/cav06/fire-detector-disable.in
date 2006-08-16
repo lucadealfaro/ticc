@@ -2,8 +2,6 @@ open Ticc;;
 
 parse "fire-detector-disable.si" ;;
 
-clone "FireDetector1" "FireDetector4";;
-
 let fire1       = mk_sym "FireDetector1";;
 let wfire1      = mk_sym "Faulty_FireDetector1";;
 let fire2       = mk_sym "FireDetector2";;
