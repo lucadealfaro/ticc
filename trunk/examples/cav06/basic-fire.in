@@ -10,19 +10,6 @@ let controlunit = mk_sym "ControlUnit";;
 let c = compose fire1  controlunit;;
 
 print_symmod c;;
-
+print_string "\nReachable states:\n";;
 print_stateset (reachable c);;
 
-(* Now we compose also the second fire detector *)
-
-let fire2       = mk_sym "FireDetector2";;
-
-let d = compose c fire2;;
-
-print_string "\n############################\n";;
-print_symmod d;;
-print_stateset (reachable d);;
-
-(* So you see that technically fire1, fire2, and controlunit ARE
-   compatible, but only under an environment where smoke1 and smoke2
-   are never issued. *)
