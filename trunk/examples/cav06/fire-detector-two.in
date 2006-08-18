@@ -9,7 +9,7 @@ let detector2 = mk_sym "FireDetector2";;
 let c = compose detector1 controlunit;;
 let d = compose detector2 c;; 
 
-if set_is_empty ( set_and (initial d) (iinv d) ) 
+if set_is_empty ( set_and (get_initial d) (get_iinv d) ) 
    then print_string "\nControlUnit, FireDetector1, FireDetector2 are not compatible.\n"
    else print_string "\nControlUnit, FireDetector1, FireDetector2 are compatible.\n";;
 

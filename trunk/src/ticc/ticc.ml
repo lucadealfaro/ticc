@@ -43,7 +43,7 @@ let mk_set (set_name: string) =
   let a = 
     try Prog.get_sset_top set_name
     with Not_found -> 
-      Printf.printf " Error: Unknown stateset!";
+      Printf.printf "\n Error: Unknown stateset!\n";
       raise Not_found
   in
   let st = Symbuild.mk_bool Symprog.toplevel a in 
@@ -97,16 +97,24 @@ let win_lo_safe (sm: Symmod.t) (set: stateset_t)
   ;;
 
 (** Returns the MDD representing the input invariant of module m *)
-let iinv m = Symmod.get_iinv m 
+let get_iinv m = Symmod.get_iinv m 
 
 (** Returns the MDD representing the output invariant of module m *)
-let oinv m = Symmod.get_oinv m 
+let get_oinv m = Symmod.get_oinv m 
 
 (** Returns the MDD representing the initial states of the module m *)
-let initial m = Symmod.get_init m
+let get_initial m = Symmod.get_init m
+
+(** [get_stateset m sn] returns the MDD representing the stateset
+    (set of states) with name [sn] declared in module [m]. *)
+let get_stateset m sn = 
+  try Symmod.get_sset m sn 
+  with Not_found -> 
+    Printf.printf "\n Error: Unknown stateset %s!\n" sn;
+    raise Not_found
 
 (** Returns the reachable states *)
-let reachable m = Ops.reachable Symprog.toplevel m 
+let get_reachable m = Ops.reachable Symprog.toplevel m 
 
 (** Closes a module wrt. an action *)
 let close m a = Modops.close_input_action Symprog.toplevel m a 

@@ -549,11 +549,12 @@ let check_irule (m: Mod.t) (r: Rule.irule_t) =
 
 
 (** This function checks that there are no primed variables in an
-    invariant, and that the invariant only mentions the history-full
-    variables in hful *)
+    invariant *)
+(* Luca: removed the requirement that the invariant only mentions the history-full
+   variables in hful *)
 let check_invariant (m: Mod.t) (e : Ast.t) : unit = 
   let hful = Mod.get_hvars m in 
-  (* Checks no primed variables *)
+    (* Checks no primed variables *)
   let chkg v pos = 
     Ast.print_pos pos; 
     Printf.printf " Error: %s': primed variables cannot appear in invariant.\n" (Var.get_name v);
@@ -561,6 +562,7 @@ let check_invariant (m: Mod.t) (e : Ast.t) : unit =
   in 
   iter_primed_vars e chkg; 
   (* Checks no history-free variables *)
+  (* Luca: this requirement has been commented out. I think it is not correct. 
   let chkg v pos = 
     let v_name = Var.get_name v in 
     if not (Hsetmap.mem (Mod.get_hvars m) v_name) then begin
@@ -569,6 +571,7 @@ let check_invariant (m: Mod.t) (e : Ast.t) : unit =
       raise TypeError
     end 
   in iter_unprimed_vars e chkg; 
+  *)
   (* does some final type checking *) 
   type_check_bool e;
   update_clock_bounds_expr e;

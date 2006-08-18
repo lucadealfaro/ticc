@@ -62,14 +62,17 @@ module Plumber:
   var working: bool // whether working or not 
   var Kw, Lw, Bw, Rw: bool  // room where working 
   initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateset plumber_in_kitchen: Kw 
   stateless // If we track these, then we would have to know about repairs/breakdowns 
          K_plumb, K_electr, K_floor, K_wall, K_clean,
          L_plumb, L_electr, L_floor, L_wall, L_clean,
          B_plumb, B_electr, B_floor, B_wall, B_clean,
          R_plumb, R_electr, R_floor, R_wall, R_clean
 
-  input  call_plumb : {local: ~plumb_active ==> working' := false } 
-  output done_plumb : { plumb_active & ~working & ~K_plumb & ~L_plumb & ~B_plumb & ~R_plumb ==> ~plumb_active' } 
+  input  call_plumb : { global: ~plumb_active ==> plumb_active'
+                        local:  true          ==> working' := false } 
+  output done_plumb : { plumb_active & ~working & ~K_plumb & ~L_plumb & ~B_plumb & ~R_plumb 
+                        ==> ~plumb_active' } 
 
   // Does the work 
   output K_start_plumb  : { plumb_active & ~working & K_plumb & ~K_busy ==> working' & Kw' & K_busy' }
@@ -101,8 +104,10 @@ module Electrician:
          B_plumb, B_electr, B_floor, B_wall, B_clean,
          R_plumb, R_electr, R_floor, R_wall, R_clean
 
-  input  call_electr : {local: ~electr_active ==> working' := false } 
-  output done_electr : { electr_active & ~working & ~K_electr & ~L_electr & ~B_electr & ~R_electr ==> ~electr_active' } 
+  input  call_electr : { global: ~electr_active ==> electr_active' 
+                         local:  true           ==> working' := false } 
+  output done_electr : { electr_active & ~working & ~K_electr & ~L_electr & ~B_electr & ~R_electr 
+                         ==> ~electr_active' } 
 
   // Does the work 
   output K_start_electr : { electr_active & ~working & K_electr & ~K_busy ==> working' & Kw' & K_busy' }
@@ -132,14 +137,17 @@ module RudeElectrician:
   var working: bool
   var Kw, Lw, Bw, Rw: bool  // room where working 
   initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateset guard: electr_active & ~working & K_electr
   stateless // If we track these, then we would have to know about repairs/breakdowns 
          K_plumb, K_electr, K_floor, K_wall, K_clean,
          L_plumb, L_electr, L_floor, L_wall, L_clean,
          B_plumb, B_electr, B_floor, B_wall, B_clean,
          R_plumb, R_electr, R_floor, R_wall, R_clean
 
-  input  call_electr : {local: ~electr_active ==> working' := false } 
-  output done_electr : { electr_active & ~working & ~K_electr & ~L_electr & ~B_electr & ~R_electr ==> ~electr_active' } 
+  input  call_electr : { global: ~electr_active ==> electr_active' 
+                         local:  true           ==> working' := false } 
+  output done_electr : { electr_active & ~working & ~K_electr & ~L_electr & ~B_electr & ~R_electr 
+                         ==> ~electr_active' } 
 
   // Does the work 
   output K_start_electr : { electr_active & ~working & K_electr           ==> working' & Kw' & K_busy' }
@@ -171,8 +179,10 @@ module Floors:
          B_plumb, B_electr, B_floor, B_wall, B_clean,
          R_plumb, R_electr, R_floor, R_wall, R_clean
 
-  input  call_floor : {local: ~floor_active ==> working' := false } 
-  output done_floor : { floor_active & ~working & ~K_floor & ~L_floor & ~B_floor & ~R_floor ==> ~floor_active' } 
+  input  call_floor : { global: ~floor_active ==> floor_active' 
+                        local:  true          ==> working' := false } 
+  output done_floor : { floor_active & ~working & ~K_floor & ~L_floor & ~B_floor & ~R_floor 
+                        ==> ~floor_active' } 
 
   // Does the work 
   output K_start_floor : { floor_active & ~working & K_floor & ~K_busy ==> working' & Kw' & K_busy' }
@@ -204,8 +214,10 @@ module Walls:
          B_plumb, B_electr, B_floor, B_wall, B_clean,
          R_plumb, R_electr, R_floor, R_wall, R_clean
 
-  input  call_wall : {local: ~wall_active ==> working' := false } 
-  output done_wall : { wall_active & ~working & ~K_wall & ~L_wall & ~B_wall & ~R_wall ==> ~wall_active' } 
+  input  call_wall : { global: ~wall_active ==> wall_active'
+                       local:  true         ==> working' := false } 
+  output done_wall : { wall_active & ~working & ~K_wall & ~L_wall & ~B_wall & ~R_wall 
+                       ==> ~wall_active' } 
 
   // Does the work 
   output K_start_wall : { wall_active & ~working & K_wall & ~K_busy ==> working' & Kw' & K_busy' }
@@ -237,8 +249,10 @@ module Clean:
          B_plumb, B_electr, B_floor, B_wall, B_clean,
          R_plumb, R_electr, R_floor, R_wall, R_clean
 
-  input  call_clean : {local: ~clean_active ==> working' := false } 
-  output done_clean : { clean_active & ~working & ~K_clean & ~L_clean & ~B_clean & ~R_clean ==> ~clean_active' } 
+  input  call_clean : { global: ~clean_active ==> clean_active' 
+                        local:  true          ==> working' := false } 
+  output done_clean : { clean_active & ~working & ~K_clean & ~L_clean & ~B_clean & ~R_clean 
+                        ==> ~clean_active' } 
 
   // Does the work 
   output K_start_clean : { clean_active & ~working & K_clean & ~K_busy ==> working' & Kw' & K_busy' }

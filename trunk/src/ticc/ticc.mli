@@ -52,20 +52,24 @@ val win_lo_safe : symbolic_module_t -> stateset_t -> stateset_t
 
 (** [get_iinv m] returns the MDD representing the input invariant of
     module [m] *)
-val iinv : symbolic_module_t -> stateset_t
+val get_iinv : symbolic_module_t -> stateset_t
 
 (** [get_oinv m] returns the MDD representing the output invariant of
     module [m] *)
-val oinv : symbolic_module_t -> stateset_t
+val get_oinv : symbolic_module_t -> stateset_t
 
-(** [initial m] return the MDD representing the set of initial states
+(** [get_initial m] return the MDD representing the set of initial states
     of module [m] *)
-val initial : symbolic_module_t -> stateset_t
+val get_initial : symbolic_module_t -> stateset_t
 
-(** [reachable m] returns the MDD representing the reachable states of 
+(** [get_stateset m sn] returns the MDD representing the stateset
+    (set of states) with name [sn] declared in module [m]. *)
+val get_stateset : symbolic_module_t -> string -> stateset_t
+
+(** [get_reachable m] returns the MDD representing the reachable states of 
     module [m].  The answer is cached, so it does not cost more to ask 
     multiple times. *)
-val reachable : symbolic_module_t -> stateset_t
+val get_reachable : symbolic_module_t -> stateset_t
 
 (** [close m a] closes the symbolic module [m] with respect to input
     action [a], so that [a] is no longer accepted as input. *)

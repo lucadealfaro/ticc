@@ -133,6 +133,8 @@ let clear_orules m = Hsetmap.erase m.orules
 let get_iinv m = m.iinv
 let get_oinv m = m.oinv
 let get_init m = m.init 
+let get_sset (m: t) (n: string) : Mlglu.mdd = 
+  Hsetmap.find m.ssets n 
 let get_ssets (m: t) : (string, Mlglu.mdd) Hsetmap.t = m.ssets
 let iter_ssets (m: t) (f: string -> Mlglu.mdd -> unit) : unit = 
   Hsetmap.iter f m.ssets
