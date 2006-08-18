@@ -154,6 +154,9 @@ let get_clock_bound (m: t) (id: varid_t) : int =
 (** A module is timed if it has at least one clock *) 
 let is_timed (m: t) : bool = not (VarSet.is_empty m.cvars) 
 
+(** Forgets the cached information about a module *)
+let erase_what_known (m: t) : unit = 
+  m.reachset <- None
 
 (** **************** Rules ******************* *)
 

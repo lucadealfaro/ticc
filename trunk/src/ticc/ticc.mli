@@ -62,6 +62,11 @@ val get_oinv : symbolic_module_t -> stateset_t
     of module [m] *)
 val get_initial : symbolic_module_t -> stateset_t
 
+(** [set_initial m phi] replaces the initial condition of the 
+    symbolic module [m] with [phi], and erases the cached set of 
+    reachable states for [m]. *)
+val set_initial : symbolic_module_t -> stateset_t -> unit
+
 (** [get_stateset m sn] returns the MDD representing the stateset
     (set of states) with name [sn] declared in module [m]. *)
 val get_stateset : symbolic_module_t -> string -> stateset_t
@@ -70,6 +75,11 @@ val get_stateset : symbolic_module_t -> string -> stateset_t
     module [m].  The answer is cached, so it does not cost more to ask 
     multiple times. *)
 val get_reachable : symbolic_module_t -> stateset_t
+
+(** [get_input_restriction m r] returns the way in which it is not
+    possible to use rule [r] in module [m], due to the input
+    invariant. *)
+val get_input_restriction : symbolic_module_t -> string -> stateset_t
 
 (** [close m a] closes the symbolic module [m] with respect to input
     action [a], so that [a] is no longer accepted as input. *)
@@ -130,6 +140,10 @@ val set_is_subset : stateset_t -> stateset_t -> bool
 (** [set_is_empty set] returns a boolean indicating whether the
     symbolic set [set] is empty. *) 
 val set_is_empty : stateset_t -> bool 
+
+(** [set_is_nonempty set] returns a boolean indicating whether the
+    symbolic set [set] is nonempty. *) 
+val set_is_nonempty : stateset_t -> bool 
 
 (** Logical and of statesets *)
 val set_and : stateset_t -> stateset_t -> stateset_t

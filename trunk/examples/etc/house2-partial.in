@@ -1,10 +1,10 @@
 (*
- * House example, version 1, partial composition. 
+ * House example, version 2, partial composition. 
  *)
 
 open Ticc;;
 
-parse "house.si";;
+parse "house3.si";;
 
 let breaks      = mk_sym "Breaks";;
 let calls	= mk_sym "Calls";;
@@ -19,7 +19,8 @@ let c_pr  = compose plumber electrician;;
 let d_pr  = compose plumber rudelectr;;
 
 (* For curiosity *)
-print_symmod_rules c_pr "_env_action";;
+(* print_symmod plumber;; *)
+(* print_symmod_rules plumber "_env_action";; *)
 
 (* Trouble here is the starting point of the transition that will lead
    to problems.  This stuff is here only for diagnostic purposes. *)
@@ -37,6 +38,8 @@ print_bool (set_is_nonempty (set_and trouble reach_pr);;
 let r_c_pr = get_input_restriction c_pr "call_electr";;
 print_string "\nRestriction of call_electr in  plumber || electrician :\n";;
 print_bool (set_is_nonempty r_c_pr);;
+print_string "\n";;
+print_stateset r_c_pr;;
 
 (* r_d_pr is the restriction of call_electr in plumber || rudelectr *)
 let r_d_pr = get_input_restriction d_pr "call_electr";;

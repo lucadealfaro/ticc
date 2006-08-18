@@ -567,7 +567,7 @@ let check_invariant (m: Mod.t) (e : Ast.t) : unit =
     let v_name = Var.get_name v in 
     if not (Hsetmap.mem (Mod.get_hvars m) v_name) then begin
       Ast.print_pos pos; 
-      Printf.printf " Error: %s': history-free variables cannot appear in invariant.\n" v_name;
+      Printf.printf " Error: %s: history-free variables cannot appear in invariant.\n" v_name;
       raise TypeError
     end 
   in iter_unprimed_vars e chkg; 
@@ -580,8 +580,8 @@ let check_invariant (m: Mod.t) (e : Ast.t) : unit =
   List.iter (Mod.add_var m) vars 
 
 (** This function checks that there are no primed variables in an
-    initial condition, and moreover, that all variables appearing 
-    in the initial condition are local. *)
+    initial condition.  It used to check that all variables appearing
+    in the initial condition are local, but it no longer does that. *)
 let check_init (m: Mod.t) (e : Ast.t) : unit = 
   let loc_vars = Mod.get_hvars m in 
   (* check no primed variables *)
@@ -591,15 +591,17 @@ let check_init (m: Mod.t) (e : Ast.t) : unit =
     raise TypeError
   in 
   iter_primed_vars e chkg; 
-  (* Checks that all variables are local *)
+  (* Luca: removed: Checks that all variables are local *)
+  (* Luca: removed
   let chkg v pos = 
     let v_name = Var.get_name v in 
     if not (Hsetmap.mem (Mod.get_lvars m) v_name) then begin
       Ast.print_pos pos; 
-      Printf.printf " Error: %s': the initial condition must cite only local variables.\n" v_name;
+      Printf.printf " Error: %s: the initial condition must cite only local variables.\n" v_name;
       raise TypeError
     end 
   in iter_unprimed_vars e chkg; 
+  *)   
   (* does some final type checking *) 
   type_check_bool e;
   update_clock_bounds_expr e;

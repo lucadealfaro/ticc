@@ -84,9 +84,7 @@ let close_input_action (sp: Symprog.t) (sm: Symmod.t) (a_name: string) : Symmod.
   new_sm
 
 (* **************************************************************** *)
-(*                                                                  *)
 (*  Forgets a module                                                *)
-(*                                                                  *)
 (* **************************************************************** *)
 
 (** This apparently silly function enables the garbage collector to
@@ -110,6 +108,54 @@ let forget_module (sp: Symprog.t) (sm: Symmod.t) : unit =
   Symmod.clear_orules sm
 ;;
 
+(* **************************************************************** *)
+(*  Gets input restriction                                          *)
+(* **************************************************************** *)
+
+(** Gets an input restriction *)
+let get_input_restriction sp sm (r: string) = 
+    let mgr = Symprog.get_mgr sp in
+    let iinv = Symmod.get_iinv sm in
+    if Symmod.has_iaction sm r then begin 
+      let ir = Symmod.get_irule sm r in 
+      let (glob_tr, loc_tr) = Symmod.get_rule_tran_as_pair ir in
+      (* The transition relation is tr = glob_tr /\ loc_tr /\ uncha, 
+	 where uncha is an assertion saying that the local
+	 variables that are not mentioned do not change their
+	 value. *) 
+      let w = Symmod.get_rule_wvars ir in
+      let alllocal = Symmod.get_lvars sm in
+      let notw = VarSet.diff alllocal w in
+      let unchange_local = Symbuild.unchngd sp notw in
+      let tr_tmp = Mlglu.mdd_and glob_tr loc_tr 1 1 in 
+      let tr = Mlglu.mdd_and tr_tmp unchange_local 1 1 in
+      (* Computes the set of reachable states of the module *)
+      let reachset = Ops.reachable sp sm in 
+      (* Now builds the answer: restr = tr /\ iinv /\ reachset /\ not iinv' *)
+      let iinv' = Symutil.prime_mdd sp sm iinv in
+      let restr = Mlglu.mdd_and 
+	(Mlglu.mdd_and (Mlglu.mdd_and tr iinv 1 1) reachset 1 1)
+	iinv' 1 0 in 
+      (* At this point, what is left to do is to quantify out
+	 all primed local variables, since anyway their update
+	 is deterministic. *) 
+      let local_variables = Symmod.get_lvars sm in 
+      let local_variables' = Symprog.prime_vars sp local_variables in
+      let result = Mlglu.mdd_smooth mgr restr local_variables' in
+      result
+    end
+    else begin
+      Printf.printf "\nNo input action named %s in the module.\n" r;
+      raise Not_found
+    end;;
 
 
+(* **************************************************************** *)
+(*  Modifies the initial condition of a module                      *)
+(* **************************************************************** *)
 
+let set_new_init_cond (sm: Symmod.t) (new_init: Mlglu.mdd) : unit = 
+  (* Sets the new initial condition *)
+  Symmod.set_init sm new_init; 
+  (* Now it has to say that the set of reachable states is no longer known *)
+  Symmod.erase_what_known sm

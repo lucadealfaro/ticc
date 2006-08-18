@@ -105,6 +105,9 @@ let get_oinv m = Symmod.get_oinv m
 (** Returns the MDD representing the initial states of the module m *)
 let get_initial m = Symmod.get_init m
 
+(** Sets the initial condition of a module *)
+let set_initial = Modops.set_new_init_cond
+
 (** [get_stateset m sn] returns the MDD representing the stateset
     (set of states) with name [sn] declared in module [m]. *)
 let get_stateset m sn = 
@@ -115,6 +118,11 @@ let get_stateset m sn =
 
 (** Returns the reachable states *)
 let get_reachable m = Ops.reachable Symprog.toplevel m 
+
+(** Returns an input restriction specifying how a rule [r] of a
+    symbolic module [sm] is restricted by the input invariant. *)
+let get_input_restriction sm (r: string) = 
+  Modops.get_input_restriction Symprog.toplevel sm r 
 
 (** Closes a module wrt. an action *)
 let close m a = Modops.close_input_action Symprog.toplevel m a 
@@ -137,6 +145,7 @@ let set_is_subset b1 b2 = Mlglu.mdd_is_one (Mlglu.mdd_or b1 b2 0 1)
 
 (** Logical operations between BDDs *) 
 let set_is_empty b = Mlglu.mdd_is_zero b
+let set_is_nonempty b = not (Mlglu.mdd_is_zero b)
 let set_and  b1 b2 = Mlglu.mdd_and b1 b2 1 1
 let set_or   b1 b2 = Mlglu.mdd_or  b1 b2 1 1
 let set_impl b1 b2 = Mlglu.mdd_or  b1 b2 0 1

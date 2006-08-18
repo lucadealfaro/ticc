@@ -782,7 +782,7 @@ let mk_reject_rule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.orule_t) : unit =
 ;;
 
 
-(** Adds the input move that can change the value of
+(** Adds the environment move that can change the value of
   history-free variables. *)
 let mk_env_rule (sp: Symprog.t) (sm: Symmod.t) : unit =
   let mgr = Symprog.get_mgr sp in
