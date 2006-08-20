@@ -186,7 +186,6 @@ let find_cube_path sp sm (start_set: Mlglu.mdd) (end_set: Mlglu.mdd)
 
   while Mlglu.mdd_is_zero !inters do
     (* Needs to go forward one more step *)
-    (* CHECK: this is a naive implementation.  It should be done keeping a frontier set... *)
     onion := !last_set :: !onion;
     last_set := Mlglu.mdd_and (Ops.raw_post use_input use_output sp sm !last_set) by_set 1 1; 
     Symutil.assert_no_primed sp !last_set; 
