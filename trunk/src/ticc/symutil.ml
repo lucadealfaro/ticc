@@ -3,7 +3,9 @@
 module VarSet = Vset.VS
 
 type varid_t = Vset.varid_t 
+type stateset_t = Mlglu.mdd
 
+exception  Assert_failed_mdd_is_unprimed
 
 (** Prints a set of symbolic variables *)
 let print_varset sp (var_set: VarSet.t) : unit =
@@ -18,6 +20,11 @@ let print_varset sp (var_set: VarSet.t) : unit =
   VarSet.iter print_one var_set;
   Printf.printf "}"
 
+(** Prints the support of an mdd.  Useful mostly for diagnostic
+    purposes. *)
+let print_mdd_support sp (m: Mlglu.mdd) =
+  let mgr = Symprog.get_mgr sp in 
+  print_varset sp (Mlglu.mdd_get_support mgr m)
 
 (** This function takes an mdd [a]  and a [var_set], and returns 
     [ a[var_set'/var_set] ] 
@@ -51,10 +58,23 @@ let prime_mdd symtop sm a =
     of a symbolic module [sm] with their unprimed version. *)
 let unprime_mdd symtop sm a = 
   let mgr = Symprog.get_mgr symtop in
-  let vAll = Symmod.get_vars sm in
-  unprime_mdd_vars symtop a vAll
+  let vAll  = Symmod.get_vars sm in
+  let vAll' = Symprog.prime_vars symtop vAll in 
+  unprime_mdd_vars symtop a vAll'
 
- 
+(** This function checks that an MDD contains only unprimed
+    variables. *)
+let assert_no_primed (sp: Symprog.t) (m: Mlglu.mdd) : unit = 
+  let mgr = Symprog.get_mgr sp in 
+  let supp = Mlglu.mdd_get_support mgr m in 
+  let check_var id = 
+    if Symprog.is_id_primed sp id 
+    then raise Assert_failed_mdd_is_unprimed
+    else ()
+  in
+  VarSet.iter check_var supp 
+  
+
 (** This function creates an input rule with false transition
     relation.  In detail, if the module has the input rule already,
     its transition relation is set to false.  Otherwise, a new input

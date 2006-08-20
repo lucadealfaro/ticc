@@ -46,9 +46,11 @@ print_bool (set_is_nonempty r_c_pr);;
 print_restr_paths c_pr "call_electr" 1;;
 
 (* r_d_pr is the restriction of call_electr in plumber || rudelectr *)
+(*
 let r_d_pr = get_input_restriction d_pr "call_electr";;
 print_string "\nRestriction of call_electr in  plumber || rude_electrician :\n";;
 print_bool (set_is_nonempty r_d_pr);;
+*)
 
 
 

@@ -31,7 +31,7 @@ ticc_OBJS = hsetmap.cmo hset.cmo biject.cmo var.cmo ast.cmo rule.cmo \
 	mod.cmo prog.cmo typecheck.cmo ticlex.cmo ticparse.cmo \
 	symtemp.cmo symmod.cmo symprog.cmo symutil.cmo \
 	symbuild.cmo ops.cmo modops.cmo symprint.cmo \
-        compose.cmo simulate.cmo ticc.cmo debug.cmo
+        compose.cmo simulate.cmo ticc.cmo
 ticc_LD_ADD = ../mlglu/mlglu.cma str.cma -cclib -lstr
 
 
@@ -47,7 +47,7 @@ ticc: 	ticctop
 
 debug:	$(ticc_OBJS)
 	@rm -f debug
-	$(OCAMLC) -g -o debug $(OCAML_CFLAGS) $(ticc_LD_ADD) $(ticc_OBJS)
+	$(OCAMLC) -g -o debug $(OCAML_CFLAGS) $(ticc_LD_ADD) $(ticc_OBJS) debug.cmo
 #
 # Boilerplate code for building ocaml dependencies, and
 # "make clean".

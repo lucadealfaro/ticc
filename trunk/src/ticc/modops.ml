@@ -4,6 +4,8 @@ type stateset_t = Mlglu.mdd;;
 module VarSet = Vset.VS;;
 type varid_t = Vset.varid_t;; 
 
+exception Internal_error_waypoint
+
 (* **************************************************************** *)
 (*                                                                  *)
 (*  Builds the symolic representation of a module                   *)
@@ -169,36 +171,56 @@ let find_cube_path sp sm (start_set: Mlglu.mdd) (end_set: Mlglu.mdd)
     (by_set: Mlglu.mdd) (use_input: bool) (use_output: bool) = 
   let vAll = Symmod.get_vars sm in
   let mgr = Symprog.get_mgr sp in
+
+  (* sanity checks *)
+  Symutil.assert_no_primed sp start_set; 
+  Symutil.assert_no_primed sp end_set; 
+  Symutil.assert_no_primed sp by_set; 
+
   (* does it forwards *)
   (* Keeps the onion ring structure *)
   let onion = ref [] in 
   let last_set = ref start_set in 
   (* goes forwards until it hits the end set *)
   let inters = ref (Mlglu.mdd_and !last_set end_set 1 1) in 
+
   while Mlglu.mdd_is_zero !inters do
     (* Needs to go forward one more step *)
     (* CHECK: this is a naive implementation.  It should be done keeping a frontier set... *)
     onion := !last_set :: !onion;
     last_set := Mlglu.mdd_and (Ops.raw_post use_input use_output sp sm !last_set) by_set 1 1; 
+    Symutil.assert_no_primed sp !last_set; 
     inters := Mlglu.mdd_and !last_set end_set 1 1
   done; 
-  (* Ok, puts the intersection as the last thing in the onion structure *)
-  onion := !inters :: !onion;
   (* Fine, now it must go backwards producing the cubes *)
   (* gets a cube in inters *)
-  let cube = Mlglu.mdd_pick_one_minterm mgr !inters vAll in 
+  Symutil.assert_no_primed sp !inters; 
+  let cube = Mlglu.mdd_pick_one_cube mgr !inters vAll in 
+  
+  (* Given a cube c, it look for a cube c' in the intersection of the
+     pre of c, and of the head of the list l.  Then, attaches c to the 
+     answer, and calls itself on c' and the tail of the list. *)
+  (* NOTE: todo: here, it would be better to pick not only a cube, but
+     also the rule that produced it.  This would lead to much better
+     diagnostic output.  I think the simplest is to: 
+     1. check which rule led to the transition (taking care of use_input, use_output)
+     2. choose a cube produced by that transition.
+     The action for the rule has to be printed as part of the trace. *)
   let rec pick_cubes (c: Mlglu.mdd) (l: Mlglu.mdd list) = 
     match l with 
 	[] -> [c]
       | s :: l' -> begin
 	  (* p is the predecessor of cube c with intersection to s *)
+	  (* Note that I do not need to worry about by_set, as it is
+	     already taken into account into the elements of l *)
 	  let p = Mlglu.mdd_and s (Ops.internal_pre use_input use_output sp sm c) 1 1 in 
 	  (* gets a cube in p *)
-	  let c' = Mlglu.mdd_pick_one_minterm mgr p vAll in 
+	  Symutil.assert_no_primed sp p; 
+	  let c' = Mlglu.mdd_pick_one_cube mgr p vAll in 
 	  c :: (pick_cubes c' l')
 	end
   in
-  pick_cubes cube !onion
+  List.rev (pick_cubes cube !onion)
 
 
 (** Prints the counterexample path *)
@@ -217,38 +239,47 @@ let print_counterex_rule sp (path1: Mlglu.mdd list) (path2: Mlglu.mdd list) (rul
 
 (** Prints [n_traces] restriction paths for rule [r] in module [sm]. *)
 let print_n_restriction_paths sp sm (rul: string) (n_traces: int) =
-  let vAll = Symmod.get_vars sm in
+  let vAll  = Symmod.get_vars sm in
+  let vAll' = Symprog.prime_vars sp vAll in 
   let mgr = Symprog.get_mgr sp in
-  (* first, computes the restriction *)
+  (* first, computes the unprimed restriction *)
   let restr = get_input_restriction sp sm rul in 
+  let unp_restr = Mlglu.mdd_smooth mgr restr vAll' in 
   (* ir is the input rule we work on *)
   let ir = Symmod.get_irule sm rul in 
-  (* tr is the transition relation of the rule *)
-  let tr = Ops.get_transition_rel_noinv sp sm ir in 
 
   (* Now it gets at most n_traces disjoint cubes out of it, 
      and prints the corresponding traces. *)
-  if Mlglu.mdd_is_zero restr then 
+  if Mlglu.mdd_is_zero unp_restr then 
     Printf.printf "\nNo restriction for rule %s\n" rul 
   else begin 
     let i = ref n_traces in 
-    let r = ref restr in 
+    let r = ref unp_restr in 
     while !i > 0 &  not (Mlglu.mdd_is_zero !r) do 
       i := !i - 1; 
       (* finds, forwards, a path from the initial condition to the place where 
 	 the restriction has occurred.  The path has to be in iinv.  *)
       let path1 = find_cube_path sp sm (Symmod.get_init sm) !r (Symmod.get_iinv sm) true true in 
+
       (* gets the last cube *)
       let len = List.length path1 in 
       let last_cube1 = List.nth path1 (len - 1) in 
+      Symutil.assert_no_primed sp last_cube1; 
+
+      (* sanity check *)
+      if not (Mlglu.mdd_is_zero (Mlglu.mdd_and last_cube1 unp_restr 1 0))
+      then raise Internal_error_waypoint; 
+
       (* Applies the rule from last_cube1, computing the set dest after
 	 the rule has been taken. *)
-      let dest' = Mlglu.mdd_smooth mgr (Mlglu.mdd_and last_cube1 tr 1 1) vAll in 
-      let dest = Symutil.unprime_mdd sp sm dest' in 
+      let dest = Ops.post_rule sp sm last_cube1 ir false in 
+      Symutil.assert_no_primed sp dest; 
       (* Now finds another series of cubes, from dest, to the set of
 	 bad states, via old_inv, using only output transitions *)
+
       let path2 = find_cube_path sp sm dest (Symmod.get_bad_states sm) 
 	(Symmod.get_old_iinv sm) false true in
+
       (* Prints the two lists of cubes.  Keeps them separate, so we know where the rule is. *)
       print_counterex_rule sp path1 path2 rul; 
       (* Now subtracts last_cube1 from !r, as a path through last_cube1 has been printed. *)
