@@ -379,7 +379,7 @@ array_t *Bvar_array_val (value l)
 
 /* This function expects an (array_t *) of int
    and returns a list (block) of int */
-//Note: The function obtains a C array of integers and constructs 
+// Note: The function obtains a C array of integers and constructs 
 // a list  
 value Val_array_int (array_t *array)
 {
@@ -388,13 +388,13 @@ value Val_array_int (array_t *array)
   CAMLlocal1 (old_result);
   int array_size = array_n (array); //number of elements in the array   
   int i;
-  old_result = Val_int (0); // []; equivalent to empty list; such that Is_block(old_result) == false  
+  result = Val_int (0); // []; equivalent to empty list; such that Is_block(old_result) == false  
   for (i = 0; i < array_size; i++) // for each 
     {
+      old_result = result;
       result = alloc (2, 0); // allocate custom block of size 2, tag 0 (for list) 
       Store_field (result, 0, Val_int (array_fetch (int, array, i))); //new head 
       Store_field (result, 1, old_result); // new tail = old list 
-      old_result = result; // old list = new list
     }
   CAMLreturn(result);
 }
@@ -411,13 +411,13 @@ value Val_array_mvar (array_t *array)
   CAMLlocal1 (old_result);
   int i;
   int array_size = array_n (array);
-  old_result = Val_int (0);
+  result = Val_int (0);
   for (i = 0; i < array_size; i++)
     {
+      result = old_result;
       result = alloc (2, 0);
       Store_field (result, 0, mlglu_mvarWrap (array_fetch_p (mvar_type , array, i)));
       Store_field (result, 1, old_result);
-      old_result = result;
     }
   CAMLreturn(result);
 }
@@ -432,13 +432,13 @@ value Val_array_bvar (array_t *array)
   int array_size;
   int i;
   array_size = array_n (array);
-  old_result = Val_int (0);
+  result = Val_int (0);
   for (i = 0; i < array_size; i++)
     {
+      old_result = result;
       result = alloc (2, 0);
       Store_field (result, 0, mlglu_bvarWrap (array_fetch_p (bvar_type , array, i)));
       Store_field (result, 1, old_result);
-      old_result = result;
     }
   CAMLreturn(result);
 }
@@ -456,9 +456,10 @@ value Val_array_mdd (array_t *array)
   int array_size;
   int i;
   array_size = array_n (array);
-  old_result = Val_int (0);
+  result = Val_int (0);
   for (i = 0; i < array_size; i++)
     {
+      old_result = result;
       elt = array_fetch (mdd_t *, array, i);
       mgr = mdd_get_manager (elt); // Obtain the mdd manager from the mdd node itself 
      //Note: could be done once for ooptimization since we do not allow
@@ -466,7 +467,6 @@ value Val_array_mdd (array_t *array)
       result = alloc (2, 0);
       Store_field (result, 0, mlglu_nodeWrap (mgr, elt));
       Store_field (result, 1, old_result);
-      old_result = result;
     }
   CAMLreturn(result);
 }

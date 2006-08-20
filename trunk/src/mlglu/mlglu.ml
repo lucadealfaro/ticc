@@ -183,15 +183,11 @@ let mdd_substitute mgr a (old_new_list: (int * int) list) =
 
 external mdd_get_support_list : mdd_manager -> mdd -> int list = "mlglu_get_support"
 let mdd_get_support mgr a = 
-  (* Due to a bug in glue / cudd, we cannot ask for the support of the
+  (* Luca: Due to a bug I cannot locate, we cannot ask for the support of the
      0 or 1 mdds.  Here, we code around it.  *)
-  if (mdd_is_zero a) or (mdd_is_one a)
-  then Vset.VS.empty 
-  else begin 
-    let sup_list = mdd_get_support_list mgr a in 
-    let f id_set id = Vset.VS.add id id_set in 
-    List.fold_left f Vset.VS.empty sup_list 
-  end
+  let sup_list = mdd_get_support_list mgr a in 
+  let f id_set id = Vset.VS.add id id_set in 
+  List.fold_left f Vset.VS.empty sup_list 
 
 external mdd_cproject_list    : mdd_manager -> mdd -> int list -> mdd = "mlglu_cproject"
 let mdd_cproject mgr a vset = mdd_cproject_list mgr a (Vset.to_list vset)

@@ -36,7 +36,7 @@ ticc_LD_ADD = ../mlglu/mlglu.cma str.cma -cclib -lstr
 
 
 
-ticctop: $(ticc_OBJS)
+ticctop: $(ticc_OBJS) ../mlglu/mlglu.cma
 	@rm -f ticc
 	$(OCAMLMKTOP) -custom -o ticctop $(OCAMLMKTOPFLAGS) $(ticc_LD_ADD) $(ticc_OBJS)
 
@@ -45,7 +45,7 @@ ticc: 	ticctop
 	sed -e 's;@TICCSRC@;$(TICCSRC);g' ticc.in > ticc
 	chmod a+rx ticc
 
-debug:	$(ticc_OBJS) debug.cmo
+debug:	$(ticc_OBJS) debug.cmo ../mlglu/mlglu.cma
 	@rm -f debug
 	$(OCAMLC) -g -o debug $(OCAML_CFLAGS) $(ticc_LD_ADD) $(ticc_OBJS) debug.cmo
 #
