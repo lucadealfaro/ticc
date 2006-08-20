@@ -67,6 +67,10 @@ type t = {
   mutable iinv   : Mlglu.mdd; 
   (** output invariants *)
   mutable oinv   : Mlglu.mdd; 
+  (** set of bad states.  Used to justify non-iinv states *)
+  mutable bad_states : Mlglu.mdd; 
+  (** old invariant.  Used to justify non-iinv states *)
+  mutable old_iinv : Mlglu.mdd; 
   (** local output transition rules *) 
   lrules : (string, rule_t) Hsetmap.t; 
   (** input transition rules, global and local *) 
@@ -97,6 +101,8 @@ let mk mgr (name: string) : t =
 
     iinv = Mlglu.mdd_one mgr;
     oinv = Mlglu.mdd_one mgr;
+    bad_states = Mlglu.mdd_zero mgr; 
+    old_iinv   = Mlglu.mdd_one  mgr;
 
     lrules = Hsetmap.mk ();
     irules = Hsetmap.mk ();
@@ -123,16 +129,20 @@ let set_ssets (m: t) (set : (string, Mlglu.mdd) Hsetmap.t) = m.ssets <- set
 let set_iinv m phi = m.iinv <- phi
 let set_oinv m phi = m.oinv <- phi
 let set_init m phi = m.init <- phi
+let set_bad_states m phi = m.bad_states <- phi
+let set_old_iinv m phi = m.old_iinv <- phi;;
 let set_reachset (m: t) (b: Mlglu.mdd option) : unit = m.reachset <- b
 (* these are used mostly to forget a module *)
 let clear_ssets  m = Hsetmap.erase m.ssets
 let clear_lrules m = Hsetmap.erase m.lrules
 let clear_irules m = Hsetmap.erase m.irules
-let clear_orules m = Hsetmap.erase m.orules
+let clear_orules m = Hsetmap.erase m.orules;;
 
 let get_iinv m = m.iinv
 let get_oinv m = m.oinv
 let get_init m = m.init 
+let get_old_iinv m = m.old_iinv
+let get_bad_states m = m.bad_states
 let get_sset (m: t) (n: string) : Mlglu.mdd = 
   Hsetmap.find m.ssets n 
 let get_ssets (m: t) : (string, Mlglu.mdd) Hsetmap.t = m.ssets
@@ -370,6 +380,7 @@ let add_rule (m : t) (r : rule_t) : unit =
 	    else Hsetmap.add m.orules act [r]
 
 
+
 (** **************************************************************** *)
 
 (** The function takes a symbolic module and returns a clone. *)
@@ -392,6 +403,8 @@ let symbolic_clone mgr (m : t) : t =
   in m1.reachset <- new_reachset;
   m1.iinv <- Mlglu.mdd_dup m.iinv; 
   m1.oinv <- Mlglu.mdd_dup m.oinv; 
+  m1.bad_states <- Mlglu.mdd_dup m.bad_states;
+  m1.old_iinv   <- Mlglu.mdd_dup m.old_iinv;
   (* dups the state sets *)
   let f (n: string) (mdd: Mlglu.mdd) : unit = 
      Hsetmap.add m1.ssets n (Mlglu.mdd_dup mdd) 

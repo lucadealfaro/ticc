@@ -72,11 +72,11 @@ let compose_alt = Compose.composition Symprog.toplevel Ops.win_i_safe_alt_1;;
 (** Computes the local/output post of a module [sm] 
     and a stateset [set]. *)
 let lo_post (sm: Symmod.t) (set: stateset_t) : stateset_t =
-  Ops.lo_post Symprog.toplevel sm set
+  Ops.lo_post Symprog.toplevel sm set true
  
 (** Computes the input post of a module [sm] and a stateset [set]. *)
 let i_post (sm: Symmod.t) (set: stateset_t) : stateset_t =
-  Ops.i_post Symprog.toplevel sm set
+  Ops.i_post Symprog.toplevel sm set true
 
 (** Computes the post of a module [sm] and a stateset [set]. *)
 let post (sm: Symmod.t) (set: stateset_t) : stateset_t =
@@ -123,6 +123,12 @@ let get_reachable m = Ops.reachable Symprog.toplevel m
     symbolic module [sm] is restricted by the input invariant. *)
 let get_input_restriction sm (r: string) = 
   Modops.get_input_restriction Symprog.toplevel sm r 
+
+(** Prints [n_traces] restriction paths for rule [r] of module [sm],
+    leading from the initial condition, to an istance of input rule
+    [r], to the set of bad states of [sm]. *)
+let print_restr_paths sm (r: string) (n_traces: int) = 
+  Modops.print_n_restriction_paths Symprog.toplevel sm r n_traces
 
 (** Closes a module wrt. an action *)
 let close m a = Modops.close_input_action Symprog.toplevel m a 

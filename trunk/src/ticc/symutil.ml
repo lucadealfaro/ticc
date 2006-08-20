@@ -1,5 +1,3 @@
-(** $Id: symutil.ml,v 1.5 2005/09/19 23:26:41 luca Exp $ *)
-
 (** This file contains some useful functions for working on MDDs. *) 
 
 module VarSet = Vset.VS
@@ -73,3 +71,4 @@ let mk_false_irule (sp: Symprog.t) (sm: Symmod.t) (a_name: string) : unit =
   let symrule = Symmod.mk_irule a_name VarSet.empty mdd_false mdd_false in 
   Symmod.add_rule sm symrule
     
+

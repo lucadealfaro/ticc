@@ -24,6 +24,33 @@ let conjoin_w_invs (sm: Symmod.t) (set: Mlglu.mdd) : Mlglu.mdd =
   Mlglu.mdd_and (Mlglu.mdd_and set iinv 1 1) oinv 1 1 
 
 
+(** This function builds the transition relation of a rule, NOT 
+    including the invariant (for flexibility). 
+    Warning: there is a more efficient way of doing this for
+    pre/post. *)
+let get_transition_rel_noinv sp (sm: Symmod.t) (r: rule_t) : Mlglu.mdd = 
+  let (glob_tr, loc_tr) = get_rule_tran_as_pair r in 
+  let w = get_rule_wvars r in
+    match get_rule_type r with 
+	Local | Output -> begin 
+	  let allvars = Symmod.get_vars sm in 
+	  let notw = VarSet.diff allvars w in 
+	  let uncha = Symbuild.unchngd sp notw in 
+	  Mlglu.mdd_and loc_tr uncha 1 1
+	end
+    | Input -> begin 
+	(* The transition relation is tr = glob_tr /\ loc_tr /\ uncha, 
+	   where uncha is an assertion saying that the local
+	   variables that are not mentioned do not change their
+	   value. *) 
+	let alllocal = Symmod.get_lvars sm in
+	let notw = VarSet.diff alllocal w in
+	let unchanged_local = Symbuild.unchngd sp notw in
+	let tr_tmp = Mlglu.mdd_and glob_tr loc_tr 1 1 in 
+	let tr = Mlglu.mdd_and tr_tmp unchanged_local 1 1 in
+	tr
+      end
+
 (* **************************************************************** *)
 (*                                                                  *)
 (* Pre / Post Operators                                             *)
@@ -93,13 +120,13 @@ let internal_pre (do_input: bool) (do_output: bool) (sp: Symprog.t) (sm: Symmod.
     let mgr = Symprog.get_mgr sp in
     let result = ref (Mlglu.mdd_zero mgr) in 
     let do_one_rule r: unit = 
-	let new_pre = pre_rule sp sm set r in 
-	result := Mlglu.mdd_or !result new_pre 1 1 
+      let new_pre = pre_rule sp sm set r in 
+      result := Mlglu.mdd_or !result new_pre 1 1 
     in 
     if do_input then Symmod.iter_irules sm do_one_rule;
     if do_output then begin
-	Symmod.iter_orules sm do_one_rule; 
-	Symmod.iter_lrules sm do_one_rule
+      Symmod.iter_orules sm do_one_rule; 
+      Symmod.iter_lrules sm do_one_rule
     end;
     !result
 
@@ -333,9 +360,11 @@ let a_until (sp: Symprog.t) (sm: Symmod.t)
 (* **************************************************************** *)
 (* Post and reachability *)
 
-
+(** Computes the post of set [set] wrt a rule [r] of module [sm].  
+    The flag conj_inv specifies whether we have to conjoin the
+    invariant to the result (normally, yes). *)
 let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
-	(r: Symmod.rule_t) : stateset_t =
+    (r: Symmod.rule_t) (conj_inv: bool) : stateset_t =
 
     (*Printf.printf "applying rule %s\n" (Symmod.get_rule_act r);*)
 
@@ -359,8 +388,11 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 	  let set_tau_notw' =  Symutil.prime_mdd_vars sp set_tau notw in
 	  let result  = Mlglu.mdd_smooth mgr set_tau_notw' w in
 	  let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
-	  let oinv = Symmod.get_oinv sm in
-	  Mlglu.mdd_and unprimed_result oinv 1 1
+	  if conj_inv then begin
+	    let oinv = Symmod.get_oinv sm in
+	    Mlglu.mdd_and unprimed_result oinv 1 1
+	  end
+	  else unprimed_result
 	      
       | Symmod.Inp (taug, taul) -> 
 	  
@@ -376,9 +408,11 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 	    Symutil.prime_mdd_vars sp taul_set_taug local_notw in
 	  let result = Mlglu.mdd_smooth mgr result_prime_notw allvars in
 	  let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
-	  let iinv = Symmod.get_iinv sm in
-	  Mlglu.mdd_and unprimed_result iinv 1 1
-
+	  if conj_inv then begin
+	    let iinv = Symmod.get_iinv sm in
+	    Mlglu.mdd_and unprimed_result iinv 1 1
+	  end
+	  else unprimed_result
 
 (** Takes the local/output post of a set of states [set]. 
     This function computes the set of states that can be reached
@@ -387,18 +421,19 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     [set] is a predicat over _unprimed_ variables.
     The result is a symbolic representation of the set of states
     that can be reached.
-
+    Again, conj_inv states whether we have to conjoin the invariants 
+    (normally, yes). 
  *)
-let lo_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-    let mgr = Symprog.get_mgr sp in
-    let result = ref (Mlglu.mdd_zero mgr) in
-    let do_one_rule (r: Symmod.rule_t) : unit =
-	let dest = post_rule sp sm set r in 
-	result := Mlglu.mdd_or !result dest 1 1
-    in
-    Symmod.iter_lrules sm do_one_rule;
-    Symmod.iter_orules sm do_one_rule;
-    !result
+let lo_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) (conj_inv: bool) : stateset_t =
+  let mgr = Symprog.get_mgr sp in
+  let result = ref (Mlglu.mdd_zero mgr) in
+  let do_one_rule (r: Symmod.rule_t) : unit =
+    let dest = post_rule sp sm set r conj_inv in 
+    result := Mlglu.mdd_or !result dest 1 1
+  in
+  Symmod.iter_lrules sm do_one_rule;
+  Symmod.iter_orules sm do_one_rule;
+  !result
 
 
 (** Takes the input post of a set of states [set]. 
@@ -407,25 +442,39 @@ let lo_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
     local and output rules of a module [sm].
     [set] is a predicat over _unprimed_ variables.
     The result is a symbolic representation of the set of states
-    that can be reached
-
+    that can be reached.
+    Again, conj_inv states whether we have to conjoin the invariants 
+    (normally, yes). 
  *)
-let i_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-    let mgr = Symprog.get_mgr sp in
-    let result = ref (Mlglu.mdd_zero mgr) in
+let i_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) (conj_inv: bool) : stateset_t =
+  let mgr = Symprog.get_mgr sp in
+  let result = ref (Mlglu.mdd_zero mgr) in
 
-    let do_one_rule (r: Symmod.rule_t) : unit =
-	let dest = post_rule sp sm set r in 
-	result := Mlglu.mdd_or !result dest 1 1
-    in
-    Symmod.iter_irules sm do_one_rule;
-    !result
+  let do_one_rule (r: Symmod.rule_t) : unit =
+    let dest = post_rule sp sm set r conj_inv in 
+    result := Mlglu.mdd_or !result dest 1 1
+  in
+  Symmod.iter_irules sm do_one_rule;
+  !result
 
-(** This does both i_post and lo_post *)
+(** This does both i_post and lo_post, conjoining invariants. *)
 let loi_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-    let lo_succ  = lo_post sp sm set in 
-    let i_succ = i_post sp sm set in 
-    Mlglu.mdd_or lo_succ i_succ 1 1 
+  let lo_succ  = lo_post sp sm set true in 
+  let i_succ = i_post sp sm set true in 
+  Mlglu.mdd_or lo_succ i_succ 1 1 
+
+(** Computes the post of a set [set], not conjoining invariants *)
+let raw_post (do_input: bool) (do_output: bool)
+    (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
+  let mgr = Symprog.get_mgr sp in
+  let result = ref (Mlglu.mdd_zero mgr) in 
+  if do_input then result := i_post sp sm set false; 
+  if do_output then 
+    result := Mlglu.mdd_or !result (lo_post sp sm set false) 1 1; 
+  !result
+
+
+(* **************************************************************** *)
 
 (** This function returns the set of states that are reachable from a given 
     initial set. *)

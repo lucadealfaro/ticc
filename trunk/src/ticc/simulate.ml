@@ -60,7 +60,7 @@ let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) :
   let oinv = Symmod.get_oinv sm in
   let rules = ref [] in
   let doOneRule (r: Symmod.rule_t) : unit =
-    let dest = Ops.post_rule sp sm set r in
+    let dest = Ops.post_rule sp sm set r true in
     let iDest = Mlglu.mdd_and dest iinv 1 1 in
     let oDest = Mlglu.mdd_and iDest oinv 1 1 in
       if not (Mlglu.mdd_equal oDest zero) then begin
@@ -73,7 +73,7 @@ let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) :
     Symmod.iter_orules sm doOneRule;
   in
   let random = generateRandom (List.length !rules) in
-    ((Ops.post_rule sp sm set (List.nth !rules random)), (List.nth !rules random));
+  ((Ops.post_rule sp sm set (List.nth !rules random) true), (List.nth !rules random));
 ;;
 
 (** This function is used to parse a state string and return either the

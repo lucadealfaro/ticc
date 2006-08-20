@@ -187,8 +187,10 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
     Symmod.set_clk_bounds m12 
 	(Hsetmap.unsafe_union (Symmod.get_bounds m1) (Symmod.get_bounds m2));
     (* Invariants *)
-    Symmod.set_iinv m12 (Mlglu.mdd_and (Symmod.get_iinv m1) (Symmod.get_iinv m2) 1 1); 
     Symmod.set_oinv m12 (Mlglu.mdd_and (Symmod.get_oinv m1) (Symmod.get_oinv m2) 1 1); 
+    let conj_iinv = Mlglu.mdd_and (Symmod.get_iinv m1) (Symmod.get_iinv m2) 1 1 in 
+    Symmod.set_iinv m12 conj_iinv; 
+    Symmod.set_old_iinv m12 conj_iinv; 
     (* Initial condition *)
     Symmod.set_init m12 (Mlglu.mdd_and (Symmod.get_init m1) (Symmod.get_init m2) 1 1);
     (* Statesets *)
@@ -426,6 +428,8 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
     let inv12 = Symmod.get_iinv m12 in 
     let new_inv12 = win_algo sp m12 (Mlglu.mdd_and good_states inv12 1 1) in 
     Symmod.set_iinv m12 new_inv12; 
+    (* Remembers the set of bad states *)
+    Symmod.set_bad_states m12 (Mlglu.mdd_not good_states);
     (* Now it must restrict the initial condition; if it becomes empty, then the 
        modules are incompatible *)
     let vars12 = Symmod.get_vars m12 in 

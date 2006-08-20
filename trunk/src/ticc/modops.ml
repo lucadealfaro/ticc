@@ -26,6 +26,9 @@ let mk_sym (mod_name: string) =
   in
   (* builds the symbolic module *)
   let sm = Symbuild.mk_mod m Symprog.toplevel in
+  (* Remembers the complement of the original iinv in bad_states *)
+  let not_iinv = Mlglu.mdd_not (Symmod.get_iinv sm) in 
+  Symmod.set_bad_states sm not_iinv; 
   (* strengthen invariants to put module into normal form *)
   let strong_iinv = Ops.win_i_safe  Symprog.toplevel sm (Symmod.get_iinv sm)
   and strong_oinv = Ops.win_lo_safe  Symprog.toplevel sm (Symmod.get_oinv sm) in
@@ -103,51 +106,155 @@ let forget_module (sp: Symprog.t) (sm: Symmod.t) : unit =
   Symmod.clear_ssets sm; 
   Symmod.set_iinv sm mdd1; 
   Symmod.set_oinv sm mdd1; 
+  Symmod.set_old_iinv sm mdd1;
+  Symmod.set_bad_states sm mdd1;
   Symmod.clear_lrules sm; 
   Symmod.clear_irules sm; 
   Symmod.clear_orules sm
 ;;
 
 (* **************************************************************** *)
-(*  Gets input restriction                                          *)
+(*  Analyzes input restriction                                      *)
 (* **************************************************************** *)
+
 
 (** Gets an input restriction *)
 let get_input_restriction sp sm (r: string) = 
-    let mgr = Symprog.get_mgr sp in
-    let iinv = Symmod.get_iinv sm in
-    if Symmod.has_iaction sm r then begin 
-      let ir = Symmod.get_irule sm r in 
-      let (glob_tr, loc_tr) = Symmod.get_rule_tran_as_pair ir in
-      (* The transition relation is tr = glob_tr /\ loc_tr /\ uncha, 
-	 where uncha is an assertion saying that the local
-	 variables that are not mentioned do not change their
-	 value. *) 
-      let w = Symmod.get_rule_wvars ir in
-      let alllocal = Symmod.get_lvars sm in
-      let notw = VarSet.diff alllocal w in
-      let unchange_local = Symbuild.unchngd sp notw in
-      let tr_tmp = Mlglu.mdd_and glob_tr loc_tr 1 1 in 
-      let tr = Mlglu.mdd_and tr_tmp unchange_local 1 1 in
-      (* Computes the set of reachable states of the module *)
-      let reachset = Ops.reachable sp sm in 
-      (* Now builds the answer: restr = tr /\ iinv /\ reachset /\ not iinv' *)
-      let iinv' = Symutil.prime_mdd sp sm iinv in
-      let restr = Mlglu.mdd_and 
-	(Mlglu.mdd_and (Mlglu.mdd_and tr iinv 1 1) reachset 1 1)
-	iinv' 1 0 in 
-      (* At this point, what is left to do is to quantify out
-	 all primed local variables, since anyway their update
-	 is deterministic. *) 
-      let local_variables = Symmod.get_lvars sm in 
-      let local_variables' = Symprog.prime_vars sp local_variables in
-      let result = Mlglu.mdd_smooth mgr restr local_variables' in
-      result
-    end
-    else begin
-      Printf.printf "\nNo input action named %s in the module.\n" r;
-      raise Not_found
-    end;;
+  let mgr = Symprog.get_mgr sp in
+  let iinv = Symmod.get_iinv sm in
+  let old_iinv = Symmod.get_old_iinv sm in 
+  (* The restriction is something that: 
+     1. starts from a reachable state
+     2. starts from a state satisfying iinv
+     3. leads to a state satisfying old_iinv but not iinv
+     4. follows the rule 
+     This is an example of something that used to be possible, 
+     but no longer is. *)
+  if Symmod.has_iaction sm r then begin 
+    (* ir is the input rule we work on *)
+    let ir = Symmod.get_irule sm r in 
+    let tr = Ops.get_transition_rel_noinv sp sm ir in 
+    (* Computes the set of reachable states of the module *)
+    let reachset = Ops.reachable sp sm in 
+    (* Now builds the answer: restr = tr /\ iinv /\ reachset /\ not iinv' /\ old_iinv' *)
+    let iinv' = Symutil.prime_mdd sp sm iinv in
+    let old_iinv' = Symutil.prime_mdd sp sm old_iinv in 
+    let set_start = Mlglu.mdd_and iinv  reachset  1 1 in 
+    let set_end   = Mlglu.mdd_and iinv' old_iinv' 0 1 in 
+    let restr     = Mlglu.mdd_and (Mlglu.mdd_and set_start tr 1 1) set_end 1 1 in
+    (* At this point, what is left to do is to quantify out
+       all primed local variables, since anyway their update
+       is deterministic. *) 
+    let local_variables' = Symprog.prime_vars sp (Symmod.get_lvars sm) in
+    let result = Mlglu.mdd_smooth mgr restr local_variables' in
+    result
+  end else begin
+    Printf.printf "\nNo input action named %s in the module.\n" r;
+    raise Not_found
+  end;;
+
+
+(** Given: 
+    [start_set]: starting set of states
+    [end_set]: ending set of states
+    [by_set]: a set of possible intermediate states
+    [use_input]: whether to use input transitions
+    [use_output]: whether to use output transitions 
+    [go_back]: goes backwards?  otherwise, forwards. 
+    This function returns a list of cubes, c0, c1, ..., cn, starting in 
+    [start_set], ending in [end_set], by [by_set], and using input and
+    output rules as requested.  The list of cubes can be 
+    empty, indicating that no such path exists. *)
+let find_cube_path sp sm (start_set: Mlglu.mdd) (end_set: Mlglu.mdd) 
+    (by_set: Mlglu.mdd) (use_input: bool) (use_output: bool) = 
+  let vAll = Symmod.get_vars sm in
+  let mgr = Symprog.get_mgr sp in
+  (* does it forwards *)
+  (* Keeps the onion ring structure *)
+  let onion = ref [] in 
+  let last_set = ref start_set in 
+  (* goes forwards until it hits the end set *)
+  let inters = ref (Mlglu.mdd_and !last_set end_set 1 1) in 
+  while Mlglu.mdd_is_zero !inters do
+    (* Needs to go forward one more step *)
+    (* CHECK: this is a naive implementation.  It should be done keeping a frontier set... *)
+    onion := !last_set :: !onion;
+    last_set := Mlglu.mdd_and (Ops.raw_post use_input use_output sp sm !last_set) by_set 1 1; 
+    inters := Mlglu.mdd_and !last_set end_set 1 1
+  done; 
+  (* Ok, puts the intersection as the last thing in the onion structure *)
+  onion := !inters :: !onion;
+  (* Fine, now it must go backwards producing the cubes *)
+  (* gets a cube in inters *)
+  let cube = Mlglu.mdd_pick_one_minterm mgr !inters vAll in 
+  let rec pick_cubes (c: Mlglu.mdd) (l: Mlglu.mdd list) = 
+    match l with 
+	[] -> [c]
+      | s :: l' -> begin
+	  (* p is the predecessor of cube c with intersection to s *)
+	  let p = Mlglu.mdd_and s (Ops.internal_pre use_input use_output sp sm c) 1 1 in 
+	  (* gets a cube in p *)
+	  let c' = Mlglu.mdd_pick_one_minterm mgr p vAll in 
+	  c :: (pick_cubes c' l')
+	end
+  in
+  pick_cubes cube !onion
+
+
+(** Prints the counterexample path *)
+let print_counterex_rule sp (path1: Mlglu.mdd list) (path2: Mlglu.mdd list) (rul: string) : unit =
+  let mgr = Symprog.get_mgr sp in 
+  Printf.printf "\nCounterexample path to rule %s:\n" rul; 
+  flush stdout; 
+  List.iter (Mlglu.mdd_print mgr) path1;
+  flush stdout; 
+  Printf.printf "\nHere rule %s is taken\n" rul; 
+  flush stdout; 
+  List.iter (Mlglu.mdd_print mgr) path2;
+  flush stdout; 
+  Printf.printf "\nHere the set of bad states has been reached.\n"
+
+
+(** Prints [n_traces] restriction paths for rule [r] in module [sm]. *)
+let print_n_restriction_paths sp sm (rul: string) (n_traces: int) =
+  let vAll = Symmod.get_vars sm in
+  let mgr = Symprog.get_mgr sp in
+  (* first, computes the restriction *)
+  let restr = get_input_restriction sp sm rul in 
+  (* ir is the input rule we work on *)
+  let ir = Symmod.get_irule sm rul in 
+  (* tr is the transition relation of the rule *)
+  let tr = Ops.get_transition_rel_noinv sp sm ir in 
+
+  (* Now it gets at most n_traces disjoint cubes out of it, 
+     and prints the corresponding traces. *)
+  if Mlglu.mdd_is_zero restr then 
+    Printf.printf "\nNo restriction for rule %s\n" rul 
+  else begin 
+    let i = ref n_traces in 
+    let r = ref restr in 
+    while !i > 0 &  not (Mlglu.mdd_is_zero !r) do 
+      i := !i - 1; 
+      (* finds, forwards, a path from the initial condition to the place where 
+	 the restriction has occurred.  The path has to be in iinv.  *)
+      let path1 = find_cube_path sp sm (Symmod.get_init sm) !r (Symmod.get_iinv sm) true true in 
+      (* gets the last cube *)
+      let len = List.length path1 in 
+      let last_cube1 = List.nth path1 (len - 1) in 
+      (* Applies the rule from last_cube1, computing the set dest after
+	 the rule has been taken. *)
+      let dest' = Mlglu.mdd_smooth mgr (Mlglu.mdd_and last_cube1 tr 1 1) vAll in 
+      let dest = Symutil.unprime_mdd sp sm dest' in 
+      (* Now finds another series of cubes, from dest, to the set of
+	 bad states, via old_inv, using only output transitions *)
+      let path2 = find_cube_path sp sm dest (Symmod.get_bad_states sm) 
+	(Symmod.get_old_iinv sm) false true in
+      (* Prints the two lists of cubes.  Keeps them separate, so we know where the rule is. *)
+      print_counterex_rule sp path1 path2 rul; 
+      (* Now subtracts last_cube1 from !r, as a path through last_cube1 has been printed. *)
+      r := Mlglu.mdd_and !r last_cube1 1 0; 
+    done
+  end
 
 
 (* **************************************************************** *)

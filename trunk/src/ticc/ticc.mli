@@ -304,6 +304,12 @@ val print_symmod_oinv : symbolic_module_t -> unit
  *)
 val print_input_restriction : symbolic_module_t -> string -> unit
 
+(** [print_restr_paths sm (r: string) (n_traces: int)]
+    prints [n_traces] restriction paths for rule [r] of module [sm],
+    leading from the initial condition, to an istance of input rule
+    [r], to the set of bad states of [sm]. *)
+val print_restr_paths : symbolic_module_t -> string -> int -> unit
+
 (** [print_module_full m]
     Prints full information about a parsed module named [m]. *)
 val print_module_full : string -> unit
