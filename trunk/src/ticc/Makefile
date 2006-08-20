@@ -45,7 +45,7 @@ ticc: 	ticctop
 	sed -e 's;@TICCSRC@;$(TICCSRC);g' ticc.in > ticc
 	chmod a+rx ticc
 
-debug:	$(ticc_OBJS)
+debug:	$(ticc_OBJS) debug.cmo
 	@rm -f debug
 	$(OCAMLC) -g -o debug $(OCAML_CFLAGS) $(ticc_LD_ADD) $(ticc_OBJS) debug.cmo
 #
