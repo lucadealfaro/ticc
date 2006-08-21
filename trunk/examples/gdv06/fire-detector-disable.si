@@ -1,0 +1,44 @@
+module ControlUnit:
+    var s: [0..3] // 0=waiting, 1=alarm raised, 2=fd called, 3=disabled
+    initial: s = 0
+    input fire:     { local: s = 0 | s = 1 ==> s' := 1 
+                       else  s = 2         ==>         } 
+    input disable:  { local: true ==> s' := 3 }
+    output call_fd: { s = 1 ==> s' = 2 }
+endmodule
+
+module FireDetector1:
+    var t: [0..2] // 0=idle, 1=smoke detected, 2=inactive or alarm raised
+    initial: t = 0
+    input smoke1:  { local: t = 0 ==> t' := 1 
+                     else   true  ==>         } // do nothing if inactive 
+    output fire:   { t = 1        ==> t'  = 2 }
+    input fire:    { } // other modules can detect fire too       
+    input disable: { local: true  ==> t' := 2 }
+endmodule
+
+module Faulty_FireDetector1: 
+    var t: [0..2] // 0=idle, 1=smoke detected, 2=alarm raised
+    initial: t = 0
+    input smoke1:  { local: t = 0 ==> t' := 1 
+                     else   true  ==>        } // do nothing if inactive 
+    output fire:   { t = 1        ==> t'  = 2 }
+    input fire:    { } // other modules can detect fire too       
+    // does not listen to disable action 
+endmodule
+
+module FireDetector2:
+    var t: [0..2] // 0=idle, 1=smoke detected, 2=inactive or alarm raised
+    initial: t = 0
+    input smoke2:  { local: t = 0 ==> t' := 1
+                     else   true  ==>         } // do nothing if inactive 
+    output fire:   { t = 1        ==> t'  = 2 }
+    input fire:    { } // other modules can detect fire too       
+    input disable: { local: true  ==> t' := 2 }
+endmodule
+
+module Disable: 
+    output disable: { true ==> true } // Can disable at will 
+    output smoke1:  { true ==> true }
+    output smoke2:  { true ==> true }
+endmodule 
