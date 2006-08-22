@@ -183,6 +183,8 @@ let mdd_substitute mgr a (old_new_list: (int * int) list) =
 
 external mdd_get_support_list : mdd_manager -> mdd -> int list = "mlglu_get_support"
 let mdd_get_support mgr a = 
+  (* Luca: Due to a bug I cannot locate, we cannot ask for the support of the
+     0 or 1 mdds.  Here, we code around it.  *)
   let sup_list = mdd_get_support_list mgr a in 
   let f id_set id = Vset.VS.add id id_set in 
   List.fold_left f Vset.VS.empty sup_list 

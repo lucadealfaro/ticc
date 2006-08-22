@@ -157,7 +157,7 @@ val simulate : symbolic_module_t -> string -> int -> string -> unit
 val ctl_e_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
 (** [ctl_e_waitfor sm phi gamma] computes \exists ([phi] Waitfor [gamma]) for module [sm] *)
-val ctl_e_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
+val ctl_e_waitfor: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
 (** [ctl_e_f sm phi] computes \exists F [phi] for module [sm] *)
 val ctl_e_f: symbolic_module_t -> stateset_t -> stateset_t

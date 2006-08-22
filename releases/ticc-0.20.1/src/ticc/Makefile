@@ -36,7 +36,7 @@ ticc_LD_ADD = ../mlglu/mlglu.cma str.cma -cclib -lstr
 
 
 
-ticctop: $(ticc_OBJS)
+ticctop: $(ticc_OBJS) ../mlglu/mlglu.cma
 	@rm -f ticc
 	$(OCAMLMKTOP) -custom -o ticctop $(OCAMLMKTOPFLAGS) $(ticc_LD_ADD) $(ticc_OBJS)
 
