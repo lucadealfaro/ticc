@@ -1,0 +1,14 @@
+open Ticc;;
+parse "printer-s-frocos.si";;
+
+let user1 = mk_sym "User1";;
+let user2 = mk_sym "User2";;
+let printer = mk_sym "Printer";;
+
+print_symmod user1;;
+print_symmod user2;;
+print_symmod printer;;
+
+let compose2 = compose printer user1;;
+let compose3 = compose compose2 user2;;
+print_symmod compose3;;

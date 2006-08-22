@@ -1,0 +1,23 @@
+(* 
+Action boum increases x both in A and in B.  Since A and B can also
+emit boum, the only way A and B are compatible is if x is kept in
+synch at the same value.  Unfortunately, this is not the case, as B
+can receive action bump which increases x in B only. The input
+restriction of bump says therefore that this cannot happen. 
+*)
+
+open Ticc;;
+
+parse "bump.si" ;;
+
+let a = mk_sym "A";;
+let b = mk_sym "B";;
+
+print_symmod a;;
+print_symmod b;;
+
+let c = compose a b;;
+
+print_symmod c;;
+print_input_restriction c "bump";;
+

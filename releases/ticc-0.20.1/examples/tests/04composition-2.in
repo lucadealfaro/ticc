@@ -1,0 +1,11 @@
+open Ticc;;
+parse "printer-s-frocos.si";;
+let pr = mk_sym "Printer";;
+let us1 = mk_sym "User1";;
+
+try let composed = compose pr us1 in
+    print_symmod composed
+with _ -> print_endline "Exception was raised.";;
+
+flush stdout;;
+

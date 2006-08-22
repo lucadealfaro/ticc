@@ -1,0 +1,62 @@
+//
+// Example:
+//    Models a two-deep buffer, and a message receiver/processor.
+//    Related to "Interfaces: A Game-Theoretic Framework to Reason about
+//    Component-Based Systems", Fig 2.
+//    This is a revised version of buffered-receiver2.si, which
+//    had an extra communication channel.  In this version, we just
+//    monitor the Receiver's output to know when it's finished.
+//
+
+
+// State diagram:
+//     /--\ --snd?--> /--\ --snd?--> /--\
+// --> |b0|           |b1|           |b2|
+//     \__/           \__/           \__/
+//        ^           /  ^           /
+//         \     rec!/    \proc?    /rec!
+//     proc?\       v      \       v
+//           \    /--\      \    /--\
+//            ----|b3|       ----|b4|
+//                \--/ --snd?--> \--/
+//
+module Buffer:
+    var state: [0..4]
+
+    input snd : {
+	local:
+	    state < 2 ==> state' := state + 1 
+       else state = 3 ==> state' := 4 
+    }
+    input proc : {
+	local:
+	         state = 3 ==> state' := 0 
+	    else state = 4 ==> state' := 1 
+    }
+    output rec : {
+	state = 1 ==> state' = 3
+	state = 2 ==> state' = 4
+    }
+
+endmodule
+
+
+// State diagram:
+//
+//       /--\ --rec?--> /--\
+//   --> |r0|           |r1|
+//       \__/ <--proc!- \__/
+
+module Receiver:
+    var busy: bool
+
+    input rec : {
+	local:
+	    not busy ==> busy' := true
+    }
+
+    output proc : {
+	busy ==> not busy'
+    }
+endmodule
+

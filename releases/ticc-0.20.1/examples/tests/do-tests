@@ -1,0 +1,68 @@
+#!/usr/bin/python
+#
+# This scripts runs the tests. To run the tests, write: 
+#
+#   ./do-tests <tests>
+#
+# where <tests> is a list of files (*.in also works). 
+#
+# To re-initialize the tests, saying that their current output is the
+# desired output, do:
+#
+#   ./do-tests -set <tests>
+#
+# (and, if you are a TICC developer, remember to do cvs commit afterwards!)
+
+
+import commands, time, sys
+
+ticc_cmd = "../../ticc"
+sep = "================================================================"
+def Usage():
+    print "Usage: do-tests [-set] <tests>"
+
+if len(sys.argv) <= 1 :
+    Usage()
+    sys.exit (1)
+
+# What to do 
+do_set = False
+
+# Reads options and files 
+argp = 1
+while argp < len(sys.argv) and sys.argv[argp][0:1] == "-" :
+    if sys.argv[argp] == "-set" :
+        do_set = True
+        argp = argp + 1
+    else :
+        Usage()
+	sys.exit (1)
+
+# All the rest is names of files 
+files = sys.argv [argp:]
+
+# Now does the tests, one by one
+for test_file in files:
+    print test_file + " : \t", 
+    file_prefix = (test_file.split ("."))[0]
+    out_file  = file_prefix + ".out"
+    ok_file   = file_prefix + ".oko"
+    diff_file = file_prefix + ".diff"
+    # remembers start time 
+    start_time = time.time ()
+    (status, out) = commands.getstatusoutput (ticc_cmd + " " + test_file + " > " + out_file)
+    # and end time 
+    end_time = time.time ()
+    if status != 0:
+        print "FAILED! (error during execution)"
+    else:
+        # No error during execution.  Now compares the file with what should have been.
+        (status, out) = commands.getstatusoutput ("diff -cbB " + ok_file + " " + out_file + " > " + diff_file)
+        if status != 0:
+            print "FAILED! (output differs); time = ", end_time - start_time
+        else:
+            print "PASSED!  Time = ", end_time - start_time
+        # Now checks whether it has to set the result
+        if do_set:
+            commands.getoutput ("cp " + out_file + " " + ok_file)
+# This is it. 

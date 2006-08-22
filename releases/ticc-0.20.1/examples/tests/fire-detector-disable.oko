@@ -1,0 +1,531 @@
+
+===================================
+Printing symbolic module FireDetector1.
+* All variables:
+{ FireDetector1.s }
+ 
+* History variables: 
+{ FireDetector1.s }
+ 
+* Local variables: 
+{ FireDetector1.s }
+ 
+* Global variables: 
+{ }
+ 
+* Input Invariant:
+(1) 
+
+* Output Invariant:
+(1) 
+
+* Initial Condition:
+(
+ (FireDetector1.s = 0)) 
+* Rules:
+
+action fire:--------
+Modifies only variables in: 
+{ FireDetector1.s }
+----[output]:
+Owned by module FireDetector1
+(
+ (FireDetector1.s = 1)(
+   (FireDetector1.s' = 2)) ) 
+action fire:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action smoke1:--------
+Modifies only variables in: 
+{ FireDetector1.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (FireDetector1.s = 0)(
+   (FireDetector1.s' = 1)) 
+  + 
+ (FireDetector1.s = 1)(
+   (FireDetector1.s' = 1)) 
+  + 
+ (FireDetector1.s = 2)(
+   (FireDetector1.s' = 2)) ) 
+
+
+action disable:--------
+Modifies only variables in: 
+{ FireDetector1.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (FireDetector1.s' = 2)) 
+
+
+endmodule
+===================================
+
+
+===================================
+Printing symbolic module FireDetector3.
+* All variables:
+{ FireDetector3.s }
+ 
+* History variables: 
+{ FireDetector3.s }
+ 
+* Local variables: 
+{ FireDetector3.s }
+ 
+* Global variables: 
+{ }
+ 
+* Input Invariant:
+(1) 
+
+* Output Invariant:
+(1) 
+
+* Initial Condition:
+(
+ (FireDetector3.s = 0)) 
+* Rules:
+
+action fire:--------
+Modifies only variables in: 
+{ FireDetector3.s }
+----[output]:
+Owned by module FireDetector3
+(
+ (FireDetector3.s = 1)(
+   (FireDetector3.s' = 2)) ) 
+action smoke3:--------
+Modifies only variables in: 
+{ FireDetector3.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (FireDetector3.s = 0)(
+   (FireDetector3.s' = 1)) 
+  + 
+ (FireDetector3.s = 1)(
+   (FireDetector3.s' = 1)) 
+  + 
+ (FireDetector3.s = 2)(
+   (FireDetector3.s' = 2)) ) 
+
+
+action fire:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action disable:--------
+Modifies only variables in: 
+{ FireDetector3.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (FireDetector3.s' = 2)) 
+
+
+endmodule
+===================================
+
+
+===================================
+Printing symbolic module Faulty_FireDetector2.
+* All variables:
+{ Faulty_FireDetector2.s }
+ 
+* History variables: 
+{ Faulty_FireDetector2.s }
+ 
+* Local variables: 
+{ Faulty_FireDetector2.s }
+ 
+* Global variables: 
+{ }
+ 
+* Input Invariant:
+(1) 
+
+* Output Invariant:
+(1) 
+
+* Initial Condition:
+(
+ (Faulty_FireDetector2.s = 0)) 
+* Rules:
+
+action fire:--------
+Modifies only variables in: 
+{ Faulty_FireDetector2.s }
+----[output]:
+Owned by module Faulty_FireDetector2
+(
+ (Faulty_FireDetector2.s = 1)(
+   (Faulty_FireDetector2.s' = 2)) ) 
+action fire:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action smoke2:--------
+Modifies only variables in: 
+{ Faulty_FireDetector2.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (Faulty_FireDetector2.s = 0)(
+   (Faulty_FireDetector2.s' = 1)) 
+  + 
+ (Faulty_FireDetector2.s = 1)(
+   (Faulty_FireDetector2.s' = 1)) 
+  + 
+ (Faulty_FireDetector2.s = 2)(
+   (Faulty_FireDetector2.s' = 2)) ) 
+
+
+endmodule
+===================================
+
+
+===================================
+Printing symbolic module FireDetector1*ControlUnit.
+* All variables:
+{ FireDetector1.s ControlUnit.s }
+ 
+* History variables: 
+{ FireDetector1.s ControlUnit.s }
+ 
+* Local variables: 
+{ FireDetector1.s ControlUnit.s }
+ 
+* Global variables: 
+{ }
+ 
+* Input Invariant:
+(
+ (FireDetector1.s = 0)
+  + 
+ (FireDetector1.s = 1)(
+   (ControlUnit.s = 0)
+    + 
+   (ControlUnit.s = 1)
+    + 
+   (ControlUnit.s = 2)) 
+  + 
+ (FireDetector1.s = 2)) 
+
+* Output Invariant:
+(1) 
+
+* Initial Condition:
+(
+ (FireDetector1.s = 0)(
+   (ControlUnit.s = 0)) ) 
+* Rules:
+
+action fire:--------
+Modifies only variables in: 
+{ FireDetector1.s ControlUnit.s }
+----[output]:
+Owned by module FireDetector1
+(
+ (FireDetector1.s = 1)(
+   (FireDetector1.s' = 2)(
+     (ControlUnit.s = 0)(
+       (ControlUnit.s' = 1)) 
+      + 
+     (ControlUnit.s = 1)(
+       (ControlUnit.s' = 1)) 
+      + 
+     (ControlUnit.s = 2)(
+       (ControlUnit.s' = 2)) ) ) ) 
+action call_fd:--------
+Modifies only variables in: 
+{ ControlUnit.s }
+----[output]:
+Owned by module ControlUnit
+(
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 2)) ) 
+action fire:--------
+Modifies only variables in: 
+{ ControlUnit.s }
+----[input global]:
+(
+ (ControlUnit.s = 0)
+  + 
+ (ControlUnit.s = 1)
+  + 
+ (ControlUnit.s = 2)) 
+----[input local]:
+(
+ (ControlUnit.s = 0)(
+   (ControlUnit.s' = 1)) 
+  + 
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 1)) 
+  + 
+ (ControlUnit.s = 2)(
+   (ControlUnit.s' = 2)) ) 
+
+
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action disable:--------
+Modifies only variables in: 
+{ FireDetector1.s ControlUnit.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (FireDetector1.s' = 2)(
+   (ControlUnit.s' = 3)) ) 
+
+
+action smoke1:--------
+Modifies only variables in: 
+{ FireDetector1.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (FireDetector1.s = 0)(
+   (FireDetector1.s' = 1)) 
+  + 
+ (FireDetector1.s = 1)(
+   (FireDetector1.s' = 1)) 
+  + 
+ (FireDetector1.s = 2)(
+   (FireDetector1.s' = 2)) ) 
+
+
+action call_fd:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(0) 
+----[input local]:
+(0) 
+
+
+endmodule
+===================================
+
+
+===================================
+Printing symbolic module Faulty_FireDetector2*ControlUnit.
+* All variables:
+{ Faulty_FireDetector2.s ControlUnit.s }
+ 
+* History variables: 
+{ Faulty_FireDetector2.s ControlUnit.s }
+ 
+* Local variables: 
+{ Faulty_FireDetector2.s ControlUnit.s }
+ 
+* Global variables: 
+{ }
+ 
+* Input Invariant:
+(
+ (Faulty_FireDetector2.s = 0)
+  + 
+ (Faulty_FireDetector2.s = 1)(
+   (ControlUnit.s = 0)
+    + 
+   (ControlUnit.s = 1)
+    + 
+   (ControlUnit.s = 2)) 
+  + 
+ (Faulty_FireDetector2.s = 2)) 
+
+* Output Invariant:
+(1) 
+
+* Initial Condition:
+(
+ (Faulty_FireDetector2.s = 0)(
+   (ControlUnit.s = 0)) ) 
+* Rules:
+
+action fire:--------
+Modifies only variables in: 
+{ Faulty_FireDetector2.s ControlUnit.s }
+----[output]:
+Owned by module Faulty_FireDetector2
+(
+ (Faulty_FireDetector2.s = 1)(
+   (Faulty_FireDetector2.s' = 2)(
+     (ControlUnit.s = 0)(
+       (ControlUnit.s' = 1)) 
+      + 
+     (ControlUnit.s = 1)(
+       (ControlUnit.s' = 1)) 
+      + 
+     (ControlUnit.s = 2)(
+       (ControlUnit.s' = 2)) ) ) ) 
+action call_fd:--------
+Modifies only variables in: 
+{ ControlUnit.s }
+----[output]:
+Owned by module ControlUnit
+(
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 2)) ) 
+action fire:--------
+Modifies only variables in: 
+{ ControlUnit.s }
+----[input global]:
+(
+ (ControlUnit.s = 0)
+  + 
+ (ControlUnit.s = 1)
+  + 
+ (ControlUnit.s = 2)) 
+----[input local]:
+(
+ (ControlUnit.s = 0)(
+   (ControlUnit.s' = 1)) 
+  + 
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 1)) 
+  + 
+ (ControlUnit.s = 2)(
+   (ControlUnit.s' = 2)) ) 
+
+
+action _env_action:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(1) 
+----[input local]:
+(1) 
+
+
+action disable:--------
+Modifies only variables in: 
+{ ControlUnit.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (ControlUnit.s' = 3)) 
+
+
+action call_fd:--------
+Modifies only variables in: 
+{ }
+----[input global]:
+(0) 
+----[input local]:
+(0) 
+
+
+action smoke2:--------
+Modifies only variables in: 
+{ Faulty_FireDetector2.s }
+----[input global]:
+(1) 
+----[input local]:
+(
+ (Faulty_FireDetector2.s = 0)(
+   (Faulty_FireDetector2.s' = 1)) 
+  + 
+ (Faulty_FireDetector2.s = 1)(
+   (Faulty_FireDetector2.s' = 1)) 
+  + 
+ (Faulty_FireDetector2.s = 2)(
+   (Faulty_FireDetector2.s' = 2)) ) 
+
+
+endmodule
+===================================
+
+Restriction of action disable in correct composition:
+------------------------
+Restriction of input action disable:
+(0) 
+
+------------- end of restriction
+Restriction of action disable in defective compsotion:
+------------------------
+Restriction of input action disable:
+(
+ (Faulty_FireDetector2.s = 1)(
+   (ControlUnit.s = 0)
+    + 
+   (ControlUnit.s = 1)
+    + 
+   (ControlUnit.s = 2)) ) 
+
+------------- end of restriction
+Restriction of action smoke in correct composition:
+------------------------
+Restriction of input action smoke1:
+(0) 
+
+------------- end of restriction
+Restriction of action smoke in defective composition:
+------------------------
+Restriction of input action smoke2:
+(
+ (Faulty_FireDetector2.s = 0)(
+   (ControlUnit.s = 3)) ) 
+
+------------- end of restriction
