@@ -208,8 +208,8 @@ let has_action (m: t) act : bool =
     (Hsetmap.mem m.lrules act) || (Hsetmap.mem m.irules act) ||
 	(Hsetmap.mem m.orules act)
 let has_iaction (m: t) act : bool = Hsetmap.mem m.irules act
-let has_oaction (m: t) act : bool = Hsetmap.mem m.lrules act
-let has_laction (m: t) act : bool = Hsetmap.mem m.orules act
+let has_oaction (m: t) act : bool = Hsetmap.mem m.orules act
+let has_laction (m: t) act : bool = Hsetmap.mem m.lrules act
 
 (** Gets a rule, or list of rules, given the name of the action *)
 let get_lrule (m: t) (act: string) : rule_t = Hsetmap.find m.lrules act

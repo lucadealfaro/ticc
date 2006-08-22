@@ -204,7 +204,7 @@ val ctl_e_output_next: symbolic_module_t -> stateset_t -> stateset_t
 val ctl_a_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
 (** [ctl_a_waitfor sm phi gamma] computes \forall ([phi] Waitfor [gamma]) for module [sm] *)
-val ctl_a_until: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
+val ctl_a_waitfor: symbolic_module_t -> stateset_t -> stateset_t -> stateset_t
 
 (** [ctl_a_f sm phi] computes \forall F [phi] for module [sm] *)
 val ctl_a_f: symbolic_module_t -> stateset_t -> stateset_t
