@@ -1,7 +1,0 @@
-*.cm?
-ticlex.ml ticparse.ml
-ticc
-ticctop
-.depends
-ticparse.mli
-
