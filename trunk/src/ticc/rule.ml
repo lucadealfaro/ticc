@@ -1,5 +1,3 @@
-(** $Id: rule.ml,v 1.25 2005/09/19 23:26:41 luca Exp $ *)
-
 (** Type of a local transition rule *)
 type lrule_t = {
   (** name *)

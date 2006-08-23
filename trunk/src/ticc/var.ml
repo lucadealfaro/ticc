@@ -1,5 +1,3 @@
-(** $Id: var.ml,v 1.25 2005/09/01 22:12:51 luca Exp $ *)
-
 exception TypeAssertFailed
 
 (** This is the type of a clock bound *)

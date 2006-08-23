@@ -1,5 +1,3 @@
-(** $Id: act.ml,v 1.24 2005/04/30 18:25:30 luca Exp $ *)
-
 (** For homogeneity, we have the concept of an action both 
     for a global, and for a local, action. *)
 type act_scope_t = Global of Var.t list | Local 

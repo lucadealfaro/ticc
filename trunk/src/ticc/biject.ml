@@ -1,5 +1,3 @@
-(** $Id: biject.ml,v 1.2 2005/04/30 18:26:12 luca Exp $ *)
-
 (** Module Biject, implementing bijections. *)
 
 type ('a, 'b) t = {

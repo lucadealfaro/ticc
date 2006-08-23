@@ -1,5 +1,3 @@
-(** $Id: vset.ml,v 1.3 2005/07/26 20:07:42 thumper Exp $ *) 
-
 (** Here are the functions that implement the sets of variables *) 
 
 module type OInt = 

@@ -1,5 +1,3 @@
-(** $Id: hset.ml,v 1.4 2005/06/26 06:49:19 luca Exp $ *)
-
 (** Implementation of Hset, or hash sets, an imperative
     data structure implemented on top of Hsetmaps. *)
 

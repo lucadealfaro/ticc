@@ -1,8 +1,3 @@
-(*
- * $Id: mlglu.ml,v 1.33 2006/01/28 05:35:06 vishwa Exp $
- *
- *)
-
 type mdd_manager
 type mdd
 type mvar 
