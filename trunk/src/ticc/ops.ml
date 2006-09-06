@@ -418,7 +418,7 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     This function computes the set of states that can be reached
     from a set [set] by application of the union of all
     local and output rules of a module [sm].
-    [set] is a predicat over _unprimed_ variables.
+    [set] is a predicate over _unprimed_ variables.
     The result is a symbolic representation of the set of states
     that can be reached.
     Again, conj_inv states whether we have to conjoin the invariants 
@@ -433,6 +433,27 @@ let lo_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) (conj_inv: bool) : 
   in
   Symmod.iter_lrules sm do_one_rule;
   Symmod.iter_orules sm do_one_rule;
+  !result
+
+
+(** Takes the local post of a set of states [set]. 
+    This function computes the set of states that can be reached
+    from a set [set] by application of the union of all
+    local rules of a module [sm].
+    [set] is a predicate over _unprimed_ variables.
+    The result is a symbolic representation of the set of states
+    that can be reached.
+    Again, conj_inv states whether we have to conjoin the invariants 
+    (normally, yes). 
+ *)
+let l_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) (conj_inv: bool) : stateset_t =
+  let mgr = Symprog.get_mgr sp in
+  let result = ref (Mlglu.mdd_zero mgr) in
+  let do_one_rule (r: Symmod.rule_t) : unit =
+    let dest = post_rule sp sm set r conj_inv in 
+    result := Mlglu.mdd_or !result dest 1 1
+  in
+  Symmod.iter_lrules sm do_one_rule;
   !result
 
 
