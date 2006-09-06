@@ -17,29 +17,6 @@ open Ast;;
 (** Random Simulation *)
 exception User_Start_State_Violates_Invariants
 
-(** The following is a random number generator. This code has been
-    pinched from www.bagley.org/~doug/shootout
-*)
-
-let lastRef = ref 42;;
-
-let generateRandom (range: int) : int =
-  let random (max: int) =
-    let im = 139968
-    and ia = 3877
-    and ic = 29573
-    in
-    let newLast = (!lastRef * ia + ic) mod im in
-      lastRef := newLast;
-      float_of_int max *. float_of_int newLast /. float im;
-  in
-  let rec loop (i: int) =
-    let r = random 100 in
-      if i > 1 then loop (i - 1) else r
-  in
-    (int_of_float(loop range) mod range)
-;;
-
 (** The following function computes the next stateset of a simulation cycle
     given a state. The algorithm,
 
@@ -72,7 +49,7 @@ let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) :
     Symmod.iter_lrules sm doOneRule;
     Symmod.iter_orules sm doOneRule;
   in
-  let random = generateRandom (List.length !rules) in
+  let random = Modops.generateRandom (List.length !rules) in
   ((Ops.post_rule sp sm set (List.nth !rules random) true), (List.nth !rules random));
 ;;
 
@@ -187,9 +164,9 @@ let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
       Mlglu.mdd_pick_one_minterm mgr oParsedState vAll
   in
   let outChannel : out_channel = open_out outputFile in
-  let tChannel : out_channel = open_out "t.html" in
+  let tChannel : out_channel = open_out outputFile in
   let doSimulate : unit =
-    Htmlgen.generateHtmlHeader Symprog.toplevel sm startState tChannel;
+    Htmlgen.generateHtmlHeader Symprog.toplevel sm startState "Simulation Report" tChannel;
     let prevState = ref startState in
       for i = 1 to nCycles do
 	let nextPair : (stateset_t * Symmod.rule_t) =

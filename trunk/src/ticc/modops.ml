@@ -269,27 +269,26 @@ let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
       if (nRules = 0) then  begin
 	Printf.printf "No rules found!!\n";
 	None;
-      end else begin
+      end else
 	let random = generateRandom(nRules) in
 	  Some((Ops.post_rule sp sm set (List.nth !rules random) false), 
 	       (List.nth !rules random));
-      end
 ;;
 
 (** Pring the counterexample path in html format and as an ascii text file *)
 
 let printCounterExample (sp: Symprog.t) (sm: Symmod.t) 
     (path1: stateset_t list) (path2: stateset_t list)
-    (rul: string) (n: int) : unit =
+    (rul: string) (filename: string) : unit =
   let mgr = Symprog.get_mgr sp in
   let ir = Symmod.get_irule sm rul in
   let startState = Symmod.get_init sm in
   let len = List.length path1 in 
   let lastCube = List.nth path1 (len - 1) in 
   let dest = Ops.post_rule sp sm lastCube ir false in 
-  let outChannel: out_channel = open_out ("trace_"^string_of_int(n)^".html") in
+  let outChannel: out_channel = open_out filename in
   let interpolateActions : unit =
-    Htmlgen.generateHtmlHeader sp sm startState outChannel;
+    Htmlgen.generateHtmlHeader sp sm startState "Counterexample Trace" outChannel;
     let prevState = ref startState in
     let doOneCube (outputsOnly: bool) (cube: Mlglu.mdd) : unit =
       match (computeNextState sp sm !prevState cube outputsOnly) with
@@ -376,7 +375,10 @@ let print_n_restriction_paths sp sm (rul: string) (n_traces: int) =
 		(* Prints the two lists of cubes.  Keeps them separate, so we know 
 		   where the rule is. *)
 		print_counterex_rule sp sm path1 path2 rul; 
-		printCounterExample sp sm path1 path2 rul !i;
+
+		let filename = (Symmod.get_name sm)^"_"^rul^"_"^string_of_int(!i)^".html" in
+		  printCounterExample sp sm path1 path2 rul filename;
+
 		(* Now subtracts last_cube1 from !r, as a path through last_cube1 
 		   has been printed. *)
 		r := Mlglu.mdd_and !r last_cube1 1 0; 
