@@ -76,30 +76,6 @@ let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) :
   ((Ops.post_rule sp sm set (List.nth !rules random) true), (List.nth !rules random));
 ;;
 
-(** This function is used to parse a state string and return either the
-    variables or their values in a list *)
-
-let extractRow (state : string) (wantVars : int) (result : string list ref) : unit =
-  let splitState = Str.split (Str.regexp " ") state in
-  let rec extract (splitList : string list) : unit =
-    match splitList with
-	s::rest -> begin
-	  let nameValue (s : string) = Str.split (Str.regexp "=") s in
-	    match (nameValue s) with
-		name::value ->
-		  if (wantVars = 1) then begin
-		    result := !result@[name]
-		  end else begin
-		    result := !result@value
-		  end;
-		  extract rest
-	      | _ -> ();
-	end
-      | [] -> ()
-  in
-    extract splitState
-;;
-
 (** The following function is a wrapper around the Mlglu function to extract
     a cube. This is for convenience *)
 
@@ -165,92 +141,6 @@ let mdd_cube_to_string (set : stateset_t) (vAll : VarSet.t option) :
     !compactCube
 ;;
 
-(** The following function is used to print values in a table row *)
-
-let printHtmlValues (n : int) (p : string list) (v : string list)
-    (outChannel: out_channel) : unit =
-  let rec recPrintHtmlValues (n : int) (p : string list) (v : string list) =
-    match v with
-	s::rest ->
-	  if not ((List.nth p n) = s) then
-	    output_string outChannel ("<TD ALIGN=RIGHT><FONT COLOR=#FF0000>"^s^"&nbsp;&nbsp;</FONT></TD>")
-	  else
-	    output_string outChannel ("<TD ALIGN=RIGHT><FONT COLOR=#FFFFFF>"^s^"&nbsp;&nbsp;</FONT></TD>");
-	  recPrintHtmlValues (n + 1) p rest
-      | [] -> ()
-  in
-    recPrintHtmlValues n p v;
-    output_string outChannel "\n";
-;;
-
-(** The following function is used to generate an html header for the
-    simulation output
-*)
-
-let generateHtmlHeader (sp: Symprog.t) (sm: Symmod.t) (expr: string)
-    (nCycles: int) (set: stateset_t) (outChannel: out_channel) : unit =
-  let vnames = ref [] in
-  let values = ref [] in
-  let rec printVars (v : string list) =
-    match v with
-	s::rest ->
-	  output_string outChannel ("<TD ALIGN=RIGHT><U>"^s^"</U>&nbsp;&nbsp</TD>");
-	  printVars rest
-      | [] -> ()
-  in
-  let mgr = Symprog.get_mgr sp in
-    output_string outChannel ("<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">\n");
-    output_string outChannel ("<body style=\"font-family: Courier; color: #FFFFFF;\n");
-    output_string outChannel ("background-color: rgb(153, 170, 204);\" alink=\"#000099\" vlink=\"#990099\" link=\"#000099\">\n");
-    output_string outChannel ("<TITLE>Simulation Report</TITLE>\n");
-    output_string outChannel ("<H2><FONT COLOR=#000000>Simulation Report</FONT></H2>\n");
-    output_string outChannel ("<HR><width=100%></HR>\n");
-
-    output_string outChannel ("<H3><U><FONT COLOR=#000000>Inputs</FONT></U></H3>\n");
-    output_string outChannel ("<TABLE BORDER=0>\n");
-    output_string outChannel ("<TR><TD ALIGN=LEFT>Module: "^(Symmod.get_name sm)^"</TD>\n");
-    output_string outChannel ("<TR><TD ALIGN=LEFT>nCycles: "^(string_of_int nCycles)^"</TD>\n");
-    output_string outChannel ("<TR><TD ALIGN=LEFT>User initial state: <B><I>\""^expr^"\"</I></B></TD>\n");
-    output_string outChannel ("</TABLE>\n");
-
-    output_string outChannel ("<H3><U><FONT COLOR=#000000>Computed Start State</FONT></U></H3>\n");
-    output_string outChannel ("<TABLE BORDER=0>\n");
-    extractRow (Mlglu.mdd_to_string mgr set) 1 vnames;
-    output_string outChannel ("<TR><TD ALIGN=LEFT>Variables:&nbsp;&nbsp;&nbsp;&nbsp;</TD>");
-    printVars !vnames;
-    output_string outChannel "\n";
-    extractRow (Mlglu.mdd_to_string mgr set) 0 values;
-    output_string outChannel ("<TR><TD ALIGN=LEFT>Values:&nbsp;&nbsp;&nbsp;&nbsp;</TD>");
-    printHtmlValues 0 !values !values outChannel;
-    output_string outChannel ("</TR></TABLE>\n");
-
-    output_string outChannel ("<H3><U><FONT COLOR=#000000>Simulation</FONT></U></H3>\n");
-    output_string outChannel ("<TABLE BORDER=0>\n");
-    output_string outChannel ("<TR><TD ALIGN=LEFT><U>Cycle</U>&nbsp;&nbsp;&nbsp;&nbsp;</TD><TD ALIGN=LEFT><U>Action Name</U>&nbsp;&nbsp;&nbsp;&nbsp</TD>");
-    printVars !vnames;
-    output_string outChannel ("</TR>\n");
-;;
-
-let generateHtmlCycle (nCycle: int) (r: Symmod.rule_t) (outChannel: out_channel) : unit =
-    output_string outChannel ("<TR><TD ALIGN=LEFT><FONT COLOR=#000000>"^string_of_int(nCycle)^"</FONT>&nbsp;&nbsp;</TD>");
-    output_string outChannel ("<TD ALIGN=LEFT><FONT COLOR=#000000>"^(Symmod.get_rule_act r)^"</FONT>&nbsp;&nbsp;</TD>");
-;;
-
-let generateHtmlCycleState (nCycle: int) (prev: stateset_t) (set: stateset_t)
-    (outChannel: out_channel) : unit =
-  let prevValues = ref [] in
-  let values = ref [] in
-  let mgr = Symprog.get_mgr Symprog.toplevel in
-    extractRow (Mlglu.mdd_to_string mgr prev) 0 prevValues;
-    extractRow (Mlglu.mdd_to_string mgr set) 0 values;
-    printHtmlValues 0 !prevValues !values outChannel;
-    output_string outChannel "</TR>\n";
-;;
-
-let generateHtmlFooter (outChannel: out_channel) : unit =
-  output_string outChannel ("</TABLE>\n");
-;;
-
 (** The following function is used to do random simulation. The parameters
     expected are -
 
@@ -297,22 +187,24 @@ let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
       Mlglu.mdd_pick_one_minterm mgr oParsedState vAll
   in
   let outChannel : out_channel = open_out outputFile in
+  let tChannel : out_channel = open_out "t.html" in
   let doSimulate : unit =
-    generateHtmlHeader Symprog.toplevel sm expr nCycles startState outChannel;
+    Htmlgen.generateHtmlHeader Symprog.toplevel sm startState tChannel;
     let prevState = ref startState in
       for i = 1 to nCycles do
-	let nextState : stateset_t =
+	let nextPair : (stateset_t * Symmod.rule_t) =
 	  match (computeNextState Symprog.toplevel sm !prevState) with
 	      (state, r) ->
-		generateHtmlCycle i r outChannel;
 		Printf.printf ".";
 		flush stdout;
-		Mlglu.mdd_pick_one_minterm mgr state vAll
+		((Mlglu.mdd_pick_one_minterm mgr state vAll), r)
 	in
-	  generateHtmlCycleState i !prevState nextState outChannel;
-	  prevState := nextState;
+	  match (nextPair) with
+	      (state, r) ->
+		Htmlgen.generateHtmlCycle sm r !prevState state tChannel None;
+		prevState := state;
       done;
-      generateHtmlFooter outChannel
+      Htmlgen.generateHtmlFooter tChannel;
   in
     try
       doSimulate;

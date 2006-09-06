@@ -45,7 +45,7 @@ let mk_sym (mod_name: string) =
   end; 
   (** the result *)
   sm
-
+;;
 
 (* **************************************************************** *)
 (*                                                                  *)
@@ -87,6 +87,7 @@ let close_input_action (sp: Symprog.t) (sm: Symmod.t) (a_name: string) : Symmod.
   end;  
   (** the result *)
   new_sm
+;;
 
 (* **************************************************************** *)
 (*  Forgets a module                                                *)
@@ -153,8 +154,8 @@ let get_input_restriction sp sm (r: string) =
   end else begin
     Printf.printf "\nNo input action named %s in the module.\n" r;
     raise Not_found
-  end;;
-
+  end
+;;
 
 (** Given: 
     [start_set]: starting set of states
@@ -220,10 +221,101 @@ let find_cube_path sp sm (start_set: Mlglu.mdd) (end_set: Mlglu.mdd)
 	end
   in
   List.rev (pick_cubes cube !onion)
+;;
 
+(** The following is a random number generator. This code has been
+    pinched from www.bagley.org/~doug/shootout
+*)
+
+let lastRef = ref 42;;
+
+let generateRandom (range: int) : int =
+  let random (max: int) =
+    let im = 139968
+    and ia = 3877
+    and ic = 29573
+    in
+    let newLast = (!lastRef * ia + ic) mod im in
+      lastRef := newLast;
+      float_of_int max *. float_of_int newLast /. float im;
+  in
+  let rec loop (i: int) =
+    let r = random 100 in
+      if i > 1 then loop (i - 1) else r
+  in
+    (int_of_float(loop range) mod range)
+;;
+
+(** The following function is used to interpolate actions that
+    witness a path through a given list of cubes *)
+
+let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) 
+    (cube: stateset_t) (outputsOnly: bool) : 
+    (stateset_t * Symmod.rule_t) option =
+  let mgr = Symprog.get_mgr sp in
+  let zero = Mlglu.mdd_zero mgr in
+  let rules = ref [] in
+  let doOneRule (r: Symmod.rule_t) : unit =
+    let dest = Ops.post_rule sp sm set r false in
+      if not (Mlglu.mdd_equal dest zero) then
+	let intersect = Mlglu.mdd_and dest cube 1 1 in
+	  if not (Mlglu.mdd_equal intersect zero) then
+	    rules := r::!rules;
+  in
+    if not (outputsOnly) then
+      Symmod.iter_irules sm doOneRule;
+    Symmod.iter_orules sm doOneRule;
+    let nRules = List.length !rules in
+      if (nRules = 0) then  begin
+	Printf.printf "No rules found!!\n";
+	None;
+      end else begin
+	let random = generateRandom(nRules) in
+	  Some((Ops.post_rule sp sm set (List.nth !rules random) false), 
+	       (List.nth !rules random));
+      end
+;;
+
+(** Pring the counterexample path in html format and as an ascii text file *)
+
+let printCounterExample (sp: Symprog.t) (sm: Symmod.t) 
+    (path1: stateset_t list) (path2: stateset_t list)
+    (rul: string) (n: int) : unit =
+  let mgr = Symprog.get_mgr sp in
+  let ir = Symmod.get_irule sm rul in
+  let startState = Symmod.get_init sm in
+  let len = List.length path1 in 
+  let lastCube = List.nth path1 (len - 1) in 
+  let dest = Ops.post_rule sp sm lastCube ir false in 
+  let outChannel: out_channel = open_out ("trace_"^string_of_int(n)^".html") in
+  let interpolateActions : unit =
+    Htmlgen.generateHtmlHeader sp sm startState outChannel;
+    let prevState = ref startState in
+    let doOneCube (outputsOnly: bool) (cube: Mlglu.mdd) : unit =
+      match (computeNextState sp sm !prevState cube outputsOnly) with
+	  Some(state, r) ->
+	    Htmlgen.generateHtmlCycle sm r !prevState state outChannel None;
+	    prevState := state;
+	| None -> ()
+    in
+      List.iter (doOneCube false) path1;
+      (* Here is where the input rule is taken *)
+      Htmlgen.generateHtmlCycle sm ir !prevState dest outChannel (Some(ir));
+      prevState := dest;
+      let skipList : stateset_t list = 
+	match path2 with
+	    first::rest -> rest
+	  | [] -> path2
+      in
+	List.iter (doOneCube true) skipList;
+  in
+    interpolateActions;
+    Htmlgen.generateHtmlFooter outChannel;
+;;
 
 (** Prints the counterexample path *)
-let print_counterex_rule sp (path1: Mlglu.mdd list) (path2: Mlglu.mdd list) (rul: string) : unit =
+let print_counterex_rule sp sm (path1: Mlglu.mdd list) (path2: Mlglu.mdd list)
+    (rul: string) : unit =
   let mgr = Symprog.get_mgr sp in 
   Printf.printf "\nCounterexample path to rule %s:\n" rul; 
   flush stdout; 
@@ -233,8 +325,8 @@ let print_counterex_rule sp (path1: Mlglu.mdd list) (path2: Mlglu.mdd list) (rul
   flush stdout; 
   List.iter (Mlglu.mdd_print mgr) path2;
   flush stdout; 
-  Printf.printf "\nHere the set of bad states has been reached.\n"
-
+  Printf.printf "\nHere the set of bad states has been reached.\n";
+;;
 
 (** Prints [n_traces] restriction paths for rule [r] in module [sm]. *)
 let print_n_restriction_paths sp sm (rul: string) (n_traces: int) =
@@ -249,43 +341,48 @@ let print_n_restriction_paths sp sm (rul: string) (n_traces: int) =
 
   (* Now it gets at most n_traces disjoint cubes out of it, 
      and prints the corresponding traces. *)
-  if Mlglu.mdd_is_zero unp_restr then 
-    Printf.printf "\nNo restriction for rule %s\n" rul 
-  else begin 
-    let i = ref n_traces in 
-    let r = ref unp_restr in 
-    while !i > 0 &  not (Mlglu.mdd_is_zero !r) do 
-      i := !i - 1; 
-      (* finds, forwards, a path from the initial condition to the place where 
-	 the restriction has occurred.  The path has to be in iinv.  *)
-      let path1 = find_cube_path sp sm (Symmod.get_init sm) !r (Symmod.get_iinv sm) true true in 
-
-      (* gets the last cube *)
-      let len = List.length path1 in 
-      let last_cube1 = List.nth path1 (len - 1) in 
-      Symutil.assert_no_primed sp last_cube1; 
-
-      (* sanity check *)
-      if not (Mlglu.mdd_is_zero (Mlglu.mdd_and last_cube1 unp_restr 1 0))
-      then raise Internal_error_waypoint; 
-
-      (* Applies the rule from last_cube1, computing the set dest after
-	 the rule has been taken. *)
-      let dest = Ops.post_rule sp sm last_cube1 ir false in 
-      Symutil.assert_no_primed sp dest; 
-      (* Now finds another series of cubes, from dest, to the set of
-	 bad states, via old_inv, using only output transitions *)
-
-      let path2 = find_cube_path sp sm dest (Symmod.get_bad_states sm) 
-	(Symmod.get_old_iinv sm) false true in
-
-      (* Prints the two lists of cubes.  Keeps them separate, so we know where the rule is. *)
-      print_counterex_rule sp path1 path2 rul; 
-      (* Now subtracts last_cube1 from !r, as a path through last_cube1 has been printed. *)
-      r := Mlglu.mdd_and !r last_cube1 1 0; 
-    done
-  end
-
+    if Mlglu.mdd_is_zero unp_restr then 
+      Printf.printf "\nNo restriction for rule %s\n" rul 
+    else begin 
+      let i = ref n_traces in 
+      let r = ref unp_restr in 
+	while !i > 0 &  not (Mlglu.mdd_is_zero !r) do 
+	  i := !i - 1; 
+	  (* finds, forwards, a path from the initial condition to the place where 
+	     the restriction has occurred.  The path has to be in iinv.  *)
+	  let path1 = 
+	    find_cube_path sp sm (Symmod.get_init sm) !r (Symmod.get_iinv sm) true true 
+	  in 
+	    
+	  (* gets the last cube *)
+	  let len = List.length path1 in 
+	  let last_cube1 = List.nth path1 (len - 1) in 
+	    Symutil.assert_no_primed sp last_cube1; 
+	    
+	    (* sanity check *)
+	    if not (Mlglu.mdd_is_zero (Mlglu.mdd_and last_cube1 unp_restr 1 0))
+	    then raise Internal_error_waypoint; 
+	    
+	    (* Applies the rule from last_cube1, computing the set dest after
+	       the rule has been taken. *)
+	    let dest = Ops.post_rule sp sm last_cube1 ir false in 
+	      Symutil.assert_no_primed sp dest; 
+	      (* Now finds another series of cubes, from dest, to the set of
+		 bad states, via old_inv, using only output transitions *)
+	      
+	      let path2 = find_cube_path sp sm dest (Symmod.get_bad_states sm) 
+		(Symmod.get_old_iinv sm) false true in
+		
+		(* Prints the two lists of cubes.  Keeps them separate, so we know 
+		   where the rule is. *)
+		print_counterex_rule sp sm path1 path2 rul; 
+		printCounterExample sp sm path1 path2 rul !i;
+		(* Now subtracts last_cube1 from !r, as a path through last_cube1 
+		   has been printed. *)
+		r := Mlglu.mdd_and !r last_cube1 1 0; 
+	done
+    end
+;;
 
 (* **************************************************************** *)
 (*  Modifies the initial condition of a module                      *)
@@ -296,3 +393,4 @@ let set_new_init_cond (sm: Symmod.t) (new_init: Mlglu.mdd) : unit =
   Symmod.set_init sm new_init; 
   (* Now it has to say that the set of reachable states is no longer known *)
   Symmod.erase_what_known sm
+;;
