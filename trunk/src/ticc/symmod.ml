@@ -51,7 +51,7 @@ type t = {
   mutable lvars : VarSet.t; 
   (** list of global variables *) 
   mutable gvars : VarSet.t; 
-  (** list of history-ful variables *)
+  (** list of history-ful variables; this set includes local variables *)
   mutable hvars : VarSet.t; 
   (** clock variables *)
   mutable cvars : VarSet.t; 

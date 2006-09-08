@@ -12,31 +12,15 @@ module VarSet = Vset.VS;;
 type varid_t = Vset.varid_t;; 
 
 
-(** Should not happen; report it. *) 
-exception WrongRuleType;;
-
 (** Time is not supported yet. *) 
 exception NoTimedSupport;; 
-
-exception Bad_typ;;
-exception No_input;;
-
-(** This exception is generated if composing modules that are not
-    composable. *) 
-exception Modules_not_composable 
-
-(** The modules being composed share an action that is local.  This
-    exception should not occur. *) 
-exception Shared_Local_Rule
 
 (** this exception indicates that the modules being composed are
     incompatible. *)
 exception Incompatible_Modules
 
 (** Diagnostics *) 
-exception Internal_error_1
-exception Internal_error_2
-exception Internal_error_3
+exception Internal_error
 
 
 (** **************** Composition of modules  ******************* *)
@@ -80,17 +64,14 @@ let has_disjoint_lactions (m1:Symmod.t) (m2:Symmod.t) : bool =
     !result;;
 
 
-(** has_disjoint_lactions
-    This function checks if two modules [m1] and [m2]
+(** This function checks if two modules [m1] and [m2]
   have the same signature.
-    The result is true if the intersection between the two
-    sets is empty, otherwise it is false.
  *)
 let have_same_signature (m1:Symmod.t) (m2:Symmod.t) : bool = 
   let gvars1 = Symmod.get_gvars m1
   and gvars2 = Symmod.get_gvars m2 
-  and hvars1 = Symmod.get_hvars m1
-  and hvars2 = Symmod.get_hvars m2 in
+  and hvars1 = VarSet.diff (Symmod.get_hvars m1) (Symmod.get_lvars m1)
+  and hvars2 = VarSet.diff (Symmod.get_hvars m2) (Symmod.get_lvars m2) in
   VarSet.equal gvars1 gvars2 && 
   VarSet.equal hvars1 hvars2 
 
@@ -114,13 +95,13 @@ let epsilon_closure (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_
   done;
   !tot_set
       
-(** Checks whether module [m1] refines module [m2]. *)
+(** Checks whether module [m1] refines (i.e. can replace) module [m2]. *)
 let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
   if not (have_same_signature m1 m2) then false
   else
     let mgr = Symprog.get_mgr sp in
-    let allvars = VarSet.union (Symmod.get_vars m1) (Symmod.get_vars
-      m2) in
+    let allvars = VarSet.union (Symmod.get_vars m1) 
+      (Symmod.get_vars m2) in
     let iinv2  = Symmod.get_iinv m2 in
     let iinv2' = Symutil.prime_mdd sp m2 iinv2 in
     let iinv1  = Symmod.get_iinv m1 in
@@ -134,7 +115,8 @@ let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
       Symutil.assert_no_primed sp set;
       let set' = Symutil.prime_mdd_vars sp set allvars in
 
-      (* build the input simulation constraint *)
+      (* build the input simulation constraint,
+	 according to line 1 of SimPre in Section 5.3 of the FROCOS paper *)
       let inp_term = ref (Mlglu.mdd_one mgr) in
       let add_one_irule (r2:rule_t) : unit =
 	let (tran2_g, tran2_l) = Symmod.get_rule_ig_il_mdds r2 in
@@ -151,14 +133,19 @@ let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
 	in
 	let rhs = Mlglu.mdd_and tran1' set' 1 1 in
 	let implication = Mlglu.mdd_or tran2' rhs 0 1 in
-	let term = Mlglu.mdd_smooth mgr implication (Symmod.get_lvars m1) in
-	let term' = Mlglu.mdd_consensus mgr term (Symmod.get_vars m2) in
+	let term = Mlglu.mdd_smooth mgr implication 
+	  (Symprog.prime_vars sp (Symmod.get_lvars m1)) in
+	let term' = Mlglu.mdd_consensus mgr term 
+	  (Symprog.prime_vars sp (Symmod.get_vars m2)) in
 	inp_term := Mlglu.mdd_and !inp_term term' 1 1
       in
       Symmod.iter_irules m2 add_one_irule; 
 
-      (* build the output simulation constraint *)
+      (* build the output simulation constraint,
+	 according to line 2 of SimPre in Section 5.3 of the FROCOS paper *)
       let out_term = ref (Mlglu.mdd_one mgr) in
+
+      (* consider an output transition r1 of m1 *)
       let add_one_orule r1 : unit =
 	let tran1 = Symmod.get_orule_mdd r1 in
 	let tran1' = Mlglu.mdd_and tran1 oinv1' 1 1 in
@@ -175,8 +162,10 @@ let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
 	in
 	let rhs = Mlglu.mdd_and tran2' set' 1 1 in
 	let implication = Mlglu.mdd_or tran1' rhs 0 1 in
-	let term = Mlglu.mdd_smooth mgr implication (Symmod.get_lvars m2) in
-	let term' = Mlglu.mdd_consensus mgr term (Symmod.get_vars m1) in
+	let term = Mlglu.mdd_smooth mgr implication 
+	  (Symprog.prime_vars sp (Symmod.get_lvars m2)) in
+	let term' = Mlglu.mdd_consensus mgr term 
+	  (Symprog.prime_vars sp (Symmod.get_vars m1)) in
 	out_term := Mlglu.mdd_and !out_term term' 1 1
       in
       Symmod.iter_orules m1 add_one_orule; 
@@ -184,7 +173,25 @@ let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
       let both_terms = Mlglu.mdd_and !inp_term !out_term 1 1 in
       Mlglu.mdd_and set both_terms 1 1
     in
-    let refinement = ref (Mlglu.mdd_one mgr) in
-    refinement := sim_pre !refinement;
-    false
+    let refinement = ref (Mlglu.mdd_one mgr)
+    and cut = ref (Mlglu.mdd_one mgr) in
+
+    (* compute fixpoint of sim_pre *)
+    while not (Mlglu.mdd_is_zero !cut) do
+      let new_refinement = sim_pre !refinement in
+      cut := Mlglu.mdd_and !refinement new_refinement 1 0;
+      refinement := new_refinement;
+    done;
+    (* DEBUG *)
+    (* Mlglu.mdd_print mgr !refinement; *)
+    (* now check whether each initial state of m2 is simulated by an
+       initial state of m1 *)
+    (* formula: 
+       forall V_2^G forall V_2^L exists V_1^L ( I_2 implies I_1 ) *)
+    let rhs = Mlglu.mdd_and (Symmod.get_init m1) !refinement 1 1 in
+    let implication = Mlglu.mdd_or (Symmod.get_init m2) rhs 0 1 in
+    let temp = Mlglu.mdd_smooth mgr implication (Symmod.get_lvars m1) in
+    let temp' = Mlglu.mdd_consensus mgr temp (Symmod.get_vars m2) in
+    (* Mlglu.mdd_print mgr temp'; *)
+    Mlglu.mdd_is_one temp'
     

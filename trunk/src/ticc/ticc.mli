@@ -322,3 +322,13 @@ val print_symmod_rules : symbolic_module_t -> string -> unit
 (** [print_bool b] 
     Prints 'true' if [b] is true, and prints 'false' otherwise. *)
 val print_bool : bool -> unit
+
+(* **************************************************************** *)
+
+(** {2 Experimental Features} *) 
+
+(** [refines m1 m2]
+  Checks whether symbolic module [m1] refines symbolic module [m2].
+ *)
+val experimental_refines : symbolic_module_t -> symbolic_module_t -> bool
+
