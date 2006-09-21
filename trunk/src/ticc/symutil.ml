@@ -20,6 +20,19 @@ let print_varset sp (var_set: VarSet.t) : unit =
   VarSet.iter print_one var_set;
   Printf.printf "}"
 
+
+(** Prints a set of symbolic variables
+  by using only information provided by the manager *)
+let print_varset_rough sp (var_set: VarSet.t) : unit =
+  Printf.printf "\n{ ";
+
+  let print_one vid =
+    Printf.printf "(%d, %s) " vid 
+      (Mlglu.mdd_get_var_name (Symprog.get_mgr sp) vid)
+  in
+  VarSet.iter print_one var_set;
+  Printf.printf "}"
+
 (** Prints the support of an mdd.  Useful mostly for diagnostic
     purposes. *)
 let print_mdd_support sp (m: Mlglu.mdd) =

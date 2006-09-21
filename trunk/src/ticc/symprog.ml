@@ -184,4 +184,11 @@ let print_oinv sp sm : unit =
   Mlglu.mdd_print mgr (Symmod.get_oinv sm)
 
 
-
+(** [print_all_vars sp]
+  Prints all the variables in the program [sp].
+  Useful for debugging. **)
+let print_all_vars sp : unit =
+  let print_one (id: int) (var, p) : unit =
+    Printf.printf "%d : %s\n" id (Var.get_name var);
+  in
+  Hsetmap.iter print_one sp.id_to_var_p

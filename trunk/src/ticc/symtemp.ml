@@ -8,7 +8,7 @@ let max_nbits = 64
 (** TO DO: have one pool for each manager *)
 let pool = Array.make (max_nbits +1) []
 
-(** Returns a variables with [nbits] possible values. *)
+(** Returns a variable with 2^[nbits] possible values. *)
 let allocate mgr nbits : int =
   if (nbits > max_nbits) then
     raise TooManyBits;

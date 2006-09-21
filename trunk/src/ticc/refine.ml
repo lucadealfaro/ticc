@@ -23,8 +23,6 @@ exception Incompatible_Modules
 exception Internal_error
 
 
-(** **************** Composition of modules  ******************* *)
-
 
 (** has_disjoint_lvars: Check for disjoint sets of local variables.
     This function checks if two modules [m1] and [m2]
@@ -65,7 +63,7 @@ let has_disjoint_lactions (m1:Symmod.t) (m2:Symmod.t) : bool =
 
 
 (** This function checks if two modules [m1] and [m2]
-  have the same signature.
+  have the same signature, which is a prerequisite to refinement.
  *)
 let have_same_signature (m1:Symmod.t) (m2:Symmod.t) : bool = 
   let gvars1 = Symmod.get_gvars m1
@@ -94,6 +92,79 @@ let epsilon_closure (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_
     tot_set  := Mlglu.mdd_or !tot_set !frontier 1 1 
   done;
   !tot_set
+
+
+(** Takes the star-closure of the union (disjunction) 
+  of all local transition relations. 
+  This function computes a predicate over primed and unprimed
+  variables of [sm] representing the possible hidden paths,
+  of any length, in module [sm].
+
+  Notice that the output is not properly a "stateset", but alas...
+ *)
+let epsilon_closure_pred (sp: Symprog.t) (sm: Symmod.t) : stateset_t =
+  let mgr = Symprog.get_mgr sp in
+
+  (* l_pred is a predicate representing the disjunction of all
+     local transitions of [sm] *)
+  let l_pred = 
+    let temp = ref (Mlglu.mdd_zero mgr) in 
+    let do_one_rule (r: Symmod.rule_t) : unit =
+      let (tran, _) = Symmod.get_rule_tran_as_pair r in
+      temp := Mlglu.mdd_or !temp tran 1 1
+    in
+    Symmod.iter_lrules sm do_one_rule;
+    !temp 
+  in
+
+  let closure_pred = ref l_pred
+  and frontier = ref (Mlglu.mdd_one mgr) in 
+
+  (* add an extra temporary variable for each variable of [sm] *)
+  (* I know, it's amazing how long this is! *)
+  let var_ids  = Symmod.get_vars sm in
+  let var_ids' = Symprog.prime_vars sp var_ids in
+  let add_one_var (id:int) l = 
+    let (var, p) = Symprog.get_var_p sp id in
+    var :: l
+  in
+  let var_list = VarSet.fold add_one_var var_ids [] in
+  let build_lists (name_l, nvals_l, strides_l) v = 
+      ("extra_" ^ (Var.get_name v)) :: name_l, 
+      (Var.nvals v) :: nvals_l, 
+      1 :: strides_l 
+  in 
+  (* We reverse the list so that variables are actually added in the
+     order we specify *)
+  let (name_l, nval_l, strd_l) = List.fold_left build_lists ([], [], []) (List.rev var_list) in
+  let first_id = Mlglu.mdd_create_variables mgr nval_l name_l strd_l in 
+  
+  let extra_ids = 
+    let max_id = first_id + List.length name_l - 1 in
+    let temp = ref VarSet.empty in
+    for i = first_id to max_id do
+      temp := VarSet.add i !temp;
+    done;
+    !temp
+  in
+  (* DEBUG *)
+  Printf.printf " Some sets of variables:\n";
+  Symutil.print_varset_rough sp var_ids;
+  Symutil.print_varset_rough sp var_ids';
+  Symutil.print_varset_rough sp extra_ids;
+
+  while not (Mlglu.mdd_is_zero !frontier) do
+    let renamed_l_pred = Mlglu.mdd_substitute_two_lists 
+      mgr l_pred (Vset.to_list var_ids') (Vset.to_list extra_ids) in
+    let renamed_closure_pred = Mlglu.mdd_substitute_two_lists 
+      mgr !closure_pred (Vset.to_list var_ids) (Vset.to_list extra_ids) in
+    let conj = Mlglu.mdd_and renamed_l_pred renamed_closure_pred 1 1 in
+    let new_term = Mlglu.mdd_smooth mgr conj extra_ids in
+    frontier := Mlglu.mdd_and new_term !closure_pred 1 0; 
+    closure_pred := Mlglu.mdd_or !closure_pred new_term 1 1 
+  done;
+  !closure_pred
+
       
 (** Checks whether module [m1] refines (i.e. can replace) module [m2]. *)
 let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
@@ -110,6 +181,7 @@ let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
     let oinv2' = Symutil.prime_mdd sp m2 oinv2 in
     let oinv1  = Symmod.get_oinv m1 in
     let oinv1' = Symutil.prime_mdd sp m1 oinv1 in
+    let closure2 = epsilon_closure_pred sp m2 in
     
     let sim_pre (set: stateset_t) : stateset_t =
       Symutil.assert_no_primed sp set;
@@ -149,9 +221,11 @@ let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
       let add_one_orule r1 : unit =
 	let tran1 = Symmod.get_orule_mdd r1 in
 	let tran1' = Mlglu.mdd_and tran1 oinv1' 1 1 in
-	(* look for a corresponding output transition in m2 *)
+	(* look for a corresponding output transition in m2, *)
+	(* where m2 can also take some local transitions first *)
 	let tran2' = 
 	  try
+	    (* fetch the list of output transitions with the same label *)
 	    let r2_list = Symmod.get_orule m2 (Symmod.get_rule_act r1) in
 	    let r2_mdd_list = List.map Symmod.get_orule_mdd r2_list in
 	    let conjoin_mdds a b = Mlglu.mdd_and a b 1 1 in

@@ -136,6 +136,9 @@ let close m a = Modops.close_input_action Symprog.toplevel m a
 (** Checks whether [m1] refines [m2] *)
 let experimental_refines m1 m2 = Refine.refines Symprog.toplevel m1 m2 
 
+let experimental_epsilon_closure m set =
+  Refine.epsilon_closure Symprog.toplevel m set
+
 (** Forgets a module *)
 let forget = Modops.forget_module Symprog.toplevel 
 
