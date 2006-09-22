@@ -153,6 +153,12 @@ let epsilon_closure_pred (sp: Symprog.t) (sm: Symmod.t) : stateset_t =
   Symutil.print_varset_rough sp var_ids';
   Symutil.print_varset_rough sp extra_ids;
 
+  (* the closure predicate is computed according to the recursion:
+     closure_0 = false
+     closure_{i+1} = closure_i or 
+                   ( exists Z l_pred[Z/V^all'] and closure_i[Z/V^all] )
+     where Z is a set of temporary variables, one for each variable in V^all.
+   *)
   while not (Mlglu.mdd_is_zero !frontier) do
     let renamed_l_pred = Mlglu.mdd_substitute_two_lists 
       mgr l_pred (Vset.to_list var_ids') (Vset.to_list extra_ids) in
