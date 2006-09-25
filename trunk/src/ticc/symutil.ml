@@ -33,6 +33,17 @@ let print_varset_rough sp (var_set: VarSet.t) : unit =
   VarSet.iter print_one var_set;
   Printf.printf "}"
 
+(** Prints a list of symbolic variables
+  by using only information provided by the manager *)
+let print_varlist_rough sp (var_list: varid_t list) : unit =
+  Printf.printf "\n{ ";
+  let print_one vid =
+    Printf.printf "(%d, %s) " vid 
+      (Mlglu.mdd_get_var_name (Symprog.get_mgr sp) vid)
+  in
+  List.iter print_one var_list;
+  Printf.printf "}"
+
 (** Prints the support of an mdd.  Useful mostly for diagnostic
     purposes. *)
 let print_mdd_support sp (m: Mlglu.mdd) =
@@ -87,6 +98,31 @@ let assert_no_primed (sp: Symprog.t) (m: Mlglu.mdd) : unit =
   in
   VarSet.iter check_var supp 
   
+
+(** Build a MDD with the assertion that for all
+  variables v in [vset], it holds v' = v.
+  Variables in [vset] are supposed to be unprimed. *)
+let unchngd (sp: Symprog.t) (vset: VarSet.t) : Mlglu.mdd =
+  let mgr = Symprog.get_mgr sp in
+  let b = ref (Mlglu.mdd_one mgr) in
+  let add_one_var (v: varid_t) : unit =
+    let v'  = Symprog.prime_id sp v in
+    let tmp = Mlglu.mdd_eq mgr v v' in 
+    b := Mlglu.mdd_and !b tmp 1 1
+  in
+  VarSet.iter add_one_var vset;
+  !b
+  ;;
+
+
+(** Conjoins the mdd [a] with the assertion that for all
+  variables v in [vset], it holds v' = v.
+  Variables in [vset] are supposed to be unprimed. *)
+let and_unchngd (sp: Symprog.t) (a: Mlglu.mdd) (vset: VarSet.t) : Mlglu.mdd =
+  let b = unchngd sp vset in
+  Mlglu.mdd_and a b 1 1
+
+
 
 (** This function creates an input rule with false transition
     relation.  In detail, if the module has the input rule already,

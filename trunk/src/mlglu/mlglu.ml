@@ -173,8 +173,13 @@ external mdd_consensus_list   : mdd_manager -> mdd -> int list -> mdd = "mlglu_c
 let mdd_consensus mgr a vset = mdd_consensus_list mgr a (Vset.to_list vset)
 
 external mdd_substitute_two_lists : mdd_manager -> mdd -> int list -> int list -> mdd = "mlglu_substitute"
+
+(* This function does not accept Vset's because Vset's are, in
+   principle, unordered. In practice, they are ordered w.r.t. variable
+   ids, which is not what one wants when calling [mdd_substitute]. *)
 let mdd_substitute mgr a (old_new_list: (int * int) list) = 
-  let (l1, l2) = List.split old_new_list in mdd_substitute_two_lists mgr a l1 l2 
+  let (l1, l2) = List.split old_new_list in 
+  mdd_substitute_two_lists mgr a l1 l2 
 
 external mdd_get_support_list : mdd_manager -> mdd -> int list = "mlglu_get_support"
 let mdd_get_support mgr a = 

@@ -133,11 +133,11 @@ let print_restr_paths sm (r: string) (n_traces: int) =
 (** Closes a module wrt. an action *)
 let close m a = Modops.close_input_action Symprog.toplevel m a 
 
-(** Checks whether [m1] refines [m2] *)
-let experimental_refines m1 m2 = Refine.refines Symprog.toplevel m1 m2 
+(** Returns the most general refinement relation between [m1] and [m2] *)
+let refinement m1 m2 = Refine.refinement Symprog.toplevel m1 m2 
 
-let experimental_epsilon_closure m set =
-  Refine.epsilon_closure Symprog.toplevel m set
+(** Checks whether [m1] refines [m2] *)
+let refines m1 m2 = Refine.refines Symprog.toplevel m1 m2 
 
 (** Forgets a module *)
 let forget = Modops.forget_module Symprog.toplevel 

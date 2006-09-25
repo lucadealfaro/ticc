@@ -547,35 +547,12 @@ let conjoin_exp_list (sp: Symprog.t) (l: Ast.t list) : Mlglu.mdd =
 ;;
 
 
-
-(** Build a MDD with the assertion that for all
-  variables v in [vset], it holds v' = v.
-  Variables in [vset] are supposed to be unprimed. *)
-let unchngd (sp: Symprog.t) (vset: VarSet.t) : Mlglu.mdd =
-  let mgr = Symprog.get_mgr sp in
-  let b = ref (Mlglu.mdd_one mgr) in
-  let add_one_var (v: varid_t) : unit =
-    let v'  = Symprog.prime_id sp v in
-    let tmp = Mlglu.mdd_eq mgr v v' in 
-    b := Mlglu.mdd_and !b tmp 1 1
-  in
-  VarSet.iter add_one_var vset;
-  !b
-  ;;
-
-
-(** Conjoins the mdd [a] with the assertion that for all
-  variables v in [vset], it holds v' = v.
-  Variables in [vset] are supposed to be unprimed. *)
-let and_same (sp: Symprog.t) (a: Mlglu.mdd) (vset: VarSet.t) : Mlglu.mdd =
-  let b = unchngd sp vset in
-  Mlglu.mdd_and a b 1 1
-
-
 (** Builds the symbolic representation of the disjunction of a list
-  of guarded commands.
-  Variables that are in [wvars], but are not mentioned primed 
-  in a command, retain their value. *)
+    of guarded commands.
+    Variables that are in [wvars], but are not mentioned primed 
+    in a command, retain their value.
+    This is used to build the transition relation 
+    of output and local rules. *)
 let disjoin_gc_list (sp: Symprog.t) (l: (Ast.t * Ast.t) list) 
     (wvars: (string, Var.t) Hsetmap.t)   
   : Mlglu.mdd = 
@@ -593,7 +570,7 @@ let disjoin_gc_list (sp: Symprog.t) (l: (Ast.t * Ast.t) list)
     (* translate to ids *)
     let unch_var_ids = Symprog.get_id_of_varset sp unch_vars
     in
-    let g_and_c_and_unch = and_same sp g_and_c unch_var_ids in
+    let g_and_c_and_unch = Symutil.and_unchngd sp g_and_c unch_var_ids in
     (* disjoin this command with the previous ones *)
     mdd := Mlglu.mdd_or g_and_c_and_unch !mdd 1 1
   in
@@ -654,7 +631,7 @@ let disjoin_det_gc_list (sp: Symprog.t) (l: (Ast.t * (Ast.t list)) list)
     let unch_vars  = Hsetmap.unsafe_difference wvars wvars_in_c in
     (* translate to ids *)
     let unch_var_ids = Symprog.get_id_of_varset sp unch_vars in
-    let g_and_c_and_unch = and_same sp g_and_c unch_var_ids in
+    let g_and_c_and_unch = Symutil.and_unchngd sp g_and_c unch_var_ids in
     (* disjoin this command with the previous ones *)
     mdd := Mlglu.mdd_or g_and_c_and_unch !mdd 1 1
   in
@@ -666,7 +643,7 @@ let disjoin_det_gc_list (sp: Symprog.t) (l: (Ast.t * (Ast.t list)) list)
 
     (* Use the portion below if you decide that the local part should not
        be blocking, so that when no guard applies, nothing changes.
-       let otherwise_nothing = and_same sp !not_previous_cmds
+       let otherwise_nothing = Symutil.and_unchngd sp !not_previous_cmds
        (Symprog.get_id_of_varset sp wvars) in 
        Mlglu.mdd_or !mdd otherwise_nothing 1 1 
      *)
@@ -793,7 +770,7 @@ let mk_env_rule (sp: Symprog.t) (sm: Symmod.t) : unit =
   let hvars = Symmod.get_hvars sm in
   let lvars = Symmod.get_lvars sm in 
   let unch_vars = VarSet.diff hvars lvars in 
-  let g_mdd = and_same sp (Mlglu.mdd_one mgr) unch_vars in
+  let g_mdd = Symutil.and_unchngd sp (Mlglu.mdd_one mgr) unch_vars in
   (* pretend that no local var is mentioned, so that all retain their value *)
   let wvars = VarSet.empty in
   let l_mdd   = Mlglu.mdd_one mgr in

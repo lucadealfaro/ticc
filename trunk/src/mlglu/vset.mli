@@ -37,3 +37,6 @@ type varid_t = int
 (** This converts a set of variables to a list, and is used especially
     in mlglu.ml *) 
 val to_list : VS.t -> varid_t list
+
+(** This converts a list of variables to a set. *) 
+val from_list : varid_t list -> VS.t

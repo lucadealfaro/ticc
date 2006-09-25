@@ -228,7 +228,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 		       module should know about the transition!
 		       Hence, we put as condition that other_hvars
 		       should not be changed. *)
-		    let new_mdd_ig = Symbuild.and_same sp mdd_ig other_hvars in
+		    let new_mdd_ig = Symutil.and_unchngd sp mdd_ig other_hvars in
 		    (* for the local part, wvars keeps track of which
 		       variables can change, so there is no need to
 		       change the transition relation. *) 
@@ -410,7 +410,7 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
 		  let hat_rho_i = Mlglu.mdd_and rho_ig (Symutil.prime_mdd_vars sp inv_i allv) 1 1 in 
 		  (* Computed the unchanged variables relation *)
 		  let unch_vars = VarSet.diff (Symmod.get_gvars mi) ro_wvars in 
-		  let unch_term = Symbuild.unchngd sp unch_vars in 
+		  let unch_term = Symutil.unchngd sp unch_vars in 
 		  (* (hat_rho_o /\ unch_term) ==> hat_rho_i *)
 		  let conj = Mlglu.mdd_and hat_rho_o unch_term 1 1 in 
 		  let impl = Mlglu.mdd_or conj hat_rho_i 0 1 in 

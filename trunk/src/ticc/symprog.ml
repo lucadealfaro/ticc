@@ -24,8 +24,10 @@ type t = {
   (** Maps an MDD id to a pair, consisting of a variable, and 
       of a flag telling us whether the variable is primed. *)
   id_to_var_p: (varid_t, (Var.t * bool)) Hsetmap.t; 
-  (** Bijection between unprimed and primed MDD ids *)
+  (** Bijection between unprimed and primed variable ids *)
   id_to_pid: (varid_t, varid_t) Biject.t; 
+  (** Bijection between unprimed and temporary variable ids *)
+  id_to_tid: (varid_t, varid_t) Biject.t; 
 }
 
 exception ID_not_unprimed
@@ -46,6 +48,7 @@ let mk (n: string) : t =
     var_to_ids  = Hsetmap.mk ();
     id_to_var_p = Hsetmap.mk ();
     id_to_pid   = Biject.mk (); 
+    id_to_tid   = Biject.mk (); 
   }
 
 (** This is the symbolic toplevel we use by default *)
@@ -165,6 +168,36 @@ let add_var_list s (vl: Var.t list) : unit =
     in 
     insert_var_list first_id nvl 
   end
+;;
+
+
+(** [get_extra_vars s vlist] returns a list of extra variables that
+    correspond to the ones of [vlist].
+    Such extra variables are created on demand and then "cached"
+    for later use.
+    By the way, there seems to be no way to remove variables
+    from a manager in Glu.
+
+    Currently, such variables are used by refinement. *)
+let get_extra_vars (s: t) (vlist: varid_t list) : varid_t list =
+  let add_one_var (id: int) cur_list : varid_t list =
+    let tid = try 
+      (* check if an extra variable already exists *)
+      Biject.map_first s.id_to_tid id
+    with Not_found ->
+      let (var, _) = get_var_p s id in
+      let new_name = ["extra_" ^ (Var.get_name var)] in
+      let new_vals = [Var.nvals var] in
+      let new_stride = [1] in
+      let new_id = Mlglu.mdd_create_variables s.mgr 
+	new_vals new_name new_stride in
+      Biject.add s.id_to_tid id new_id;
+      new_id
+    in
+    tid :: cur_list;
+  in
+  List.fold_right add_one_var vlist []
+;;
 
 
 (** Print functions *) 

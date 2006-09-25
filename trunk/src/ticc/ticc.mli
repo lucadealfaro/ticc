@@ -170,6 +170,17 @@ val simulate : symbolic_module_t -> string -> int -> string -> unit
 
 (* **************************************************************** *)
 
+(** {2 Refinement} *) 
+
+(** [refinement m1 m2]
+    Returns the refinement relation between [m1] and [m2]. *)
+val refinement : symbolic_module_t -> symbolic_module_t -> stateset_t
+
+(** [refines m1 m2]
+    Checks whether symbolic module [m1] refines symbolic module [m2]. *)
+val refines : symbolic_module_t -> symbolic_module_t -> bool
+
+(* **************************************************************** *)
 
 (** {2 CTL Operators} *) 
 
@@ -323,13 +334,6 @@ val print_symmod_rules : symbolic_module_t -> string -> unit
     Prints 'true' if [b] is true, and prints 'false' otherwise. *)
 val print_bool : bool -> unit
 
-(* **************************************************************** *)
 
-(** {2 Experimental Features} *) 
-
-(** [refines m1 m2]
-  Checks whether symbolic module [m1] refines symbolic module [m2].
- *)
-val experimental_refines : symbolic_module_t -> symbolic_module_t -> bool
 
 

@@ -23,7 +23,7 @@ module OrderedInt: OInt =
 
 (** This is tye type of a set of variables. 
     In other modules, all you need to do is: 
-    module VarSet = Vset.IntegerSet *) 
+    module VarSet = Vset.VS *) 
 module VS = Set.Make (OrderedInt);; 
 
 (** Type of a variable id *) 
@@ -34,5 +34,11 @@ type varid_t = int;;
 let to_list (var_set: VS.t) : varid_t list = 
   let f id l = id :: l in 
   VS.fold f var_set [] 
+
+(** This converts a set of variables to a list, and is used especially
+    in mlglu.ml *) 
+let from_list (var_list: varid_t list) : VS.t = 
+  let f set (id: varid_t) = VS.add id set in 
+  List.fold_left f VS.empty var_list
 
 

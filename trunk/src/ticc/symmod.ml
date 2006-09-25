@@ -31,7 +31,10 @@ type rule_t = {
     (** list of all primed variables.  This is used to 
 	implement defaults.   In the case of an Input rule,
 	'wvars' refers to the primed variables of the InputLocal
-	rule. *) 
+	rule.
+	For output and local rules, the transition relations _do not_
+	contain the requirement that variables not in [wvars] keep
+	their value. *) 
     wvars: VarSet.t;
     (** mdd representing the rule, two mdds in case of input rules 
 	In the case of an input rule, in the global part, 

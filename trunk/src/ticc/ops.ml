@@ -35,8 +35,9 @@ let get_transition_rel_noinv sp (sm: Symmod.t) (r: rule_t) : Mlglu.mdd =
 	Local | Output -> begin 
 	  let allvars = Symmod.get_vars sm in 
 	  let notw = VarSet.diff allvars w in 
-	  let uncha = Symbuild.unchngd sp notw in 
-	  Mlglu.mdd_and loc_tr uncha 1 1
+	  (* let uncha = Symbuild.unchngd sp notw in 
+	     Mlglu.mdd_and loc_tr uncha 1 1 *)
+	  Symutil.and_unchngd sp loc_tr notw
 	end
     | Input -> begin 
 	(* The transition relation is tr = glob_tr /\ loc_tr /\ uncha, 
@@ -45,7 +46,7 @@ let get_transition_rel_noinv sp (sm: Symmod.t) (r: rule_t) : Mlglu.mdd =
 	   value. *) 
 	let alllocal = Symmod.get_lvars sm in
 	let notw = VarSet.diff alllocal w in
-	let unchanged_local = Symbuild.unchngd sp notw in
+	let unchanged_local = Symutil.unchngd sp notw in
 	let tr_tmp = Mlglu.mdd_and glob_tr loc_tr 1 1 in 
 	let tr = Mlglu.mdd_and tr_tmp unchanged_local 1 1 in
 	tr
