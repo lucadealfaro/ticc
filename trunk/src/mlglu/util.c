@@ -3,7 +3,10 @@
 #include "string.h"
 #include "stdlib.h"
 
-int  UtilGetTopMddId(mdd_manager *mgr, mdd_t * mdd)
+static char* utilMddToStringRec( mdd_manager* mgr, mdd_t *mdd, int level);
+
+
+int UtilGetTopMddId(mdd_manager *mgr, mdd_t * mdd)
 {
   array_t * varidArray = mdd_get_support(mgr , mdd);
   int id;
@@ -19,6 +22,7 @@ int  UtilGetTopMddId(mdd_manager *mgr, mdd_t * mdd)
  return id;
 }
 
+
 char * getNameFromId(mdd_manager *mgr, int id)
 {
   mvar_type mvar;
@@ -26,13 +30,13 @@ char * getNameFromId(mdd_manager *mgr, int id)
   return mvar.name;
 }
 
-static int
-getNVals(
-	 mdd_manager * mgr, int id)
+
+int getNVals(mdd_manager * mgr, int id)
 {
   mvar_type x = array_fetch(mvar_type, mdd_ret_mvar_list(mgr), id);
   return x.values;
 }
+
 
 mdd_t * UtilGetLiteral(	mdd_manager * mgr, int id, int pos)
 { 
@@ -46,6 +50,7 @@ mdd_t * UtilGetLiteral(	mdd_manager * mgr, int id, int pos)
   
   return literal;
 }
+
 
 void utilMddPrintRec( mdd_manager* mgr, mdd_t *mdd, int level)
 {
@@ -118,6 +123,7 @@ void utilMddPrintRec( mdd_manager* mgr, mdd_t *mdd, int level)
   }
 }
 
+
 char* utilAccumulateString(int init, char* add)
 {
   static int size = 1024;
@@ -144,13 +150,13 @@ char* utilAccumulateString(int init, char* add)
   return buffer;
 }
 
-char* utilMddToStringRec( mdd_manager* mgr, mdd_t *mdd, int level);
 
 char* utilMddToString(mdd_manager* mgr, mdd_t *mdd, int level)
 {
   utilAccumulateString(1, "");
   return utilMddToStringRec(mgr, mdd, level);
 }
+
 
 char* utilMddToStringRec( mdd_manager* mgr, mdd_t *mdd, int level)
 {

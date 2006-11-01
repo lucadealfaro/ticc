@@ -1,9 +1,9 @@
-// Glu headers
-#include <mdd.h>
-#include <error.h>
-#include <array.h>
-
 #include <stdio.h>
+
+// Glu headers
+#include "mdd.h"
+#include "error.h"
+// #include <array.h>
 
 // Caml-C interface headers
 #include <caml/mlvalues.h>
@@ -12,6 +12,9 @@
 #include <caml/custom.h>
 #include <caml/callback.h>
 #include <caml/fail.h>
+
+// Our headers
+#include "mdd_minmax.h"
 
 
 /** *************************************************************** **/
@@ -1960,3 +1963,15 @@ value mlglu_pick_one_cube (value mgr, value fn, value mvars)
   CAMLreturn (mlglu_nodeWrap (Manager (mgr), result));
 }
 
+// Function added by Marco to implement parity games
+value mlglu_max (value mgr, value mdd, value id)
+{
+  CAMLparam3 (mgr, mdd, id);
+  mdd_t *result;
+  
+  if (Manager (mgr) == NULL) {
+    raise_mgrError();
+  }
+  result = mdd_max( Manager(mgr), Mdd_node(mdd), Int_val(id) );
+  CAMLreturn (mlglu_nodeWrap (Manager (mgr), result));
+}

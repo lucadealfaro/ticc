@@ -383,6 +383,13 @@ let add_rule (m : t) (r : rule_t) : unit =
 	    else Hsetmap.add m.orules act [r]
 
 
+(** DEBUG function: unwraps an mdd *)
+let unwrap_stateset (s: stateset_t) : Mlglu.mdd = s
+
+(** DEBUG function: wraps an mdd *)
+let wrap_stateset (s: Mlglu.mdd) : stateset_t = s
+
+
 
 (** **************************************************************** *)
 

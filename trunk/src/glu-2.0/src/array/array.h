@@ -58,7 +58,7 @@ extern int array_global_insert;
 
 /* RB, added this without understanding locking */
 #define array_remove_last(a) \
-    (  -(a)->index != obj_size ? array_abort((a),4) : 0,\
+    (  -(a)->index != (a)->obj_size ? array_abort((a),4) : 0,\
        (a)->index = -(a)->index,\
        (a)->num ? (a)->num-- : array_abort((a),5),\
        (a)->index = -(a)->index )

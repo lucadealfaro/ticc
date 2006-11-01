@@ -37,9 +37,9 @@ no. of mvar's:   array_n(mvar_list)
 no. of bvar's:   array_n(bvar_list)
 get mvar of id:  mv = array_fetch(mvar_type, mvar_list, mvar_id)
 get bvar of id:  bv = array_fetch(bvar_type, bvar_list, bvar_id)
-MDD -> BDD:      use mdd_ret_bvar_id(&mvar, i) to index bvar_list or
-                 mdd_ret_bvar(&mvar, i, bvar_list) to get the ith (the order is
-                 msb to lsb) bvar in the encoding of mvar.
+MDD -> BDD:      use mdd_ret_bvar_id(&mv, i) to index bvar_list or
+                 mdd_ret_bvar(&mv, i, bvar_list) to get the ith (the order is
+                 msb to lsb) bvar in the encoding of mv.
                  
                  mv = element of mvar_list, of mvar_type
                  0 <= i < mv.encode_length

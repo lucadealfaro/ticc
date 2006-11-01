@@ -142,6 +142,14 @@ let refines m1 m2 = Refine.refines Symprog.toplevel m1 m2
 (** Forgets a module *)
 let forget = Modops.forget_module Symprog.toplevel 
 
+(** DEBUG function: unwraps an mdd *)
+let unwrap_stateset (s: stateset_t) : Mlglu.mdd =
+  Symmod.unwrap_stateset s
+
+(** DEBUG function: wraps an mdd *)
+let wrap_stateset (s: Mlglu.mdd) : stateset_t = 
+  Symmod.wrap_stateset s
+
 (** Random simulates a module, given its initial state as a ticc
     expression for the given number of cycles. *)
 let simulate (sm: Symmod.t) (expr: string) (nCycles: int)

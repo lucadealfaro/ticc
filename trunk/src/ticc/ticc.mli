@@ -335,5 +335,7 @@ val print_symmod_rules : symbolic_module_t -> string -> unit
 val print_bool : bool -> unit
 
 
+(** {2 Experimental or debugging features} *)
 
-
+val unwrap_stateset : stateset_t -> Mlglu.mdd 
+val wrap_stateset   : Mlglu.mdd  -> stateset_t
