@@ -47,13 +47,12 @@ mdd_t* mdd_max_on_mdd(mdd_manager* mgr, mdd_t* mdd, int id)
 }
 
 
-mdd_t* mdd_max(mdd_manager* mgr, mdd_t* mdd, int id)
+mdd_t* mdd_max_on_bits(mdd_manager* mgr, mdd_t* mdd, int id)
 {
-  array_t *mvar_list, *bvar_list, *bits_list;
+  array_t *mvar_list, *bvar_list, *bit_vars;
   mvar_type mvar;
-  // bvar_type bvar;
   int i, j, n, bvar_id;
-  bdd_t *literal, *term0, *term1, *res;
+  bdd_t *literal, *term0, *term1, *res, *bvar;
 
   // get the global data
   mvar_list = mdd_ret_mvar_list(mgr);
@@ -65,34 +64,37 @@ mdd_t* mdd_max(mdd_manager* mgr, mdd_t* mdd, int id)
   // initialize the result variable
   res = mdd;
 
-  bits_list = array_alloc(int, n);
-  // reverse mvar.bvars into bits_list
+  bit_vars = array_alloc(bdd_t *, n);
+  // reverse mvar.bvars into bit_vars
   for (i = 0, j = n-1; i<n ;i++, j--) {
-    bvar_id = array_fetch(int, mvar.bvars, i);
-    array_insert(int, bits_list, j, bvar_id);
+    bvar_id = mdd_ret_bvar_id(&mvar, i);
+    bvar = bdd_get_variable(mgr, bvar_id);
+    array_insert(bdd_t *, bit_vars, j, bvar);
   }
 
   for (i = 0; i<n; i++) {
-    // bvar = mdd_ret_bvar(&mvar, i, bvar_list);
-    bvar_id = array_fetch(int, mvar.bvars, i);
+
+    printf("i = %d\n", i);
+
+    bvar_id = mdd_ret_bvar_id(&mvar, i);
     literal = bdd_get_variable(mgr, bvar_id);
 
     // build the term for z_i = 0
     term0 = bdd_or(literal, res, 0, 0);
-    term0 = bdd_smooth(term0, bits_list);
+    term0 = bdd_consensus(term0, bit_vars);
     term0 = bdd_and(literal, term0, 0, 1);
 
-    array_remove_last(bits_list);
+    array_remove_last(bit_vars);
 
     // build the term for z_i = 1
-    term1 = bdd_smooth(res, bits_list);
+    term1 = bdd_smooth(res, bit_vars);
     term1 = bdd_and(literal, term1, 1, 1);
-    
+
     // put together both terms
     term0 = bdd_or(term0, term1, 1, 1);
     res = bdd_and(res, term0, 1, 1);
   }
-  array_free(bits_list);
+  array_free(bit_vars);
 
   return res;
 }
