@@ -1,19 +1,12 @@
 exception TypeAssertFailed
 
-(** This is the type of a clock bound *)
-type clock_bound_t = {mutable maxval: int}
-
 (** This is the type of the variable content *)
 type data_t = 
     Bool 
   | Range of int * int 
-  | Clock of clock_bound_t
+  | Clock of int ref
 
-(** Gets the clock bound *)
-let get_bound b = b.maxval
-
-(** Sets the clock bound *)
-let set_bound b n = b.maxval <- n 
+let new_clock () = Clock (ref 0)
 
 (** Raises exception if [t] is not an integer type. *)
 let assert_int (t: data_t) : unit =
@@ -39,14 +32,38 @@ type t = {
 }
 
 (** Creates a fresh variable *) 
-let mk n typ mn: t = 
-  {name = n; vtype = typ; mod_name = mn}
+let mk n typ mn: t =
+  (* clock variables should get their own instance of
+     the type, because the type contains a mutable integer
+     which is specific to each variable. 
+     Yes, this is somewhat of a hack, 
+     due to the structure of the parsing module.
+     Better solutions are:
+     - This function should be passed something different from data_t.
+     or
+     - The parsing module should create a new instance of clock type
+     for each clock variable. *)
+  match typ with
+    Clock _ -> {name = n; vtype = new_clock (); mod_name = mn}
+  | _ -> {name = n; vtype = typ; mod_name = mn}
 
 
 (** Access functions: *)
 
 (** gets the name *)
 let get_name (v : t) : string = v.name 
+
+(** Gets the clock bound *)
+let get_bound (v: t) : int = 
+  match v.vtype with 
+    Clock mv -> !mv
+  | _ -> raise TypeAssertFailed
+
+(** Sets the clock bound *)
+let set_bound v n : unit =
+  match v.vtype with 
+    Clock mv -> mv := n
+  | _ -> raise TypeAssertFailed 
 
 (** gets the type *)
 let get_type (v : t) = v.vtype 
@@ -67,11 +84,11 @@ let is_clock v : bool =
   | _       -> false
 
 (** Number of values a variable can assume *)
-let nvals v = 
+let nvals v : int = 
   match v.vtype with 
     Bool -> 2
   | Range (_,n) -> n+1 
-  | Clock (b) -> b.maxval 
+  | Clock b -> !b 
 
 
 (** Print functions: *)
@@ -81,8 +98,8 @@ let print_type = function
     Bool -> Printf.printf "bool"
   | Range (i, j) -> 
         Printf.printf "[%d..%d]" i j
-  | Clock(mv) -> 
-      Printf.printf "clock // bound = %d" mv.maxval
+  | Clock mv -> 
+      Printf.printf "clock // bound = %d" !mv
 
 (** Print full details for variable *)
 let print_all (v : t) =

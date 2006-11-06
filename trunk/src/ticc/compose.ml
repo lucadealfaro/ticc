@@ -6,8 +6,6 @@ open Ticc;;
 open Ast;;
 open Ops;;
 
-type stateset_t = Mlglu.mdd;;
-type relationset_t = Mlglu.mdd;;
 module VarSet = Vset.VS;;
 type varid_t = Vset.varid_t;; 
 
@@ -25,11 +23,11 @@ exception No_input;;
     composable. *) 
 exception Modules_not_composable 
 
-(** The modules being composed share an action that is local.  This
-    exception should not occur. *) 
+(** The modules being composed share an action that is local.  
+    This exception should not occur. *) 
 exception Shared_Local_Rule
 
-(** this exception indicates that the modules being composed are
+(** This exception indicates that the modules being composed are
     incompatible. *)
 exception Incompatible_Modules
 
@@ -193,6 +191,9 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
     Symmod.set_old_iinv m12 conj_iinv; 
     (* Initial condition *)
     Symmod.set_init m12 (Mlglu.mdd_and (Symmod.get_init m1) (Symmod.get_init m2) 1 1);
+    (* Time transition *)
+    Symmod.set_delta1 m12 (Mlglu.mdd_and (Symmod.get_delta1 m1) (Symmod.get_delta1 m2) 1 1); 
+
     (* Statesets *)
     Symmod.set_ssets m12
 	(Hsetmap.unsafe_union (Symmod.get_ssets m1) (Symmod.get_ssets m2));

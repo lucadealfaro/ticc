@@ -108,27 +108,26 @@ let rec typechk_expr (e: Ast.t) : etype =
     message, if a clock is used in an improper way.   *)
 
 let rec update_clock_bounds_expr e = 
-  let is_clock_comparison l r pos = 
+  let is_clock_comparison l r pos : bool = 
     (* This is the function that checks whether a relop is actually 
        a clock comparison. *)
     match l with 
       Variable (v, primed, pos) -> 
-	begin
-	  match (Var.get_type v) with 
-	    Var.Clock (b) -> 
-	      begin
-		match r with 
-		  Int (n, posp) -> 
-		    (* Ok, this is a clock comparison. 
-		       Updates the clock bound. *) 
-		    b.Var.maxval <- max n b.Var.maxval; 
-		    (* yes, found a clock comparison *) 
-		    true 
-		| _ -> false
-	      end
-	  | _ -> false 
-	end
-    | _ -> false
+	if Var.is_clock v then
+	  begin
+	    match r with 
+	      Int (n, posp) ->
+		(* Ok, this is a clock comparison. 
+		   Updates the clock bound. *)
+		let oldval = Var.get_bound v in
+		let newval = max n oldval in
+		Var.set_bound v newval;
+		(* yes, found a clock comparison *) 
+		true 
+	    | _ -> false
+	  end
+	else false
+    | _ -> false 
   in
   match e with 
     Int (_,_) -> ()

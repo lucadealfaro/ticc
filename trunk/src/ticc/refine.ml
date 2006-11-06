@@ -2,12 +2,9 @@
 
 open Str;;
 open Symmod;;
-open Ticc;;
 open Ast;;
 open Ops;;
 
-type stateset_t = Mlglu.mdd;;
-type relationset_t = Mlglu.mdd;;
 module VarSet = Vset.VS;;
 type varid_t = Vset.varid_t;; 
 
@@ -128,6 +125,11 @@ let epsilon_closure_pred (sp: Symprog.t) (sm: Symmod.t) : stateset_t =
 (** Computes the most general refinement relation between
     [m1] and [m2]. *)
 let refinement (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : stateset_t =
+  if Symmod.is_timed m1 || Symmod.is_timed m2 then
+    begin
+      Printf.printf "Operation not supported on timed modules.\n";
+      raise NoTimedSupport
+    end;
   let mgr = Symprog.get_mgr sp in
   if not (have_same_signature m1 m2) then
     Mlglu.mdd_zero mgr
@@ -293,13 +295,15 @@ let refinement (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : stateset_t =
     !refinement
 ;;
   
-(* DEBUG intermezzo *)
-    (* Mlglu.mdd_print mgr !refinement;
-       flush stdout; *)
 
 (** [refines sp m1 m2]
     Checks whether module [m1] refines (i.e. can replace) module [m2]. *)
 let refines (sp: Symprog.t) (m1: Symmod.t) (m2: Symmod.t) : bool =
+  if Symmod.is_timed m1 || Symmod.is_timed m2 then
+    begin
+      Printf.printf "Operation not supported on timed modules.\n";
+      raise NoTimedSupport
+    end;
   let mgr = Symprog.get_mgr sp in
   let refin = refinement sp m1 m2 in
   (* check whether each initial state of m2 is simulated by an

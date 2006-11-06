@@ -6,10 +6,13 @@
 
 (** This is the type of a symbolic representation of a set of
     states.  MDDs are used, but you don't need to know the details. *)
-type stateset_t
+(** Actually, this type is temporarily exposed, so that the user
+    (or rather, the developer) can directly call all sort of internal 
+    unsupported functions :-) *)  
+type stateset_t = Mlglu.mdd
 
 (** This is the type of a symbolic module. *)
-type symbolic_module_t
+type symbolic_module_t = Symmod.t
 
 (** "Enumerative modules" do not have a type: they are referred by
     their name (a string).  When you mention the string, TICC will
@@ -25,12 +28,12 @@ type symbolic_module_t
     timed modules. *) 
 exception NoTimedSupport
 
-(** This exception can be thrown by [compose] to indicate that the
-    symbolic modules are not composable. *)
+(** This exception is thrown by [compose] if 
+    the symbolic modules being composed are not composable. *)
 exception Modules_not_composable 
 
-(** this exception can be thrown by [compose] to indicate that the
-    symbolic modules being composed are incompatible. *)
+(** This exception is thrown by [compose] if
+    the symbolic modules being composed are incompatible. *)
 exception Incompatible_Modules
 
 (** [compose m1 m2 m]  composes the symbolic modules [m1] and [m2], 

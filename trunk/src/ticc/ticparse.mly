@@ -354,7 +354,7 @@
 
  vartype : BOOL                       { Var.Bool }
          | LB NUM DOTS NUM RB         { make_range_type $2 $4 (Parsing.rhs_start_pos 3) }
-         | CLOCK                      { Var.Clock({Var.maxval = 0}) } ; 
+         | CLOCK                      { Var.new_clock () } ; 
 
  actname : ID                         { ($1, Parsing.rhs_start_pos 1)} ; 
 

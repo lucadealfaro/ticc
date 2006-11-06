@@ -73,7 +73,11 @@ type t = {
   (** set of bad states.  Used to justify non-iinv states *)
   mutable bad_states : Mlglu.mdd; 
   (** old invariant.  Used to justify non-iinv states *)
-  mutable old_iinv : Mlglu.mdd; 
+  mutable old_iinv : Mlglu.mdd;
+  (** void transition *)
+  mutable delta0 : Mlglu.mdd;  
+  (** time transition *)
+  mutable delta1 : Mlglu.mdd;
   (** local output transition rules *) 
   lrules : (string, rule_t) Hsetmap.t; 
   (** input transition rules, global and local *) 
@@ -107,6 +111,9 @@ let mk mgr (name: string) : t =
     bad_states = Mlglu.mdd_zero mgr; 
     old_iinv   = Mlglu.mdd_one  mgr;
 
+    delta0 = Mlglu.mdd_zero mgr;
+    delta1 = Mlglu.mdd_zero mgr;      
+
     lrules = Hsetmap.mk ();
     irules = Hsetmap.mk ();
     orules = Hsetmap.mk ();
@@ -135,6 +142,8 @@ let set_init m phi = m.init <- phi
 let set_bad_states m phi = m.bad_states <- phi
 let set_old_iinv m phi = m.old_iinv <- phi;;
 let set_reachset (m: t) (b: Mlglu.mdd option) : unit = m.reachset <- b
+let set_delta1 (m: t) (b: Mlglu.mdd) : unit = m.delta1 <- b
+
 (* these are used mostly to forget a module *)
 let clear_ssets  m = Hsetmap.erase m.ssets
 let clear_lrules m = Hsetmap.erase m.lrules
@@ -144,6 +153,7 @@ let clear_orules m = Hsetmap.erase m.orules;;
 let get_iinv m = m.iinv
 let get_oinv m = m.oinv
 let get_init m = m.init 
+let get_delta1 (m: t) : Mlglu.mdd = m.delta1
 let get_old_iinv m = m.old_iinv
 let get_bad_states m = m.bad_states
 let get_sset (m: t) (n: string) : Mlglu.mdd = 

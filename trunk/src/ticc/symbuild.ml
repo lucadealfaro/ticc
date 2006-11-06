@@ -780,6 +780,27 @@ let mk_env_rule (sp: Symprog.t) (sm: Symmod.t) : unit =
 ;;
 
 
+(** Adds the time transition that increments the value of clocks. *)
+let mk_delta1 (sp: Symprog.t) (sm: Symmod.t) : unit =
+  let mgr = Symprog.get_mgr sp in
+  let cvars = Symmod.get_cvars sm in
+  let mdd = ref (Mlglu.mdd_one mgr) in
+  let do_one_clock clock : unit =
+    let clock' = Symprog.prime_id sp clock in
+    let temp = Mlglu.mdd_eq_plus_c mgr clock' clock 1 in
+    mdd := Mlglu.mdd_and !mdd temp 1 1
+  in
+  VarSet.iter do_one_clock cvars;
+  (* Shall we state in this mdd that all state variables
+     that are not clocks keep their value?
+     Pro: cleaner
+     Con: permanence of value can be more efficiently enforced
+     by variable renaming
+   *)
+  Symmod.set_delta1 sm !mdd
+;;
+
+
 (** Builds a symbolic module out of module [m]. *)
 let mk_mod (m: Mod.t) (sp: Symprog.t) : Symmod.t =
   let mgr = Symprog.get_mgr sp in
@@ -853,6 +874,9 @@ let mk_mod (m: Mod.t) (sp: Symprog.t) : Symmod.t =
 
   (* Makes the environment rule *)
   mk_env_rule sp sym_mod;
+
+  (* Makes the time transition *)
+  mk_delta1 sp sym_mod;
 
   sym_mod
 ;;
