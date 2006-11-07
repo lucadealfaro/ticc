@@ -14,6 +14,13 @@ type t = {
   (** MDD manager *)
   mgr: Mlglu.mdd_manager; 
 
+  (** blame variables *)
+  bli: varid_t;
+  blo: varid_t;
+
+  i_slices: Mlglu.mdd array;
+  o_slices: Mlglu.mdd array;
+
   (** These are GLOBAL mappings, also for variables local to 
       the modules. *)
   (** The following is the best way to do the mappings. 
@@ -26,8 +33,9 @@ type t = {
   id_to_var_p: (varid_t, (Var.t * bool)) Hsetmap.t; 
   (** Bijection between unprimed and primed variable ids *)
   id_to_pid: (varid_t, varid_t) Biject.t; 
-  (** Bijection between unprimed and temporary variable ids *)
-  id_to_tid: (varid_t, varid_t) Biject.t; 
+  (** Bijection between unprimed and temporary (also called "extra") variable ids.
+      Temporary variables are used by refinement. *)
+  id_to_tid: (varid_t, varid_t) Biject.t;
 }
 
 exception ID_not_unprimed
@@ -40,10 +48,28 @@ let env_act = "_env_action"
 
 (** Creates an empty symbolic toplevel *)
 let mk (n: string) : t = 
+  let mgr = Mlglu.mdd_init [2; 2] ["bli"; "blo"] [1; 1] in
+  let bli = 0 in
+  let blo = 1 in
+  (* literals for blameI and blameO *)
+  let blitrue = Mlglu.mdd_literal mgr bli [1] in
+  let blotrue = Mlglu.mdd_literal mgr bli [1] in
+  (* slices of the non-Zenoness parity games *)
+  let color0   = Mlglu.mdd_and blitrue blotrue 0 0 in
+  let i_color1 = Mlglu.mdd_and blitrue blotrue 1 0 in
+  let i_color2 = blotrue in
+  let o_color1 = Mlglu.mdd_and blitrue blotrue 0 1 in
+  let o_color2 = blitrue in
   {
     name = n; 
 
-    mgr = Mlglu.mdd_init [] [] [];
+    mgr = mgr;
+
+    bli = 0;
+    blo = 1;
+
+    i_slices = [| color0; i_color1; i_color2 |];
+    o_slices = [| color0; o_color1; o_color2 |];
 
     var_to_ids  = Hsetmap.mk ();
     id_to_var_p = Hsetmap.mk ();
@@ -53,7 +79,6 @@ let mk (n: string) : t =
 
 (** This is the symbolic toplevel we use by default *)
 let toplevel = mk "Toplevel"
-
 
 (** Gets mdd manager *)
 let get_mgr (s: t) : Mlglu.mdd_manager = s.mgr
@@ -119,7 +144,7 @@ let get_var_p s (id: varid_t) : (Var.t * bool) =
 
 (** Checks whether a variable is present *)
 let is_var_def s v = Hsetmap.mem s.var_to_ids v 
-  
+
 
 (** Adds interleaved variables to the manager (does nothing for 
     variables that are already defined in the manager).
@@ -200,6 +225,28 @@ let get_extra_vars (s: t) (vlist: varid_t list) : varid_t list =
 ;;
 
 
+(** [get_jurdzinski_var sp sm] returns the extra variable needed
+    to run Jurdzinski's algorithm for parity games.
+
+    (TO DO) Such extra variable is created on demand and then "cached"
+    for later use. *)
+let get_jurdzinski_var (sp: t) (sm: Symmod.t) : varid_t =
+  let nvals = ref 1 in
+  let do_one_var var_id =
+    let (var, _) = get_var_p sp var_id in
+    nvals := !nvals * (Var.nvals var)
+  in
+  let var_ids = Symmod.get_vars sm in
+  VarSet.iter do_one_var var_ids;
+
+  let new_name = ["extra_" ^ (Symmod.get_name sm)] in
+  let new_vals = [!nvals] in
+  let new_stride = [1] in
+  let new_id = Mlglu.mdd_create_variables sp.mgr 
+    new_vals new_name new_stride in
+  (* Biject.add s.module_to_supervar sm new_id; *)
+  new_id
+
 (** Print functions *) 
 
 (** print_iinv [sp] [sm] 
@@ -216,11 +263,12 @@ let print_oinv sp sm : unit =
   let mgr = get_mgr sp in
   Mlglu.mdd_print mgr (Symmod.get_oinv sm)
 
-
 (** [print_all_vars sp]
   Prints all the variables in the program [sp].
   Useful for debugging. **)
 let print_all_vars sp : unit =
+  Printf.printf "%d : %s\n" 0 (Mlglu.mdd_get_var_name sp.mgr 0);
+  Printf.printf "%d : %s\n" 1 (Mlglu.mdd_get_var_name sp.mgr 1);
   let print_one (id: int) (var, p) : unit =
     Printf.printf "%d : %s\n" id (Var.get_name var);
   in

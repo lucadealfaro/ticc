@@ -1,5 +1,3 @@
-(** typecheck.ml *)
-
 (** This file contains type-checking functions for Ticc. *)
 
 open Ast 
@@ -21,12 +19,9 @@ type term_t = PosE of Ast.t | NegE of Ast.t
     integer and boolean types *)
 let rec typechk_expr (e: Ast.t) : etype = 
   match e with 
-    Variable (v, _, _) -> 
-      begin
-	match (Var.get_type v) with 
-	  Var.Bool -> BoolT
-	| Var.Range (_,_) | Var.Clock (_) -> IntT 
-      end
+    Variable (v, _, _) ->
+      if Var.is_bool v then BoolT
+      else IntT
   | Tval (_,_) -> BoolT
   | Int (_,_) -> IntT
   | Unop (op,e,pos) -> 
@@ -152,15 +147,15 @@ let rec update_clock_bounds_expr e =
       update_clock_bounds_expr l; 
       update_clock_bounds_expr r
   | Variable (v, primed, pos) -> 
-      begin
-	(* clock variables are not allowed outside clock comparisons *) 
-	match (Var.get_type v) with
-	  Var.Clock (_) -> 
-	    Ast.print_pos pos; 
-	    Printf.printf " Using clock %s outside a comparison with an integer constant\n" v.Var.name; 
-	    raise TypeError
-	| Var.Bool | Var.Range(_,_) -> ()
-      end
+	(* clock variables are not allowed outside clock comparisons
+  *)
+      if Var.is_clock v then
+	begin
+	  Ast.print_pos pos; 
+	  Printf.printf " Using clock %s outside a comparison with an
+  integer constant\n" (Var.get_name v); 
+	  raise TypeError
+	end
 ;;
 
 (** This function optimizes an expression, carrying out constant
@@ -200,9 +195,8 @@ let optimize_expression (e: Ast.t) : Ast.t =
     match e with 
       Variable (v,_,_) -> 
 	let vt =
-	  match (Var.get_type v) with 
-	    Var.Bool -> BoolT
-	  | _ -> IntT 
+	  if Var.is_bool v then BoolT
+	  else IntT
 	in (e, vt)
     | Tval (_,_) -> (e, BoolT)
     | Int (_,_) -> (e, IntT)

@@ -1,31 +1,22 @@
 exception TypeAssertFailed
 
 (** This is the type of the variable content *)
-type data_t = 
+type type_t = 
     Bool 
   | Range of int * int 
   | Clock of int ref
 
-let new_clock () = Clock (ref 0)
+let clock_type = Clock (ref (-1))
+let bool_type = Bool
+let range_type a b = Range (a, b)
 
-(** Raises exception if [t] is not an integer type. *)
-let assert_int (t: data_t) : unit =
-  match t with
-    Bool -> raise TypeAssertFailed
-  | _ -> ()
-
-(** Raises exception if [t] is not a boolean type. *)
-let assert_bool (t: data_t) : unit =
-  match t with
-    Bool -> ()
-  | _ -> raise TypeAssertFailed
 
 (** This is the type of a variable *)   
 type t = {
   (** name of the variable *)
   name  : string;
   (** type of the variable *) 
-  vtype  : data_t;
+  vtype  : type_t;
   (** name of the module where it appears.  If None, then it is a
       program variable, and not a local variable of a module. *) 
   mod_name: string option; 
@@ -35,18 +26,37 @@ type t = {
 let mk n typ mn: t =
   (* clock variables should get their own instance of
      the type, because the type contains a mutable integer
-     which is specific to each variable. 
-     Yes, this is somewhat of a hack, 
-     due to the structure of the parsing module.
-     Better solutions are:
-     - This function should be passed something different from data_t.
-     or
-     - The parsing module should create a new instance of clock type
-     for each clock variable. *)
+     which is specific to each variable.
+
+     A clock which is declared but not compared with any constant
+     keeps its "-1" bound. Thus, it gives rise to a symbolic
+     variable with only one value, which is rightfully ignored 
+     by the mdd manager. *)
   match typ with
-    Clock _ -> {name = n; vtype = new_clock (); mod_name = mn}
+    Clock _ -> {name = n; vtype = Clock (ref (-1)); mod_name = mn}
   | _ -> {name = n; vtype = typ; mod_name = mn}
 
+(** Creates a fresh variable, whose type is the same of [v] *) 
+let mk_same_type (v: t) n mn : t =
+  (* clock variables should get their own instance of
+     the type, because the type contains a mutable integer
+     which is specific to each variable. *)
+  match v.vtype with
+    Clock cx -> {name = n; vtype = Clock (ref !cx); mod_name = mn}
+  | _ -> {name = n; vtype = v.vtype; mod_name = mn}
+
+
+(** Raises exception if [t] is not an integer. *)
+let assert_int (v: t) : unit =
+  match v.vtype with
+    Bool -> raise TypeAssertFailed
+  | _ -> ()
+
+(** Raises exception if [t] is not a boolean. *)
+let assert_bool (v: t) : unit =
+  match v.vtype with
+    Bool -> ()
+  | _ -> raise TypeAssertFailed
 
 (** Access functions: *)
 
@@ -77,18 +87,31 @@ let is_global v : bool =
     None   -> true
   | Some _ -> false
 
-(** test: it is a clock? *) 
+(** test: is it a clock? *) 
 let is_clock v : bool = 
   match v.vtype with 
     Clock _ -> true
+  | _       -> false
+
+(** test: is it boolean? *) 
+let is_bool v : bool = 
+  match v.vtype with 
+    Bool -> true
+  | _    -> false
+
+(** test: is it a range? *) 
+let is_range v : bool = 
+  match v.vtype with 
+    Range _ -> true
   | _       -> false
 
 (** Number of values a variable can assume *)
 let nvals v : int = 
   match v.vtype with 
     Bool -> 2
-  | Range (_,n) -> n+1 
-  | Clock b -> !b 
+  | Range (_,n) -> n + 1
+      (* a clock needs to go from 0 to (maximum constant + 1) *)
+  | Clock b -> !b + 2
 
 
 (** Print functions: *)

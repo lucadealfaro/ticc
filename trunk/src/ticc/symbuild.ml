@@ -25,7 +25,7 @@ type predd =
     (* This represents a single variable (e.g., a leaf). 
        I carry the whole variable, as I will need to know also the
        type. *)
-    Varid of varid_t * Var.data_t 
+    Varid of varid_t * Var.t 
       (* This represents an MDD that already encodes a truth-set. *)
   | RelMdd of Mlglu.mdd 
       (* This represents an MDD for x=f, together with the variable x *)
@@ -442,12 +442,11 @@ let build_predd (s: Symprog.t) (e: Ast.t) : predd =
 
       Variable (v, primed, _) -> 
 	let id = Symprog.get_id_of_var s v primed in 
-	begin
-	  match Var.get_type v with
-	    Var.Bool -> RelMdd(Mlglu.mdd_literal mgr id [1])
-	  | x        -> Varid (id, x)
-	end
-
+	if Var.is_bool v then
+	  RelMdd(Mlglu.mdd_literal mgr id [1])
+	else
+	  Varid (id, v)
+	    
     | Int (c,_) -> Constant c
 
     | Tval (true,_)  -> RelMdd(Mlglu.mdd_one mgr) 
@@ -460,7 +459,7 @@ let build_predd (s: Symprog.t) (e: Ast.t) : predd =
 	  match b with 
 	    Constant c -> raise SymbolicTypeError
 	  | RelMdd m -> RelMdd (Mlglu.mdd_not m)
-	  | Varid (id, Var.Bool) -> 
+	  | Varid (id, v) when Var.is_bool v -> 
 	      RelMdd (Mlglu.mdd_literal mgr id [0])
 	  | Varid (_,_) -> raise SymbolicTypeError
 	  | MultiMdd (id, m) -> raise SymbolicTypeError
@@ -475,7 +474,8 @@ let build_predd (s: Symprog.t) (e: Ast.t) : predd =
 	  match (ltv, rtv) with 
 	    (* cases for Varid *)
 
-	    (Varid (id, Var.Bool), Varid (id', Var.Bool)) -> build_v_v_bool op id id'
+	    (Varid (id, t), Varid (id', t')) 
+	      when Var.is_bool t && Var.is_bool t' -> build_v_v_bool op id id'
 	  | (Varid (id, t), Varid (id', t')) -> 
 	      Var.assert_int t; 
 	      Var.assert_int t'; 
@@ -787,8 +787,15 @@ let mk_delta1 (sp: Symprog.t) (sm: Symmod.t) : unit =
   let mdd = ref (Mlglu.mdd_one mgr) in
   let do_one_clock clock : unit =
     let clock' = Symprog.prime_id sp clock in
-    let temp = Mlglu.mdd_eq_plus_c mgr clock' clock 1 in
-    mdd := Mlglu.mdd_and !mdd temp 1 1
+    (* clock is incremented if it is not at maximum *)
+    let incr = Mlglu.mdd_eq_plus_c mgr clock' clock 1 in
+    (* additionally, clock keeps its value if it is at maximum *)
+    let nvals = Mlglu.mdd_get_var_range mgr clock in
+    let maxed  = Mlglu.mdd_literal mgr clock [nvals - 1] in
+    let keep_val = Mlglu.mdd_eq mgr clock clock' in
+    let temp = Mlglu.mdd_and maxed keep_val 1 1 in
+    let temp' = Mlglu.mdd_or incr temp 1 1 in
+    mdd := Mlglu.mdd_and !mdd temp' 1 1
   in
   VarSet.iter do_one_clock cvars;
   (* Shall we state in this mdd that all state variables

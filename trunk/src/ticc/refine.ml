@@ -3,11 +3,9 @@
 open Str;;
 open Symmod;;
 open Ast;;
-open Ops;;
 
 module VarSet = Vset.VS;;
 type varid_t = Vset.varid_t;; 
-
 
 (** Time is not supported yet. *) 
 exception NoTimedSupport;; 
@@ -41,7 +39,7 @@ let epsilon_closure (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_
   let tot_set = ref set 
   and frontier = ref set in 
   while not (Mlglu.mdd_is_zero !frontier) do
-    let set' = l_post sp sm !frontier true in 
+    let set' = Ops.l_post sp sm !frontier true in 
     frontier := Mlglu.mdd_and set' !tot_set 1 0; 
     tot_set  := Mlglu.mdd_or !tot_set !frontier 1 1 
   done;

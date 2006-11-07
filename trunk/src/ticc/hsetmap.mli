@@ -1,4 +1,4 @@
-(** $Id: hsetmap.mli,v 1.7 2005/10/28 19:30:00 luca Exp $ *)
+(* $Id: hsetmap.mli,v 1.7 2005/10/28 19:30:00 luca Exp $ *)
 
 (** A Hsetmap is a hashtable with set methods defined for it. 
    Like a hashtable, given a key it can retrieve the data.

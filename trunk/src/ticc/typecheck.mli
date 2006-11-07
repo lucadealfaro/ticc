@@ -1,4 +1,4 @@
-(** $Id: typecheck.mli,v 1.4 2005/05/01 07:55:46 luca Exp $ *)
+(* $Id: typecheck.mli,v 1.4 2005/05/01 07:55:46 luca Exp $ *)
 
 exception TypeError
 

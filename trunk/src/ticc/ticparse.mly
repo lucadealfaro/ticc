@@ -120,7 +120,7 @@
    (** Declares global or local variable. 
      The decision is based on the scope. 
      Either global or inside current module (curr_mod) *)
-   let declare_var (vl : (string * Lexing.position) list) (vt: Var.data_t) : unit = 
+   let declare_var (vl : (string * Lexing.position) list) (vt: Var.type_t) : unit = 
      let add_v (name, pos) = 
        match !curr_mod with
          Some (m) -> 
@@ -169,15 +169,14 @@
              Printf.printf "Line %d Col %d: Error: double definition of variable %s\n" 
                pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol) name;
              raise ParseError 
-           end else begin
+           end else
              (* Check that a global variable is not a clock *)
-             match vt with 
-               Var.Clock (_) ->
-                 Printf.printf "Line %d Col %d: Error: clock %s is not in the scope of any module (clocks cannot be global)\n" 
+	     if Var.is_clock newv then begin
+		 Printf.printf "Line %d Col %d: Error: clock %s is not in the scope of any module (clocks cannot be global)\n" 
                    pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol) name;
-                 raise ParseError 
-             | Var.Range(_,_) | Var.Bool -> Prog.add_var Prog.parselevel newv
-           end 
+		 raise ParseError 
+	     end else
+               Prog.add_var Prog.parselevel newv
      in 
      (* declares all vars *) 
      List.iter add_v (List.rev vl)
@@ -278,12 +277,12 @@
          end
 
    (** makes a range type *)
-   let make_range_type (lb: int) (ub: int) (pos: Lexing.position) : Var.data_t = 
+   let make_range_type (lb: int) (ub: int) (pos: Lexing.position) : Var.type_t = 
      if lb != 0 then begin
        Printf.printf "Line %d Col %d: Error: ranges must start from 0\n" 
          pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol);
        raise ParseError 
-     end else Var.Range(lb,ub)
+     end else Var.range_type lb ub
 
 
    (** typechecks a module *)
@@ -352,9 +351,9 @@
 
  varname : ID {($1, Parsing.rhs_start_pos 1)} ; 
 
- vartype : BOOL                       { Var.Bool }
+ vartype : BOOL                       { Var.bool_type }
          | LB NUM DOTS NUM RB         { make_range_type $2 $4 (Parsing.rhs_start_pos 3) }
-         | CLOCK                      { Var.new_clock () } ; 
+         | CLOCK                      { Var.clock_type } ; 
 
  actname : ID                         { ($1, Parsing.rhs_start_pos 1)} ; 
 

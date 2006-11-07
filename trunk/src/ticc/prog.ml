@@ -180,10 +180,9 @@ let get_newname (mname: string) (name: string) : string =
     name of [v] becomes [mname] (i.e. *1.*2 -> [mname].*2].
  *)
 let dup_var mname v : Var.t =
-  let typ = Var.get_type v in
   let vname = Var.get_name v in
   let new_name = get_newname mname vname in
-  let new_var = Var.mk new_name typ (Some mname) in
+  let new_var = Var.mk_same_type v new_name (Some mname) in
   new_var
 
 

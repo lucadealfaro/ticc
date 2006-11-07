@@ -1,4 +1,4 @@
-(** $Id: biject.mli,v 1.1 2005/04/27 23:26:05 luca Exp $ *)
+(* $Id: biject.mli,v 1.1 2005/04/27 23:26:05 luca Exp $ *)
 
 (** Module Biject, implementing bijections. *)
 

@@ -62,7 +62,7 @@ type t = {
   mutable clock_bound : (varid_t, int) Hsetmap.t; 
   (** initial condition *)
   mutable init   : Mlglu.mdd; 
-  (** Set of reachable states *)
+  (** set of reachable states *)
   mutable reachset : Mlglu.mdd option; 
   (** statesets *)
   mutable ssets : (string, Mlglu.mdd) Hsetmap.t; 
@@ -76,7 +76,8 @@ type t = {
   mutable old_iinv : Mlglu.mdd;
   (** void transition *)
   mutable delta0 : Mlglu.mdd;  
-  (** time transition *)
+  (** time transition, this mdd only states that clock variables
+      increase their value by 1 *)
   mutable delta1 : Mlglu.mdd;
   (** local output transition rules *) 
   lrules : (string, rule_t) Hsetmap.t; 
