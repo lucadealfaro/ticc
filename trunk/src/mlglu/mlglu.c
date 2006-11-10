@@ -1975,3 +1975,16 @@ value mlglu_max (value mgr, value mdd, value id)
   result = mdd_max( Manager(mgr), Mdd_node(mdd), Int_val(id) );
   CAMLreturn (mlglu_nodeWrap (Manager (mgr), result));
 }
+
+// Function added by Marco to implement parity games
+value mlglu_min (value mgr, value mdd, value id)
+{
+  CAMLparam3 (mgr, mdd, id);
+  mdd_t *result;
+  
+  if (Manager (mgr) == NULL) {
+    raise_mgrError();
+  }
+  result = mdd_min( Manager(mgr), Mdd_node(mdd), Int_val(id) );
+  CAMLreturn (mlglu_nodeWrap (Manager (mgr), result));
+}

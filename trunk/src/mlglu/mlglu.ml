@@ -151,10 +151,11 @@ external mdd_smooth_original   : mdd_manager -> mdd -> int list -> mdd
   = "mlglu_smooth"
 
 external mdd_max : mdd_manager -> mdd -> int -> mdd = "mlglu_max"
+external mdd_min : mdd_manager -> mdd -> int -> mdd = "mlglu_min"
 
-let mdd_smooth_list mgr a vset =
-  if List.length vset > 0 then
-    mdd_smooth_original mgr a vset
+let mdd_smooth_list mgr a vlist =
+  if List.length vlist > 0 then
+    mdd_smooth_original mgr a vlist
   else 
     a
 

@@ -1,4 +1,5 @@
-mdd_t* mdd_max_on_mdd(mdd_manager* mgr, mdd_t* mdd, int id);
-mdd_t* mdd_max_on_bits(mdd_manager* mgr, mdd_t* mdd, int id);
+mdd_t* mdd_minmax(mdd_manager* mgr, mdd_t* mdd, int id, int max);
+mdd_t* mdd_incr(mdd_manager* mgr, mdd_t* mdd, int id);
 
-#define mdd_max mdd_max_on_bits
+#define mdd_max(mgr,m,id) mdd_minmax((mgr), (m), (id), 1)
+#define mdd_min(mgr,m,id) mdd_minmax((mgr), (m), (id), 0)

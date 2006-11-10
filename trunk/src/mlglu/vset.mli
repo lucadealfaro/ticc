@@ -35,7 +35,9 @@ module VS :
 type varid_t = int
 
 (** This converts a set of variables to a list, and is used especially
-    in mlglu.ml *) 
+    in mlglu.ml.
+    In the list, variable ids are sorted in increasing order. (feature
+    needed by module Jurdzinski) *) 
 val to_list : VS.t -> varid_t list
 
 (** This converts a list of variables to a set. *) 
