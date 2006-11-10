@@ -97,7 +97,7 @@ let assert_no_primed (sp: Symprog.t) (m: Mlglu.mdd) : unit =
     else ()
   in
   VarSet.iter check_var supp 
-  
+;;  
 
 (** Build a MDD with the assertion that for all
   variables v in [vset], it holds v' = v.
@@ -112,8 +112,7 @@ let unchngd (sp: Symprog.t) (vset: VarSet.t) : Mlglu.mdd =
   in
   VarSet.iter add_one_var vset;
   !b
-  ;;
-
+;;
 
 (** Conjoins the mdd [a] with the assertion that for all
   variables v in [vset], it holds v' = v.
@@ -121,8 +120,7 @@ let unchngd (sp: Symprog.t) (vset: VarSet.t) : Mlglu.mdd =
 let and_unchngd (sp: Symprog.t) (a: Mlglu.mdd) (vset: VarSet.t) : Mlglu.mdd =
   let b = unchngd sp vset in
   Mlglu.mdd_and a b 1 1
-
-
+;;
 
 (** This function creates an input rule with false transition
     relation.  In detail, if the module has the input rule already,

@@ -18,9 +18,6 @@ type t = {
   bli: varid_t;
   blo: varid_t;
 
-  i_slices: Mlglu.mdd array;
-  o_slices: Mlglu.mdd array;
-
   (** These are GLOBAL mappings, also for variables local to 
       the modules. *)
   (** The following is the best way to do the mappings. 
@@ -51,15 +48,6 @@ let mk (n: string) : t =
   let mgr = Mlglu.mdd_init [2; 2] ["bli"; "blo"] [1; 1] in
   let bli = 0 in
   let blo = 1 in
-  (* literals for blameI and blameO *)
-  let blitrue = Mlglu.mdd_literal mgr bli [1] in
-  let blotrue = Mlglu.mdd_literal mgr bli [1] in
-  (* slices of the non-Zenoness parity games *)
-  let color0   = Mlglu.mdd_and blitrue blotrue 0 0 in
-  let i_color1 = Mlglu.mdd_and blitrue blotrue 1 0 in
-  let i_color2 = blotrue in
-  let o_color1 = Mlglu.mdd_and blitrue blotrue 0 1 in
-  let o_color2 = blitrue in
   {
     name = n; 
 
@@ -67,9 +55,6 @@ let mk (n: string) : t =
 
     bli = 0;
     blo = 1;
-
-    i_slices = [| color0; i_color1; i_color2 |];
-    o_slices = [| color0; o_color1; o_color2 |];
 
     var_to_ids  = Hsetmap.mk ();
     id_to_var_p = Hsetmap.mk ();
@@ -145,6 +130,10 @@ let get_var_p s (id: varid_t) : (Var.t * bool) =
 (** Checks whether a variable is present *)
 let is_var_def s v = Hsetmap.mem s.var_to_ids v 
 
+(** ********** Support for parity games *********************** *)
+let get_bli s = s.bli
+let get_blo s = s.blo
+
 
 (** Adds interleaved variables to the manager (does nothing for 
     variables that are already defined in the manager).
@@ -196,8 +185,12 @@ let add_var_list s (vl: Var.t list) : unit =
 ;;
 
 
-(** [get_extra_vars s vlist] returns a list of extra variables that
+(** [get_extra_vars s vlist] returns a set of extra variables that
     correspond to the ones of [vlist].
+    This function has to work with lists of variables, 
+    rather than sets of variables, because correspondence
+    between input variables and output variables must be kept.
+
     Such extra variables are created on demand and then "cached"
     for later use.
     By the way, there seems to be no way to remove variables
@@ -211,7 +204,7 @@ let get_extra_vars (s: t) (vlist: varid_t list) : varid_t list =
       Biject.map_first s.id_to_tid id
     with Not_found ->
       let (var, _) = get_var_p s id in
-      let new_name = ["extra_" ^ (Var.get_name var)] in
+      let new_name = [(Var.get_name var) ^ "''"] in
       let new_vals = [Var.nvals var] in
       let new_stride = [1] in
       let new_id = Mlglu.mdd_create_variables s.mgr 
@@ -230,7 +223,7 @@ let get_extra_vars (s: t) (vlist: varid_t list) : varid_t list =
 
     (TO DO) Such extra variable is created on demand and then "cached"
     for later use. *)
-let get_jurdzinski_var (sp: t) (sm: Symmod.t) : varid_t =
+let get_jurdzinski_var (sp: t) (sm: Symmod.t) =
   let nvals = ref 1 in
   let do_one_var var_id =
     let (var, _) = get_var_p sp var_id in
@@ -239,13 +232,14 @@ let get_jurdzinski_var (sp: t) (sm: Symmod.t) : varid_t =
   let var_ids = Symmod.get_vars sm in
   VarSet.iter do_one_var var_ids;
 
-  let new_name = ["extra_" ^ (Symmod.get_name sm)] in
-  let new_vals = [!nvals] in
-  let new_stride = [1] in
+  let new_name = ["measure_" ^ (Symmod.get_name sm); 
+  "measure2_" ^ (Symmod.get_name sm) ] in
+  let new_vals = [!nvals; !nvals] in
+  let new_stride = [1; 1] in
   let new_id = Mlglu.mdd_create_variables sp.mgr 
     new_vals new_name new_stride in
   (* Biject.add s.module_to_supervar sm new_id; *)
-  new_id
+  (new_id, new_id +1)
 
 (** Print functions *) 
 
