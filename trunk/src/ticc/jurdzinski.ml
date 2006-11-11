@@ -1,11 +1,24 @@
-(* measure is a predicate over X and rho 
-   liftI(measure) = max { measure, min_{X'} Prog(measure) } 
- *)
-
 open Vset;;
 
 
-(** Computes the winning set of the non-Zenoness parity game.
+(** Returns the set of states which have a measure which
+    is separated from 0.
+    In other words, states that have a measure value "m > 0"
+    such that there is a value "n < m" such that
+    no state has value n. *)
+let separated sp measure vars rho =
+  let mgr = Mlglu.mdd_get_manager measure in
+  let not_m = Mlglu.mdd_not measure in
+  let always_not_m = Mlglu.mdd_consensus_list mgr not_m vars in
+  let min_gap = Mlglu.mdd_min mgr always_not_m rho in
+
+  let tmp = Mlglu.mdd_get_support mgr min_gap in
+  Symutil.print_varset_rough sp tmp;
+  Mlglu.mdd_print mgr min_gap;
+  ()
+
+
+(** Computes the losing set of the non-Zenoness parity game.
     Refer to the techrep for details. *)
 let winI sp sm =
   (* global data *)
@@ -76,7 +89,11 @@ let winI sp sm =
       trans := Mlglu.mdd_or !trans m 1 1;
     in
     Symmod.iter_irules sm do_one_rule;
+    (* conjoin with output invariant *)
+    trans := Mlglu.mdd_and !trans oinv' 1 1;
+    (* rename variables *)
     trans := Mlglu.mdd_substitute_two_lists mgr !trans var_list' var_list'';
+
     let term_action = Mlglu.mdd_and blitrue !trans 1 1 in
     let term_delta0 = Mlglu.mdd_and blitrue copy_x_x'' 1 1 in
     let term_delta1 = Mlglu.mdd_smooth mgr delta1_and_iinv vars' in
@@ -104,6 +121,8 @@ let winI sp sm =
     in
     Symmod.iter_lrules sm do_one_rule;
     Symmod.iter_orules sm do_one_rule;
+    (* conjoin with output invariant *)
+    trans := Mlglu.mdd_and !trans oinv' 1 1;
 
     let term1 = Mlglu.mdd_or copy_x'_x'' !trans 1 1 in
     let term1 = Mlglu.mdd_and term1 blotrue 1 1 in
@@ -121,9 +140,6 @@ let winI sp sm =
   debug tauO "tauO";
 
   let liftO (measure: Mlglu.mdd) : Mlglu.mdd =
-    Printf.printf "liftO follows \n";
-    flush stdout;
-
     let measure' = Mlglu.mdd_substitute_two_lists mgr 
       measure var_list var_list' in
     let res = Mlglu.mdd_and tauO measure' 1 1 in
@@ -133,9 +149,6 @@ let winI sp sm =
   in
 
   let liftI (measure: Mlglu.mdd) : Mlglu.mdd =
-    Printf.printf "liftI follows \n";
-    flush stdout;
-
     let measure' = Mlglu.mdd_substitute_two_lists mgr 
       measure var_list var_list' in
     let res = Mlglu.mdd_and tauI measure' 1 1 in
@@ -178,14 +191,14 @@ let winI sp sm =
 
   let measure = ref rho_zero in
   let diff = ref (Mlglu.mdd_one mgr) in
+  let measure_vars = bli :: (blo :: var_list) in
 
   while not (Mlglu.mdd_is_zero !diff) do
-    (** DEBUG **)
-    let losers = Mlglu.mdd_and !measure rho_max 1 1 in
-    debug losers "losers";
-
     let new_measure = liftI (liftO !measure) in
 
+    print_string ".";
+
+    separated sp new_measure measure_vars rho;
     (* let debug_mdd = Mlglu.mdd_not new_measure in
        let debug_mdd = Mlglu.mdd_consensus_list mgr debug_mdd [rho] in
        if not (Mlglu.mdd_is_zero debug_mdd) then begin
@@ -196,5 +209,8 @@ let winI sp sm =
     diff := Mlglu.mdd_and new_measure !measure 1 0;
     measure := new_measure;
   done;
-  !measure
+  print_string "\n";
+  let losers = Mlglu.mdd_and !measure rho_max 1 1 in
+  let losers = Mlglu.mdd_smooth_list mgr losers [rho] in
+  losers
 

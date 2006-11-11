@@ -48,81 +48,6 @@ mdd_t* mdd_max_on_mdd(mdd_manager* mgr, mdd_t* mdd, int id)
 
 
 /*
- * mdd_max_on_bits(mgr, mdd, var_id)
- * computes a new relation which is identical to mdd,
- * except that only the maximum value of var_id is kept for each
- * valuation of the other variables.
- * 
- * Let z_0 ... z_{n-1} be the binary variables encoding var_id,
- * where z_0 repesents the Most Significant Bit.
- * Let Z_{<i} denote the set of variables { z_0, ... , z_{i-1} }.
- * We use the following algorithm:
- *
- * res = mdd
- * for i = 0 to n-1 do
- *    res = res and ( (    z_i and exists Z_{<i}  res) or 
- *                    (not z_i and forall Z_{<=i} (z_i implies not res)) )
- * return res
- */
-static mdd_t* mdd_max_on_bits(mdd_manager* mgr, mdd_t* mdd, int id)
-{
-  array_t *mvar_list, *bvar_list, *bit_vars;
-  mvar_type mvar;
-  int i, j, n, bvar_id;
-  bdd_t *literal, *term0, *term1, *res, *bvar;
-
-  // get the global data
-  mvar_list = mdd_ret_mvar_list(mgr);
-  bvar_list = mdd_ret_bvar_list(mgr);
-
-  // get the characteristics of the mdd variable "id" 
-  mvar = array_fetch(mvar_type, mvar_list, id);
-  n = mvar.encode_length;
-  // initialize the result variable
-  res = mdd;
-
-  bit_vars = array_alloc(bdd_t *, n);
-  // reverse mvar.bvars into bit_vars, 
-  // so that later we can use array_remove_last 
-  // to discard more significant variables from the bit_vars
-  for (i = 0, j = n-1; i<n ;i++, j--) {
-    bvar_id = mdd_ret_bvar_id(&mvar, i);
-    bvar = bdd_get_variable(mgr, bvar_id);
-    array_insert(bdd_t *, bit_vars, j, bvar);
-  }
-
-  for (i = 0; i<n; i++) {
-
-    // DEBUG
-    // printf("i = %d\n", i);
-
-    // get the i-th most significant bit z_i
-    bvar_id = mdd_ret_bvar_id(&mvar, i);
-    // get the literal "z_i = 1"
-    literal = bdd_get_variable(mgr, bvar_id);
-
-    // build the term for z_i = 0
-    term0 = bdd_or(literal, res, 0, 0);
-    term0 = bdd_consensus(term0, bit_vars);
-    term0 = bdd_and(literal, term0, 0, 1);
-
-    array_remove_last(bit_vars);
-
-    // build the term for z_i = 1
-    term1 = bdd_smooth(res, bit_vars);
-    term1 = bdd_and(literal, term1, 1, 1);
-
-    // put together both terms
-    term0 = bdd_or(term0, term1, 1, 1);
-    // update the result
-    res = bdd_and(res, term0, 1, 1);
-  }
-  array_free(bit_vars);
-
-  return res;
-}
-
-/*
  * mdd_minmax(mgr, mdd, var_id, max)
  * computes a new relation which is identical to mdd,
  * except that only the maximum (or minimum) value of var_id is kept for each
@@ -131,6 +56,17 @@ static mdd_t* mdd_max_on_bits(mdd_manager* mgr, mdd_t* mdd, int id)
  * The maximum is kept if max==1, 
  * the minimum is kept if max==0.
  * Other values of max lead to failure.
+ *
+ * Let z_0 ... z_{n-1} be the binary variables encoding var_id,
+ * where z_0 repesents the Most Significant Bit.
+ * Let Z_{<i} denote the set of variables { z_0, ... , z_{i-1} }.
+ * For maximum, we use the following algorithm:
+ *
+ * res = mdd
+ * for i = 0 to n-1 do
+ *    res = res and ( (    z_i and exists Z_{<i}  res) or 
+ *                    (not z_i and forall Z_{<=i} (z_i implies not res)) )
+ * return res
  *
  * For minimum, we use the following algorithm:
  *
@@ -275,3 +211,22 @@ mdd_t* mdd_incr(mdd_manager* mgr, mdd_t* mdd, int id)
 
   return res;
 }
+
+
+/*
+int mdd_get_unique_value(mdd_manager* mgr, mdd_t* mdd, int id)
+{
+  array_t *mvar_list, *bvar_list;
+  array_t *res = array_alloc(int, 0);
+
+  // get the global data
+  mvar_list = mdd_ret_mvar_list(mgr);
+  bvar_list = mdd_ret_bvar_list(mgr);
+
+  // get the characteristics of the mdd variable "id" 
+  mvar = array_fetch(mvar_type, mvar_list, id);
+  n = mvar.encode_length;
+
+  
+}
+*/

@@ -74,8 +74,6 @@ type t = {
   mutable bad_states : Mlglu.mdd; 
   (** old invariant.  Used to justify non-iinv states *)
   mutable old_iinv : Mlglu.mdd;
-  (** void transition *)
-  mutable delta0 : Mlglu.mdd;  
   (** time transition, this mdd only states that clock variables
       increase their value by 1 *)
   mutable delta1 : Mlglu.mdd;
@@ -112,7 +110,6 @@ let mk mgr (name: string) : t =
     bad_states = Mlglu.mdd_zero mgr; 
     old_iinv   = Mlglu.mdd_one  mgr;
 
-    delta0 = Mlglu.mdd_zero mgr;
     delta1 = Mlglu.mdd_zero mgr;      
 
     lrules = Hsetmap.mk ();

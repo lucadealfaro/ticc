@@ -229,9 +229,18 @@ let get_jurdzinski_var (sp: t) (sm: Symmod.t) =
     let (var, _) = get_var_p sp var_id in
     nvals := !nvals * (Var.nvals var)
   in
-  let var_ids = Symmod.get_vars sm in
-  VarSet.iter do_one_var var_ids;
+  let vars = Symmod.get_vars sm in
+  let cvars = Symmod.get_cvars sm in
+  (* we do not need to consider states with different values of clocks
+     as they are not reachable without passing 
+     through states of color 0 *)
+  let not_cvars = VarSet.diff vars cvars in
+  VarSet.iter do_one_var not_cvars;
+  (* add one, to represent "infinity" *)
+  nvals := !nvals + 1;
 
+(* we add two such variables;
+   one is needed to increment the other by 1 *)
   let new_name = ["measure_" ^ (Symmod.get_name sm); 
   "measure2_" ^ (Symmod.get_name sm) ] in
   let new_vals = [!nvals; !nvals] in
