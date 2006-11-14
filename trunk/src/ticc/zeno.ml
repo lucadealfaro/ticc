@@ -34,7 +34,7 @@ let winI sp sm (gap: bool) =
   (* global data *)
   let mgr = Symprog.get_mgr sp in
 
-  let (rho, rho') = Symprog.get_jurdzinski_var sp sm in
+  let (rho, rho') = Symprog.get_measure_var sp sm in
   let max_val = (Mlglu.mdd_get_var_range mgr rho) -1 in
   let rho_max = Mlglu.mdd_literal mgr rho [max_val] in
   let rho_zero = Mlglu.mdd_literal mgr rho [0] in

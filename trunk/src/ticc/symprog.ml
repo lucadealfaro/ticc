@@ -216,12 +216,12 @@ let get_extra_vars (s: t) (vlist: varid_t list) : varid_t list =
 ;;
 
 
-(** [get_jurdzinski_var sp sm] returns the extra variable needed
-    to run Jurdzinski's algorithm for parity games.
+(** [get_measure_var sp sm] returns the extra variable needed
+    to run the progress measure algorithm for parity games.
 
     (TO DO) Such extra variable is created on demand and then "cached"
     for later use. *)
-let get_jurdzinski_var (sp: t) (sm: Symmod.t) =
+let get_measure_var (sp: t) (sm: Symmod.t) =
   let nvals = ref 1 in
   let do_one_var var_id =
     let (var, _) = get_var_p sp var_id in
