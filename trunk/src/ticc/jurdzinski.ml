@@ -3,24 +3,34 @@ open Vset;;
 
 (** Returns the set of states which have a measure which
     is separated from 0.
-    In other words, states that have a measure value "m > 0"
-    such that there is a value "n < m" such that
+    In other words, returns all states that have a measure value m > 0
+    such that there is a value n < m such that
     no state has value n. *)
 let separated sp measure vars rho =
   let mgr = Mlglu.mdd_get_manager measure in
   let not_m = Mlglu.mdd_not measure in
   let always_not_m = Mlglu.mdd_consensus_list mgr not_m vars in
-  let min_gap = Mlglu.mdd_min mgr always_not_m rho in
+  (* the mdd assigning to rho the value of the minimum gap *)
+  let min_gap = Mlglu.mdd_min always_not_m rho in
 
-  let tmp = Mlglu.mdd_get_support mgr min_gap in
-  Symutil.print_varset_rough sp tmp;
-  Mlglu.mdd_print mgr min_gap;
-  ()
+  (* let tmp = Mlglu.mdd_get_support mgr min_gap in *)
+  (* Symutil.print_varset_rough sp tmp; *)
+
+  (* the actual integral value of the minimum gap *)
+  let x = Mlglu.mdd_get_unique_value mgr min_gap rho in
+  let rho_gt_x = Mlglu.mdd_gt_c mgr rho x in
+  let result = Mlglu.mdd_and measure rho_gt_x 1 1 in
+  let result = Mlglu.mdd_smooth_list mgr result [rho] in
+  (* Printf.printf "x = %d \n" x; *)
+  result
 
 
 (** Computes the losing set of the non-Zenoness parity game.
     Refer to the techrep for details. *)
-let winI sp sm =
+let winI sp sm (gap: bool) =
+
+  let debug_jurdzinski = false in
+
   (* global data *)
   let mgr = Symprog.get_mgr sp in
 
@@ -62,7 +72,6 @@ let winI sp sm =
   let delta1' = Symutil.and_unchngd sp delta1 not_cvars in
   let delta1_and_iinv = Mlglu.mdd_and delta1' iinv' 1 1 in
 
-  let debug_jurdzinski = false in
   let debug mdd str =
     if debug_jurdzinski then begin
       Printf.printf "** %s=\n" str;
@@ -139,23 +148,33 @@ let winI sp sm =
   debug tauI "tauI";
   debug tauO "tauO";
 
-  let liftO (measure: Mlglu.mdd) : Mlglu.mdd =
+  (* lift operator for Output.
+     Given the current measures for input and output states,
+     it returns the new measure for Output states. *)
+  let liftO (mI: Mlglu.mdd) (mO: Mlglu.mdd) : Mlglu.mdd =
     let measure' = Mlglu.mdd_substitute_two_lists mgr 
-      measure var_list var_list' in
+      mI var_list var_list' in
     let res = Mlglu.mdd_and tauO measure' 1 1 in
     let res = Mlglu.mdd_smooth_list mgr res [blo] in
     let res = Mlglu.mdd_smooth mgr res vars' in
-    Mlglu.mdd_max mgr res rho
+    let new_res = if gap then begin
+      (* take maximum with respect to old Output measure *)
+      Mlglu.mdd_or res mO 1 1 
+    end else
+      res
+    in
+    Mlglu.mdd_max new_res rho
   in
 
-  let liftI (measure: Mlglu.mdd) : Mlglu.mdd =
+  (* lift operator for Input *)
+  let liftI (mI: Mlglu.mdd) (mO: Mlglu.mdd) : Mlglu.mdd =
     let measure' = Mlglu.mdd_substitute_two_lists mgr 
-      measure var_list var_list' in
+      mO var_list var_list' in
     let res = Mlglu.mdd_and tauI measure' 1 1 in
     let res = Mlglu.mdd_smooth_list mgr res [bli] in
     let res = Mlglu.mdd_smooth mgr res vars' in
     let res = Mlglu.mdd_smooth mgr res vars'' in
-    let minsucc = Mlglu.mdd_min mgr res rho in
+    let minsucc = Mlglu.mdd_min res rho in
 
     let incr m =
       let temp = Mlglu.mdd_eq_plus_c mgr rho' rho 1 in
@@ -186,31 +205,49 @@ let winI sp sm =
 
     let term2 = Mlglu.mdd_and color2 minsucc 1 1 in
     let res = Mlglu.mdd_or term0 term1 1 1 in
-    Mlglu.mdd_or res term2 1 1
+    let res = Mlglu.mdd_or res term2 1 1 in
+
+    (* optionally apply the gap optimization *)
+    if gap then begin
+      (* take maximum with respect to old Input measure *)
+      let temp = Mlglu.mdd_or res mI 1 1 in
+      Mlglu.mdd_max temp rho
+    end else
+      res
   in
 
-  let measure = ref rho_zero in
-  let diff = ref (Mlglu.mdd_one mgr) in
+  let mI     = ref rho_zero in
+  let new_mI = ref rho_zero in
+  let mO     = ref rho_zero in
+  let diff   = ref (Mlglu.mdd_one mgr) in
   let measure_vars = bli :: (blo :: var_list) in
 
   while not (Mlglu.mdd_is_zero !diff) do
-    let new_measure = liftI (liftO !measure) in
-
+    (* update output measure *)
+    mO     := liftO !mI !mO;
+    (* update input measure *)
+    new_mI := liftI !mI !mO;
     print_string ".";
+    flush stdout;
 
-    separated sp new_measure measure_vars rho;
-    (* let debug_mdd = Mlglu.mdd_not new_measure in
+    if gap then begin
+      let losers = separated sp !new_mI measure_vars rho in
+      let losers_to_top = Mlglu.mdd_and losers rho_max 1 1 in
+      let not_losers = Mlglu.mdd_and !new_mI losers 1 0 in
+      new_mI := Mlglu.mdd_or not_losers losers_to_top 1 1
+    end;
+	(* let debug_mdd = Mlglu.mdd_not new_measure in
        let debug_mdd = Mlglu.mdd_consensus_list mgr debug_mdd [rho] in
        if not (Mlglu.mdd_is_zero debug_mdd) then begin
        debug_always debug_mdd "states with no measure";
        raise Not_found;
        end; *)
     
-    diff := Mlglu.mdd_and new_measure !measure 1 0;
-    measure := new_measure;
+    diff := Mlglu.mdd_and !new_mI !mI 1 0;
+    mI := !new_mI;
   done;
   print_string "\n";
-  let losers = Mlglu.mdd_and !measure rho_max 1 1 in
+  let losers = Mlglu.mdd_and !mI rho_max 1 1 in
   let losers = Mlglu.mdd_smooth_list mgr losers [rho] in
   losers
 

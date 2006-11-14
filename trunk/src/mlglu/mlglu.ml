@@ -150,8 +150,9 @@ external mdd_cofactor_minterm  : mdd -> mdd -> mdd = "mlglu_cofactor_minterm"
 external mdd_smooth_original   : mdd_manager -> mdd -> int list -> mdd
   = "mlglu_smooth"
 
-external mdd_max : mdd_manager -> mdd -> int -> mdd = "mlglu_max"
-external mdd_min : mdd_manager -> mdd -> int -> mdd = "mlglu_min"
+external mdd_max : mdd -> int -> mdd = "mlglu_max"
+external mdd_min : mdd -> int -> mdd = "mlglu_min"
+external mdd_get_unique_value : mdd_manager -> mdd -> int -> int = "mlglu_get_unique_value"
 
 let mdd_smooth_list mgr a vlist =
   if List.length vlist > 0 then

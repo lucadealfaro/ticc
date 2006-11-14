@@ -75,16 +75,19 @@ mdd_t* mdd_max_on_mdd(mdd_manager* mgr, mdd_t* mdd, int id)
  *    res = res and ( (not z_i and exists Z_{<i}  res) or 
  *                    (    z_i and forall Z_{<=i} ((not z_i) implies not res)) )
  * return res */
-mdd_t* mdd_minmax(mdd_manager* mgr, mdd_t* mdd, int id, int max)
+mdd_t* mdd_minmax(mdd_t* mdd, int id, int max)
 {
   array_t *mvar_list, *bvar_list, *bit_vars;
   mvar_type mvar;
   int i, j, n, bvar_id;
   bdd_t *literal, *term0, *term1, *res, *bvar;
-
+  
+  mdd_manager *mgr = mdd_get_manager(mdd);
+  
   if (max != 0 && max != 1)
     fail("Wrong argument.");
 
+  
   // positive is the polarity of positive literals in the max algorithm
   int positive = max;
   // negative is the polarity of negative literals in the max algorithm
@@ -137,6 +140,7 @@ mdd_t* mdd_minmax(mdd_manager* mgr, mdd_t* mdd, int id, int max)
 
   return res;
 }
+
 
 /*
  * mdd_incr(mgr, mdd, var_id)
@@ -213,8 +217,44 @@ mdd_t* mdd_incr(mdd_manager* mgr, mdd_t* mdd, int id)
 }
 
 
-/*
+
 int mdd_get_unique_value(mdd_manager* mgr, mdd_t* mdd, int id)
+{
+  int i, n, bvar_id, res = 0;
+  array_t *mvar_list, *bvar_list, *smooth_var;
+  mvar_type mvar;
+  bdd_t *literal, *true_factor;
+
+  // get the global data
+  mvar_list = mdd_ret_mvar_list(mgr);
+  bvar_list = mdd_ret_bvar_list(mgr);
+  smooth_var = array_alloc(bdd_t *, 1);
+
+  // get the characteristics of the mdd variable "id" 
+  mvar = array_fetch(mvar_type, mvar_list, id);
+  n = mvar.encode_length;
+
+  for (i = 0; i<n; i++) {
+    // get the i-th most significant bit z_i
+    bvar_id = mdd_ret_bvar_id(&mvar, i);
+    // get the literal "z_i = 1"
+    literal = bdd_get_variable(mgr, bvar_id);
+    // compute the cofactor w.r.t. z_i
+    true_factor = bdd_and(mdd, literal, 1, 1);
+    array_insert(bdd_t *, smooth_var, 0, literal);
+    true_factor = bdd_smooth(true_factor, smooth_var);
+
+    // Marco asks: why "bdd_is_tautology(true_factor, 1)"
+    // is NOT equivalent to:
+    // "!bdd_is_tautology(true_factor, 0)" ??
+    if (!bdd_is_tautology(true_factor, 0))
+      res |= 1 << (n - i - 1);
+  } 
+  return res;
+}
+
+/*
+array_t *mdd_get_values(mdd_manager* mgr, mdd_t* mdd, int id)
 {
   array_t *mvar_list, *bvar_list;
   array_t *res = array_alloc(int, 0);
@@ -227,6 +267,11 @@ int mdd_get_unique_value(mdd_manager* mgr, mdd_t* mdd, int id)
   mvar = array_fetch(mvar_type, mvar_list, id);
   n = mvar.encode_length;
 
-  
+  for (i = 0; i<n; i++) {
+    // get the i-th most significant bit z_i
+    bvar_id = mdd_ret_bvar_id(&mvar, i);
+    // get the literal "z_i = 1"
+    literal = bdd_get_variable(mgr, bvar_id);
+  }  
 }
 */

@@ -14,7 +14,7 @@ type t = {
   (** MDD manager *)
   mgr: Mlglu.mdd_manager; 
 
-  (** blame variables *)
+  (** auxiliary variables for parity game *)
   bli: varid_t;
   blo: varid_t;
 
@@ -46,8 +46,6 @@ let env_act = "_env_action"
 (** Creates an empty symbolic toplevel *)
 let mk (n: string) : t = 
   let mgr = Mlglu.mdd_init [2; 2] ["bli"; "blo"] [1; 1] in
-  let bli = 0 in
-  let blo = 1 in
   {
     name = n; 
 
@@ -234,8 +232,9 @@ let get_jurdzinski_var (sp: t) (sm: Symmod.t) =
   (* we do not need to consider states with different values of clocks
      as they are not reachable without passing 
      through states of color 0 *)
+  (** WRONG! *)
   let not_cvars = VarSet.diff vars cvars in
-  VarSet.iter do_one_var not_cvars;
+  VarSet.iter do_one_var vars;
   (* add one, to represent "infinity" *)
   nvals := !nvals + 1;
 

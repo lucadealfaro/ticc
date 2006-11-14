@@ -1964,27 +1964,36 @@ value mlglu_pick_one_cube (value mgr, value fn, value mvars)
 }
 
 // Function added by Marco to implement parity games
-value mlglu_max (value mgr, value mdd, value id)
+value mlglu_max (value mdd, value id)
 {
-  CAMLparam3 (mgr, mdd, id);
+  CAMLparam2 (mdd, id);
   mdd_t *result;
+  mdd_manager *mgr = Mdd_mgr(mdd);
   
-  if (Manager (mgr) == NULL) {
-    raise_mgrError();
-  }
-  result = mdd_max( Manager(mgr), Mdd_node(mdd), Int_val(id) );
-  CAMLreturn (mlglu_nodeWrap (Manager (mgr), result));
+  result = mdd_max( Mdd_node(mdd), Int_val(id) );
+  CAMLreturn (mlglu_nodeWrap (mgr, result));
 }
 
 // Function added by Marco to implement parity games
-value mlglu_min (value mgr, value mdd, value id)
+value mlglu_min (value mdd, value id)
+{
+  CAMLparam2 (mdd, id);
+  mdd_t *result;
+  mdd_manager *mgr = Mdd_mgr(mdd);  
+
+  result = mdd_min( Mdd_node(mdd), Int_val(id) );
+  CAMLreturn (mlglu_nodeWrap (mgr, result));
+}
+
+// Function added by Marco to implement parity games
+value mlglu_get_unique_value (value mgr, value mdd, value id)
 {
   CAMLparam3 (mgr, mdd, id);
-  mdd_t *result;
+  int result;
   
   if (Manager (mgr) == NULL) {
     raise_mgrError();
   }
-  result = mdd_min( Manager(mgr), Mdd_node(mdd), Int_val(id) );
-  CAMLreturn (mlglu_nodeWrap (Manager (mgr), result));
+  result = mdd_get_unique_value( Manager(mgr), Mdd_node(mdd), Int_val(id) );
+  CAMLreturn (Val_int (result));
 }
