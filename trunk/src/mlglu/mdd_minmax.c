@@ -244,9 +244,10 @@ int mdd_get_unique_value(mdd_manager* mgr, mdd_t* mdd, int id)
     array_insert(bdd_t *, smooth_var, 0, literal);
     true_factor = bdd_smooth(true_factor, smooth_var);
 
-    // Marco asks: why "bdd_is_tautology(true_factor, 1)"
-    // is NOT equivalent to:
-    // "!bdd_is_tautology(true_factor, 0)" ??
+    // if the z_i cofactor is not equal to false,
+    // we set the i-th bit to 1.
+    // possible optimization: recur on true_factor, 
+    // rather than always start from mdd
     if (!bdd_is_tautology(true_factor, 0))
       res |= 1 << (n - i - 1);
   } 
