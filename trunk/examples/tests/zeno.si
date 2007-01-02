@@ -1,0 +1,22 @@
+// A module used to test timed ticc
+
+// var g: [0..10]
+// var a: [0..10]
+
+module A: 
+    var b: [0..5]
+    var x, y: clock 
+//    stateless g
+
+//    initial: a = 0 and b = 0  
+
+    iinv: b>0 or x>10
+    oinv: true
+
+    output splash: { x<20 and y<30 ==> b' = b + 1}
+    input ciao: { local: b>0 ==> b' := 0 }
+
+endmodule
+
+
+

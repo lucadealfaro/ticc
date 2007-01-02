@@ -1,0 +1,26 @@
+(* 
+	Comparison between two implementations of zenoness game.
+*)
+
+open Ticc;;
+parse "zeno.si" ;;
+let a = mk_sym "A";;
+
+print_module_full "A";;
+print_newline ();;
+
+Printf.printf "Zeno with gap:\n";;
+flush stdout;;
+let losers1 = zeno a true;;
+Printf.printf "Losing states:\n";;
+flush stdout;;
+print_stateset losers1;;
+
+Printf.printf "Zeno with cpre:\n";;
+flush stdout;;
+let losers2 = zeno_cpre a;;
+Printf.printf "Losing states:\n";;
+flush stdout;;
+print_stateset losers2;;
+
+Printf.printf "end.\n";;
