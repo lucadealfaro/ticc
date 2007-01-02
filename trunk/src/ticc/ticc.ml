@@ -142,6 +142,9 @@ let refines m1 m2 = Refine.refines Symprog.toplevel m1 m2
 (** Returns the set of losing states for Input *)
 let zeno = Zeno.winI Symprog.toplevel 
 
+(** Returns the set of losing states for Input *)
+let zeno_cpre = Zeno.winI_cpre Symprog.toplevel 
+
 (** Forgets a module *)
 let forget = Modops.forget_module Symprog.toplevel 
 
