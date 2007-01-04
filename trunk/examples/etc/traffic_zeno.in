@@ -1,0 +1,49 @@
+(*
+ * Traffic lights controller.
+ *
+ * This ocaml script demonstrates loading a model from a
+ * file, instantiating modules, and composing them together.
+ *)
+
+(* In order to get convenient access to the Ticc functions,
+ * we import them into the local namespace. *)
+open Ticc;;
+
+(* Load the model from a file, using the 'parse' function.
+ * When you parse a file, the information is stored in
+ * Ticc's global namespace.  You can, if you like, parse
+ * multiple files, but you have to make sure that none of
+ * the module names conflict. *)
+
+let srcfile = "traffic_zeno.si" in
+parse srcfile;;
+
+(* To do anything useful with the model, you need to instantiate
+ * modules. We instantiate a polling module, a dispatching
+ * module, a queue and two sensors. This configuration can
+ * control an intersection with total degree four with two
+ * orthogonal streams of traffic in both directions.
+ *
+ * To instantiate a module, we use the 'mk_sym' function
+ * to look up the definition of a module and create a symbolic
+ * representation out of the definition.  You can think of the
+ * symbolic representation of a module as the state transition
+ * diagram describing the module's behavior.  *)
+
+let sensor_0 = mk_sym "Sensor_0";;
+let sensor_1 = mk_sym "Sensor_1";;
+let poll = mk_sym "Poll";;
+let dispatcher = mk_sym "Dispatcher";;
+let queue = mk_sym "Queue";;
+
+let c1 = compose sensor_0 poll in
+(* let c2 = compose c1 sensor_1 in *)
+let c3 = compose c1 queue in
+let final = compose c3 dispatcher in
+
+print_string " now computing zenoness \n"; flush stdout;
+let losers2 = zeno_cpre sensor_0 in
+let losers = zeno sensor_0 true in
+()
+;;
+

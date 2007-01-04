@@ -1,5 +1,13 @@
 open Vset;;
 
+let print_time msg =
+  print_string msg;
+  let time = Sys.time () in
+  Printf.printf " %f\n" time;
+  flush stdout
+;;
+
+
 
 (** Returns the set of states which have a measure which
     is separated from 0.
@@ -48,7 +56,6 @@ let io_transitions sp sm =
   let var_list = Vset.to_list vars in
   let var_list' = Vset.to_list vars' in
   let var_list'' = Symprog.get_extra_vars sp var_list in
-  let vars'' = Vset.from_list var_list'' in
 
   (* some popular predicates *)
   let iinv = Symmod.get_iinv sm in
@@ -114,16 +121,16 @@ let io_transitions sp sm =
     let var'_var = List.append var_list' var_list  in
     trans := Mlglu.mdd_substitute_two_lists mgr !trans var_var' var'_var;
 
-    let term1 = Mlglu.mdd_or copy_x_x'' !trans 1 1 in
-    let term1 = Mlglu.mdd_and term1 blotrue 1 1 in
-    let term2 = Mlglu.mdd_and blitrue blotrue 1 0 in
-    let term2 = Mlglu.mdd_and term2 copy_x_x'' 1 1 in
-    let term3 = Mlglu.mdd_and blitrue blotrue 0 0 in
+    let term1 = Mlglu.mdd_or  copy_x_x'' !trans  1 1 in
+    let term1 = Mlglu.mdd_and term1   blotrue    1 1 in
+    let term2 = Mlglu.mdd_and blitrue blotrue    1 0 in
+    let term2 = Mlglu.mdd_and term2   copy_x_x'' 1 1 in
+    let term3 = Mlglu.mdd_and blitrue blotrue    0 0 in
     let inverted_delta1 = Mlglu.mdd_substitute_two_lists mgr delta1
       var_var' var'_var in
     let term3 = Mlglu.mdd_and term3 inverted_delta1 1 1 in
-    let term3 = Mlglu.mdd_and term3 oinv 1 1 in
-    let res = Mlglu.mdd_or term1 term2 1 1 in
+    let term3 = Mlglu.mdd_and term3 oinv  1 1 in
+    let res   = Mlglu.mdd_or  term1 term2 1 1 in
     Mlglu.mdd_or res term3 1 1
   in
   (tauI, tauO)
@@ -136,15 +143,24 @@ let winI sp sm (gap: bool) =
 
   let debug_jurdzinski = false in
 
-  (* global data *)
   let mgr = Symprog.get_mgr sp in
 
   let (rho, rho') = Symprog.get_measure_var sp sm in
+  (* maximum value of rho (progress measure) *)
   let max_val = (Mlglu.mdd_get_var_range mgr rho) -1 in
+  (* predicate rho = rho_max *)
   let rho_max = Mlglu.mdd_literal mgr rho [max_val] in
+  (* predicate rho = 0 *)
   let rho_zero = Mlglu.mdd_literal mgr rho [0] in
-  Printf.printf "max value of rho=%d \n" max_val;
-  flush stdout;
+
+  Printf.printf "max value of rho=%d \n" max_val; flush stdout;
+  print_time "start:";
+
+  (* this line can be _very_ expensive *)
+  (* predicate rho' = rho + 1 *)
+  let incr_rho = Mlglu.mdd_eq_plus_c mgr rho' rho 1 in
+
+  print_time "measure increment computed:";
 
   (* variables for blameI and blameO *)
   let bli = Symprog.get_bli sp in
@@ -152,6 +168,11 @@ let winI sp sm (gap: bool) =
   (* literals for blameI and blameO *)
   let blitrue = Mlglu.mdd_literal mgr bli [1] in
   let blotrue = Mlglu.mdd_literal mgr blo [1] in
+
+  (* slices of the parity games *)
+  let color0 = Mlglu.mdd_and blitrue blotrue 0 0 in
+  let color1 = Mlglu.mdd_and blitrue blotrue 1 0 in
+  let color2 = blotrue in
 
   (* variables we deal with *)
   let vars = Symmod.get_vars sm in
@@ -188,8 +209,13 @@ let winI sp sm (gap: bool) =
      it returns the new measure for output states. *)
   let liftO (mI: Mlglu.mdd) (mO: Mlglu.mdd) : Mlglu.mdd =
     let res = Mlglu.mdd_and tauO mI 1 1 in
+
+    (* the sequence a -> b takes a "long" time *)
+    print_time "a:";
+
     let res = Mlglu.mdd_smooth_list mgr res [blo] in
     let res = Mlglu.mdd_smooth      mgr res vars in
+
     (* optionally apply the gap optimization *)
     let new_res = if gap then begin
       (* take maximum with respect to old Output measure *)
@@ -204,41 +230,44 @@ let winI sp sm (gap: bool) =
      Given the current measures for input and output states,
      it returns the new measure for input states. *)
   let liftI (mI: Mlglu.mdd) (mO: Mlglu.mdd) : Mlglu.mdd =
+
+    print_time "b:";
+
     let measure' = Mlglu.mdd_substitute_two_lists mgr 
       mO var_list var_list' in
+
+    (* the sequence c -> d takes a "long" time *)
+    print_time "c:";
+
     let res = Mlglu.mdd_and tauI measure' 1 1 in
     let res = Mlglu.mdd_smooth_list mgr res [bli] in
-    let res = Mlglu.mdd_smooth mgr res vars' in
-    let res = Mlglu.mdd_smooth mgr res vars'' in
+    let res = Mlglu.mdd_smooth      mgr res vars' in
+    let res = Mlglu.mdd_smooth      mgr res vars'' in
+
+    print_time "d:";
+
     let minsucc = Mlglu.mdd_min res rho in
 
-    let incr m =
-      let temp = Mlglu.mdd_eq_plus_c mgr rho' rho 1 in
-      let temp = Mlglu.mdd_and m temp 1 1 in
+    let incr_minsucc =
+      let temp = Mlglu.mdd_and minsucc incr_rho 1 1 in
       let temp = Mlglu.mdd_smooth_list mgr temp [rho] in
       let temp = Mlglu.mdd_substitute_two_lists mgr temp [rho'] [rho] in
       (* add the term for rho = max_val *)
-      let keep_value = Mlglu.mdd_and m rho_max 1 1 in
+      let keep_value = Mlglu.mdd_and minsucc rho_max 1 1 in
       Mlglu.mdd_or temp keep_value 1 1 
     in
-    (* slices of the parity games *)
-    let color0 = Mlglu.mdd_and blitrue blotrue 0 0 in
-    let color1 = Mlglu.mdd_and blitrue blotrue 1 0 in
-    let color2 = blotrue in
 
-    debug minsucc "minsucc";
-    debug (incr minsucc) "incr";
+    (* debug minsucc "minsucc";
+       debug (incr minsucc) "incr"; *)
 
     let term0 = Mlglu.mdd_and rho_max minsucc 1 1 in
-    let temp = Mlglu.mdd_lt_c mgr rho max_val in
-    let temp = Mlglu.mdd_and temp minsucc 1 1 in
-    let temp = Mlglu.mdd_smooth_list mgr temp [rho] in
-    let temp = Mlglu.mdd_and temp rho_zero 1 1 in
-    let term0 = Mlglu.mdd_or term0 temp 1 1 in
-    let term0 = Mlglu.mdd_and term0 color0 1 1 in
-
-    let term1 = Mlglu.mdd_and color1 (incr minsucc) 1 1 in
-
+    let temp  = Mlglu.mdd_lt_c mgr rho max_val    in
+    let temp  = Mlglu.mdd_and temp    minsucc 1 1 in
+    let temp  = Mlglu.mdd_smooth_list mgr temp [rho] in
+    let temp  = Mlglu.mdd_and temp  rho_zero 1 1 in
+    let term0 = Mlglu.mdd_or  term0 temp     1 1 in
+    let term0 = Mlglu.mdd_and term0 color0   1 1 in
+    let term1 = Mlglu.mdd_and color1 incr_minsucc 1 1 in
     let term2 = Mlglu.mdd_and color2 minsucc 1 1 in
     let res = Mlglu.mdd_or term0 term1 1 1 in
     let res = Mlglu.mdd_or res term2 1 1 in
@@ -247,6 +276,7 @@ let winI sp sm (gap: bool) =
     if gap then begin
       (* take maximum with respect to old Input measure *)
       let temp = Mlglu.mdd_or res mI 1 1 in
+
       Mlglu.mdd_max temp rho
     end else
       res
@@ -259,6 +289,9 @@ let winI sp sm (gap: bool) =
   let measure_vars = bli :: (blo :: var_list) in
 
   while not (Mlglu.mdd_is_zero !diff) do
+
+    print_time "cycle starts:";
+
     (* update output measure *)
     mO     := liftO !mI !mO;
     (* update input measure *)
@@ -283,9 +316,12 @@ let winI sp sm (gap: bool) =
        debug_always debug_mdd "states with no measure";
        raise Not_found;
        end; *)
-    
+
     diff := Mlglu.mdd_and !new_mI !mI 1 0;
     mI := !new_mI;
+
+    print_time "cycle ends:";
+
   done;
   print_string "\n";
   (* states with maximum value of rho are losing *)
@@ -294,9 +330,17 @@ let winI sp sm (gap: bool) =
   losers
 
 
+(** Computes the set of states where Input does not have a strategy
+    to let time diverge or blame the adversary.
+    Uses the algorithm based on a triple fixpoint. *)
 let winI_cpre sp sm =
   let mgr = Symprog.get_mgr sp in
+
+  print_time "start:";
+
   let (tauI, tauO) = io_transitions sp sm in
+
+  print_time "transition relations obtained:";
 
   (* variables we deal with *)
   let vars = Symmod.get_vars sm in
@@ -304,8 +348,8 @@ let winI_cpre sp sm =
   (* Warning: I'm assuming that the sets vars and vars' are converted
      into lists in the same order. Is this safe? Marco *)
   let var_list = Vset.to_list vars in
-  let var_list' = Vset.to_list vars' in
-  let var_list'' = Symprog.get_extra_vars sp var_list in
+  (* let var_list' = Vset.to_list vars' in *)
+  let var_list'' = Symprog.get_extra_vars sp var_list in 
   let vars'' = Vset.from_list var_list'' in
 
   (* variables for blameI and blameO *)
@@ -328,6 +372,8 @@ let winI_cpre sp sm =
 
   let z = ref (Mlglu.mdd_one mgr) 
   and z_diff = ref (Mlglu.mdd_one mgr) in
+
+  print_time "start main loop:";
   
   while not (Mlglu.mdd_is_zero !z_diff) do
     let z_term = cpreI !z in
@@ -366,5 +412,8 @@ let winI_cpre sp sm =
     z_diff := Mlglu.mdd_and !z !y 1 0;
     z := !y;
   done;
+
+  print_time "end:";
+
   let losers = Mlglu.mdd_and (Mlglu.mdd_one mgr) !z 1 0 in
   losers
