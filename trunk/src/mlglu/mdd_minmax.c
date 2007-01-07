@@ -144,9 +144,11 @@ mdd_t* mdd_minmax(mdd_t* mdd, int id, int max)
 
 /*
  * mdd_incr(mgr, mdd, var_id)
- * computes a new relation which is identical to mdd,
+ *
+ * Computes a new relation which is identical to mdd,
  * except that the value of var_id is incremented by one 
- * in each tuple belonging to the relation.
+ * in each tuple belonging to the relation where 
+ * the value of var_id is not already maxed out.
  * 
  * Let z_0 ... z_{n-1} be the binary variables encoding var_id,
  * where z_0 repesents the Most Significant Bit.
@@ -160,13 +162,15 @@ mdd_t* mdd_minmax(mdd_t* mdd, int id, int max)
  *    res = res or ( new_prefix and z_i and exists Z_{>=i} (mdd and old_prefix and not z_i) )
  * return res
  */
-/* WARNING: only works for power-of-2 variables!! */
-mdd_t* mdd_incr(mdd_manager* mgr, mdd_t* mdd, int id)
+mdd_t* mdd_incr(mdd_t* mdd, int id)
 {
-  array_t *mvar_list, *bvar_list, *smooth_vars;
+  array_t *mvar_list, *bvar_list, *smooth_vars, *max_val_array;
   mvar_type mvar;
-  int i, n, nvals, bvar_id;
-  bdd_t *literal, *term, *old_prefix, *new_prefix, *res;
+  int i, n, max_val, bvar_id;
+  bdd_t *literal, *max_val_literal, *term, *old_prefix, *new_prefix, *res;
+  bdd_t *mdd_maxed_out, *mdd_not_maxed_out;
+
+  mdd_manager *mgr = mdd_get_manager(mdd);
 
   // get the global data
   mvar_list = mdd_ret_mvar_list(mgr);
@@ -175,14 +179,24 @@ mdd_t* mdd_incr(mdd_manager* mgr, mdd_t* mdd, int id)
   // get the characteristics of the mdd variable "id" 
   mvar = array_fetch(mvar_type, mvar_list, id);
   n = mvar.encode_length;
-  nvals = mvar.values;
+  max_val = mvar.values -1;
+
   // initialize the result variable
   res = bdd_zero(mgr);
   old_prefix = bdd_one(mgr);
   new_prefix = bdd_one(mgr);
 
+  // isolate term with maximum value from the rest
+  max_val_array = array_alloc(int, 1);
+  array_insert(int, max_val_array, 0, max_val);
+  max_val_literal = mdd_literal(mgr, id, max_val_array);
+  // it holds mdd = mdd_maxed_out OR mdd_not_maxed_out
+  mdd_maxed_out     = mdd_and(mdd, max_val_literal, 1, 1);
+  mdd_not_maxed_out = mdd_and(mdd, max_val_literal, 1, 0);
+
   smooth_vars = array_alloc(bdd_t *, 0);
 
+  // from the least to the most significant
   for (i=n-1; i>=0 ;i--) {
 
     // get the i-th most significant bit z_i
@@ -192,7 +206,7 @@ mdd_t* mdd_incr(mdd_manager* mgr, mdd_t* mdd, int id)
     // add z_i to the set of variables to be smoothed
     array_insert_last(bdd_t *, smooth_vars, literal);
 
-    term = bdd_and(mdd, old_prefix, 1, 1);
+    term = bdd_and(mdd_not_maxed_out, old_prefix, 1, 1);
     term = bdd_and(term, literal, 1, 0);
     term = bdd_smooth(term, smooth_vars);
     term = bdd_and(term, new_prefix, 1, 1);
@@ -203,15 +217,14 @@ mdd_t* mdd_incr(mdd_manager* mgr, mdd_t* mdd, int id)
     // prolong conjunction of positive literals
     old_prefix = bdd_and(old_prefix, literal, 1, 1);
     // prolong conjunction of negative literals
-    new_prefix = bdd_and(old_prefix, literal, 1, 0);
-
+    new_prefix = bdd_and(new_prefix, literal, 1, 0);
   }
   array_free(smooth_vars);
+  array_free(max_val_array);
   
   // add the extra term containing the tuples where
   // the variable is already maxed out.
-  term = bdd_and(mdd, old_prefix, 1, 1);
-  res = bdd_or(res, term, 1, 1);
+  res = bdd_or(res, mdd_maxed_out, 1, 1);
 
   return res;
 }

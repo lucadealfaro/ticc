@@ -1986,6 +1986,17 @@ value mlglu_min (value mdd, value id)
 }
 
 // Function added by Marco to implement parity games
+value mlglu_incr (value mdd, value id)
+{
+  CAMLparam2 (mdd, id);
+  mdd_t *result;
+  mdd_manager *mgr = Mdd_mgr(mdd);  
+
+  result = mdd_incr( Mdd_node(mdd), Int_val(id) );
+  CAMLreturn (mlglu_nodeWrap (mgr, result));
+}
+
+// Function added by Marco to implement parity games
 value mlglu_get_unique_value (value mgr, value mdd, value id)
 {
   CAMLparam3 (mgr, mdd, id);

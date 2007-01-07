@@ -3,6 +3,7 @@ VERSION=`cat VERSION`
 SRCDIR = src
 PARSEDIR = $(SRCDIR)/ticc
 GLUDIR = $(SRCDIR)/mlglu
+DOCDIR = doc/api
 
 include $(SRCDIR)/ocaml.make
 
@@ -18,11 +19,12 @@ ticc:
 clean:
 	cd $(GLUDIR); make clean
 	cd $(PARSEDIR); make clean
+	rm -rf doc
 
 doc:
-	rm -rf doc/api
+	rm -rf $(DOCDIR)
 	mkdir -p doc/api
-	$(OCAMLDOC) -html -d doc/api $(PARSEDIR)/ticc.mli
+	$(OCAMLDOC) -html -d $(DOCDIR) -I $(GLUDIR) -I $(PARSEDIR) $(PARSEDIR)/*.mli $(PARSEDIR)/*.ml
 
 dist: apidoc
 	rm -rf ticc-$(VERSION)

@@ -1,10 +1,11 @@
 open Vset;;
 
-let print_time msg =
-  print_string msg;
-  let time = Sys.time () in
-  Printf.printf " %f\n" time;
-  flush stdout
+let print_time msg = ()
+  (* let print_time msg =
+     print_string msg;
+     let time = Sys.time () in
+     Printf.printf " %f\n" time;
+     flush stdout *)
 ;;
 
 
@@ -158,7 +159,7 @@ let winI sp sm (gap: bool) =
 
   (* this line can be _very_ expensive *)
   (* predicate rho' = rho + 1 *)
-  let incr_rho = Mlglu.mdd_eq_plus_c mgr rho' rho 1 in
+  (* let incr_rho = Mlglu.mdd_eq_plus_c mgr rho' rho 1 in *)
 
   print_time "measure increment computed:";
 
@@ -201,8 +202,8 @@ let winI sp sm (gap: bool) =
   in
 
   let (tauI, tauO) = io_transitions sp sm in
-  debug tauI "tauI"; 
-  debug tauO "tauO";
+  (* debug tauI "tauI"; 
+     debug tauO "tauO"; *)
 
   (* lift operator for Output.
      Given the current measures for input and output states,
@@ -247,18 +248,18 @@ let winI sp sm (gap: bool) =
     print_time "d:";
 
     let minsucc = Mlglu.mdd_min res rho in
+    let incr_minsucc = Mlglu.mdd_incr minsucc rho in
 
-    let incr_minsucc =
-      let temp = Mlglu.mdd_and minsucc incr_rho 1 1 in
-      let temp = Mlglu.mdd_smooth_list mgr temp [rho] in
-      let temp = Mlglu.mdd_substitute_two_lists mgr temp [rho'] [rho] in
-      (* add the term for rho = max_val *)
-      let keep_value = Mlglu.mdd_and minsucc rho_max 1 1 in
-      Mlglu.mdd_or temp keep_value 1 1 
-    in
+    (* let temp = Mlglu.mdd_and minsucc incr_rho 1 1 in
+       let temp = Mlglu.mdd_smooth_list mgr temp [rho] in
+       let temp = Mlglu.mdd_substitute_two_lists mgr temp [rho'] [rho] in
+    (* add the term for rho = max_val *)
+       let keep_value = Mlglu.mdd_and minsucc rho_max 1 1 in
+       Mlglu.mdd_or temp keep_value 1 1 
+       in *)
 
-    (* debug minsucc "minsucc";
-       debug (incr minsucc) "incr"; *)
+    debug minsucc "minsucc";
+    debug incr_minsucc "incr";
 
     let term0 = Mlglu.mdd_and rho_max minsucc 1 1 in
     let temp  = Mlglu.mdd_lt_c mgr rho max_val    in
