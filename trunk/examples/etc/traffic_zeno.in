@@ -43,7 +43,8 @@ let final = compose c3 dispatcher in
 
 print_string " now computing zenoness \n"; flush stdout;
 let losers2 = zeno_cpre sensor_0 in
+print_stateset losers2;;
 let losers = zeno sensor_0 true in
-()
-;;
+print_stateset losers;;
+
 

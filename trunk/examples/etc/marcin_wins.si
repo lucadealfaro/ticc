@@ -1,0 +1,29 @@
+// A module used to test timed ticc
+
+// With cpre: 850 seconds
+// With Jurdzinski: 127 seconds
+
+module A: 
+    var b: [0..31]
+    var c: [0..31]
+    var x: clock 
+
+    iinv: b=31 or x=0
+    oinv: c>15 or x=0
+
+    output bang:   { x>20 ==> b' = 0 and x' = 0 }
+
+    output gulp:   { true ==> c' = c+1 }
+
+    input ciao:  { local: b>5 and x<40 ==> b' := b + 2 }
+endmodule
+
+
+// A module showing that there was an error in tau^O
+module B: 
+    var b: [0..127]
+    var x: clock 
+
+    iinv: b<100 or x=0
+    oinv: b<100 or x=0
+endmodule

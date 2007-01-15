@@ -78,7 +78,7 @@ module Sensor_0:
   input pass : {
     global: true ==> sensor' = myid
 
-    local: state = 1 & t = 5 & w = 0 ==> t' := 0
+    local: state = 1 & t = 20 & w = 0 ==> t' := 0
   }
   // Notify polling module that you are ready to go and move to Waiting state
   input ready : {
