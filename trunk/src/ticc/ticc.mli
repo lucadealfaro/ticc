@@ -342,5 +342,5 @@ val print_bool : bool -> unit
 
 val unwrap_stateset : stateset_t -> Mlglu.mdd 
 val wrap_stateset   : Mlglu.mdd  -> stateset_t
-val zeno      : symbolic_module_t -> bool -> stateset_t
-val zeno_cpre : symbolic_module_t -> stateset_t
+val zeno      : ?gap:bool     -> symbolic_module_t -> stateset_t
+val zeno_cpre : ?verbose:bool -> symbolic_module_t -> stateset_t

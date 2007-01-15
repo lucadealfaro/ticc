@@ -35,7 +35,6 @@ let have_same_signature (m1:Symmod.t) (m2:Symmod.t) : bool =
     that can be reached.
  *)
 let epsilon_closure (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-  let mgr = Symprog.get_mgr sp in
   let tot_set = ref set 
   and frontier = ref set in 
   while not (Mlglu.mdd_is_zero !frontier) do

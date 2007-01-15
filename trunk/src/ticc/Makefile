@@ -12,7 +12,7 @@ GLUINCDIR = $(GLUDIR)/include
 
 
 # Vars we use in our rules to build ocaml programs
-OCAMLDEBUG = -g
+#OCAMLDEBUG=-g
 INCLUDES=-I ../mlglu
 OCAML_CFLAGS=$(INCLUDES) $(OCAMLDEBUG) 
 OCAMLOPTFLAGS=$(INCLUDES)

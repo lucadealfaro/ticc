@@ -1,11 +1,10 @@
 open Vset;;
 
 let print_time msg = ()
-  (* let print_time msg =
-     print_string msg;
-     let time = Sys.time () in
-     Printf.printf " %f\n" time;
-     flush stdout *)
+  (*  print_string msg;
+    let time = Sys.time () in
+    Printf.printf " %f\n" time;
+    flush stdout *)
 ;;
 
 
@@ -124,13 +123,16 @@ let io_transitions sp sm =
 
     let term1 = Mlglu.mdd_or  copy_x_x'' !trans  1 1 in
     let term1 = Mlglu.mdd_and term1   blotrue    1 1 in
-    let term2 = Mlglu.mdd_and blitrue blotrue    1 0 in
-    let term2 = Mlglu.mdd_and term2   copy_x_x'' 1 1 in
+    let inverted_delta1 = 
+      Mlglu.mdd_substitute_two_lists mgr delta1 var_var' var'_var in
+    let inverted_delta1_and_oinv = 
+      Mlglu.mdd_and inverted_delta1 oinv 1 1 in
+    let term2 = Mlglu.mdd_smooth mgr inverted_delta1_and_oinv vars in
+    let term2 = Mlglu.mdd_and term2 blitrue    1 1 in
+    let term2 = Mlglu.mdd_and term2 blotrue    1 0 in
+    let term2 = Mlglu.mdd_and term2 copy_x_x'' 1 1 in
     let term3 = Mlglu.mdd_and blitrue blotrue    0 0 in
-    let inverted_delta1 = Mlglu.mdd_substitute_two_lists mgr delta1
-      var_var' var'_var in
-    let term3 = Mlglu.mdd_and term3 inverted_delta1 1 1 in
-    let term3 = Mlglu.mdd_and term3 oinv  1 1 in
+    let term3 = Mlglu.mdd_and term3 inverted_delta1_and_oinv 1 1 in
     let res   = Mlglu.mdd_or  term1 term2 1 1 in
     Mlglu.mdd_or res term3 1 1
   in
@@ -140,7 +142,7 @@ let io_transitions sp sm =
 (** Computes the set of states where Input does not have a strategy
     to let time diverge or blame the adversary.
     Refer to the techrep 06-timed-ticc for details. *)
-let winI sp sm (gap: bool) =
+let winI sp ?(gap: bool = true) sm =
 
   let debug_jurdzinski = false in
 
@@ -156,12 +158,6 @@ let winI sp sm (gap: bool) =
 
   Printf.printf "max value of rho=%d \n" max_val; flush stdout;
   print_time "start:";
-
-  (* this line can be _very_ expensive *)
-  (* predicate rho' = rho + 1 *)
-  (* let incr_rho = Mlglu.mdd_eq_plus_c mgr rho' rho 1 in *)
-
-  print_time "measure increment computed:";
 
   (* variables for blameI and blameO *)
   let bli = Symprog.get_bli sp in
@@ -183,7 +179,6 @@ let winI sp sm (gap: bool) =
   let var_list = Vset.to_list vars in
   let var_list' = Vset.to_list vars' in
   let var_list'' = Symprog.get_extra_vars sp var_list in
-  let vars'' = Vset.from_list var_list'' in
 
   (* some debugging functions *)
   let debug mdd str =
@@ -205,6 +200,10 @@ let winI sp sm (gap: bool) =
   (* debug tauI "tauI"; 
      debug tauO "tauO"; *)
 
+  (* list of variables to be smoothed *)
+  let smoothy_O = blo::var_list in
+  let smoothy_I = bli::(var_list'@var_list'') in
+
   (* lift operator for Output.
      Given the current measures for input and output states,
      it returns the new measure for output states. *)
@@ -213,9 +212,8 @@ let winI sp sm (gap: bool) =
 
     (* the sequence a -> b takes a "long" time *)
     print_time "a:";
-
-    let res = Mlglu.mdd_smooth_list mgr res [blo] in
-    let res = Mlglu.mdd_smooth      mgr res vars in
+    let res = Mlglu.mdd_smooth_list mgr res smoothy_O in
+    print_time "b:";
 
     (* optionally apply the gap optimization *)
     let new_res = if gap then begin
@@ -232,19 +230,13 @@ let winI sp sm (gap: bool) =
      it returns the new measure for input states. *)
   let liftI (mI: Mlglu.mdd) (mO: Mlglu.mdd) : Mlglu.mdd =
 
-    print_time "b:";
-
     let measure' = Mlglu.mdd_substitute_two_lists mgr 
       mO var_list var_list' in
 
     (* the sequence c -> d takes a "long" time *)
     print_time "c:";
-
     let res = Mlglu.mdd_and tauI measure' 1 1 in
-    let res = Mlglu.mdd_smooth_list mgr res [bli] in
-    let res = Mlglu.mdd_smooth      mgr res vars' in
-    let res = Mlglu.mdd_smooth      mgr res vars'' in
-
+    let res = Mlglu.mdd_smooth_list mgr res smoothy_I in
     print_time "d:";
 
     let minsucc = Mlglu.mdd_min res rho in
@@ -258,8 +250,8 @@ let winI sp sm (gap: bool) =
        Mlglu.mdd_or temp keep_value 1 1 
        in *)
 
-    debug minsucc "minsucc";
-    debug incr_minsucc "incr";
+    (* debug minsucc "minsucc";
+       debug incr_minsucc "incr"; *)
 
     let term0 = Mlglu.mdd_and rho_max minsucc 1 1 in
     let temp  = Mlglu.mdd_lt_c mgr rho max_val    in
@@ -334,7 +326,7 @@ let winI sp sm (gap: bool) =
 (** Computes the set of states where Input does not have a strategy
     to let time diverge or blame the adversary.
     Uses the algorithm based on a triple fixpoint. *)
-let winI_cpre sp sm =
+let winI_cpre sp ?(verbose : bool = false) sm =
   let mgr = Symprog.get_mgr sp in
 
   print_time "start:";
@@ -382,8 +374,13 @@ let winI_cpre sp sm =
     let z_term = Mlglu.mdd_and z_term blotrue 1 0 in
 
     (* display a progress indicator *)
-    print_string ".";
-    flush stdout;
+    if verbose then begin
+      print_string "Z";
+      flush stdout;
+    end else begin
+      print_string ".";
+      flush stdout;
+    end;
     
     let y = ref (Mlglu.mdd_zero mgr) 
     and y_diff = ref (Mlglu.mdd_one mgr) in
@@ -393,12 +390,22 @@ let winI_cpre sp sm =
       let y_term = Mlglu.mdd_and y_term blitrue 1 1 in
       let y_term = Mlglu.mdd_and y_term blotrue 1 0 in
 
+      if verbose then begin
+	print_string "y";
+	flush stdout;
+      end;
+
       let x = ref (Mlglu.mdd_one mgr)
       and x_diff = ref (Mlglu.mdd_one mgr) in
      
       while not (Mlglu.mdd_is_zero !x_diff) do
 	let x_term = cpreI !x in
 	let x_term = Mlglu.mdd_and x_term blotrue 1 1 in
+
+	if verbose then begin
+	  print_string "x";
+	  flush stdout;
+	end;
 	
 	let all_terms = Mlglu.mdd_or x_term y_term 1 1 in
 	let all_terms = Mlglu.mdd_or all_terms z_term 1 1 in
