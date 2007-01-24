@@ -43,6 +43,6 @@ module ClockB:
     var c:  clock
     oinv:   c <= 5
 
-    output periodB: { c = 4 ==> c' = 0 }
+    output periodB: { c = 5 ==> c' = 0 }
 endmodule
 
