@@ -341,7 +341,18 @@ action smoke1:--------
 Modifies only variables in: 
 { FireDetector1.s }
 ----[input global]:
-(1) 
+(
+ (ControlUnit.s = 0)(
+   (ControlUnit.s' = 0)) 
+  + 
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 1)) 
+  + 
+ (ControlUnit.s = 2)(
+   (ControlUnit.s' = 2)) 
+  + 
+ (ControlUnit.s = 3)(
+   (ControlUnit.s' = 3)) ) 
 ----[input local]:
 (
  (FireDetector1.s = 0)(
@@ -462,7 +473,15 @@ action disable:--------
 Modifies only variables in: 
 { ControlUnit.s }
 ----[input global]:
-(1) 
+(
+ (Faulty_FireDetector2.s = 0)(
+   (Faulty_FireDetector2.s' = 0)) 
+  + 
+ (Faulty_FireDetector2.s = 1)(
+   (Faulty_FireDetector2.s' = 1)) 
+  + 
+ (Faulty_FireDetector2.s = 2)(
+   (Faulty_FireDetector2.s' = 2)) ) 
 ----[input local]:
 (
  (ControlUnit.s' = 3)) 
@@ -481,7 +500,18 @@ action smoke2:--------
 Modifies only variables in: 
 { Faulty_FireDetector2.s }
 ----[input global]:
-(1) 
+(
+ (ControlUnit.s = 0)(
+   (ControlUnit.s' = 0)) 
+  + 
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 1)) 
+  + 
+ (ControlUnit.s = 2)(
+   (ControlUnit.s' = 2)) 
+  + 
+ (ControlUnit.s = 3)(
+   (ControlUnit.s' = 3)) ) 
 ----[input local]:
 (
  (Faulty_FireDetector2.s = 0)(

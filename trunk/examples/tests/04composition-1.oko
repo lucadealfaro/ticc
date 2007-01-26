@@ -89,7 +89,17 @@ Modifies only variables in:
 { FireDetector1.s }
 ----[input global]:
 (
- (FireDetector1.s = 0)) 
+ (ControlUnit.s = 0)(
+   (ControlUnit.s' = 0)(
+     (FireDetector1.s = 0)) ) 
+  + 
+ (ControlUnit.s = 1)(
+   (ControlUnit.s' = 1)(
+     (FireDetector1.s = 0)) ) 
+  + 
+ (ControlUnit.s = 2)(
+   (ControlUnit.s' = 2)(
+     (FireDetector1.s = 0)) ) ) 
 ----[input local]:
 (
  (FireDetector1.s = 0)(
