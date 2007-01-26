@@ -1,0 +1,34 @@
+(* 
+	Comparison between two implementations of zenoness game.
+*)
+
+open Ticc;;
+parse "sch2bigone.si" ;;
+let m = mk_sym "Scheduling";;
+
+
+Printf.printf "Zeno with cpre:\n";;
+flush stdout;;
+
+let time = Sys.time ();;
+let losers2 = zeno_cpre m ~verbose:true;;
+let time = (Sys.time ()) -. time;;
+
+Printf.printf "\ntime: %f \n" time;;
+Printf.printf "Losing states:\n";;
+flush stdout;;
+
+Printf.printf "Zeno with gap:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let losers1 = zeno m;;
+let time = (Sys.time ()) -. time;;
+
+Printf.printf "\ntime: %f \n" time;;
+Printf.printf "Losing states:\n";;
+flush stdout;;
+
+(* print_stateset losers2;;
+print_stateset losers1;; *)
+
+Printf.printf "end.\n";;
