@@ -373,8 +373,6 @@ let clone_modp p m1 m2 : unit =
   end
   else begin
     let mod1 = get_mod p m1 in
-    let mname = Mod.get_name mod1 in
-    let mlen = String.length mname in
     let fvars1 = Mod.get_fvars mod1 in
     let hvars1 = Mod.get_hvars mod1 in
     let init1 = Mod.get_init mod1 in 

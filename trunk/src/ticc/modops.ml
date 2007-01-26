@@ -19,7 +19,6 @@ exception Internal_error_waypoint
 *)
 
 let mk_sym (mod_name: string) =
-  let mgr = Symprog.get_mgr Symprog.toplevel in
   let m = 
     try Prog.get_mod_top mod_name
     with Not_found ->
@@ -280,7 +279,6 @@ let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 let printCounterExample (sp: Symprog.t) (sm: Symmod.t) 
     (path1: stateset_t list) (path2: stateset_t list)
     (rul: string) (filename: string) : unit =
-  let mgr = Symprog.get_mgr sp in
   let ir = Symmod.get_irule sm rul in
   let startState = Symmod.get_init sm in
   let len = List.length path1 in 

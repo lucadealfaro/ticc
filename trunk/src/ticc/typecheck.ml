@@ -546,7 +546,6 @@ let check_irule (m: Mod.t) (r: Rule.irule_t) =
 (* Luca: removed the requirement that the invariant only mentions the history-full
    variables in hful *)
 let check_invariant (m: Mod.t) (e : Ast.t) : unit = 
-  let hful = Mod.get_hvars m in 
     (* Checks no primed variables *)
   let chkg v pos = 
     Ast.print_pos pos; 
@@ -576,7 +575,6 @@ let check_invariant (m: Mod.t) (e : Ast.t) : unit =
     initial condition.  It used to check that all variables appearing
     in the initial condition are local, but it no longer does that. *)
 let check_init (m: Mod.t) (e : Ast.t) : unit = 
-  let loc_vars = Mod.get_hvars m in 
   (* check no primed variables *)
   let chkg v pos = 
     Ast.print_pos pos; 

@@ -170,7 +170,7 @@ let build_predd (s: Symprog.t) (e: Ast.t) : predd =
 	  
       | _                -> raise SymbolicTypeError
     in 
-    RelMdd (m)
+    RelMdd (new_m)
   in
 
 

@@ -234,7 +234,7 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 		       variables can change, so there is no need to
 		       change the transition relation. *) 
 		    let new_wvars = r.wvars in
-		    Symmod.mk_irule (Symmod.get_rule_act r) new_wvars mdd_ig mdd_il
+		    Symmod.mk_irule (Symmod.get_rule_act r) new_wvars new_mdd_ig mdd_il
 	in
 	add_rule m12 new_rule
     in

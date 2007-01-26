@@ -236,7 +236,6 @@ let rule_until (sp: Symprog.t) (sm: Symmod.t)
 let internal_until  (do_input: bool) (do_output: bool) 
 	(sp: Symprog.t) (sm: Symmod.t) 
 	(passage_set: stateset_t) (target_set: stateset_t) : stateset_t =
-    let mgr = Symprog.get_mgr sp in
     (* start with "true" *)
     let result = ref (target_set) in 
     let enlarged = ref true in 
@@ -372,7 +371,6 @@ let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     let mgr = Symprog.get_mgr sp in 
     
     let w  = Symmod.get_rule_wvars r in 
-    let w' = Symprog.prime_vars sp w in 
     let allvars = Symmod.get_vars sm in 
     let allvars'= Symprog.prime_vars sp allvars in
     let local = Symmod.get_lvars sm in  
@@ -546,7 +544,6 @@ let reachable  (sp: Symprog.t) (sm: Symmod.t) : Mlglu.mdd =
 let win_i_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) 
 	: stateset_t =
 
-    let mgr = Symprog.get_mgr sp in
     (* start with "true" *)
     let result = ref set in
     let finished = ref false in 
@@ -580,7 +577,6 @@ let win_i_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
  *)
 
 let win_i_safe (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-    let mgr = Symprog.get_mgr sp in
     Mlglu.mdd_not (lo_pre_star sp sm (Mlglu.mdd_not set))
 
 
@@ -601,7 +597,6 @@ let win_i_safe (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
 let win_lo_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) 
 	: stateset_t =
 
-    let mgr = Symprog.get_mgr sp in
     (* start with "true" *)
     let result = ref set in
     let finished = ref false in 
@@ -619,6 +614,5 @@ let win_lo_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
 (** This is the faster alternative.  [set] should be included in both
     invariants, and this guarantees that also the return value is.  *)
 let win_lo_safe (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
-  let mgr = Symprog.get_mgr sp in
   Mlglu.mdd_not (i_pre_star sp sm (Mlglu.mdd_not set))
 

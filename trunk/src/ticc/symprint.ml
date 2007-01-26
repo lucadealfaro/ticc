@@ -24,7 +24,6 @@ let print_rule sp r : unit =
 	    Printf.printf "Modifies only variables in: ";
             Symutil.print_varset sp (Symmod.get_rule_wvars r);
 	    Printf.printf "\n";
-	    let tran = Symmod.get_rule_tran r in
 	    match Symmod.get_rule_tran r with
 		Symmod.Loc m  -> 
 		    Printf.printf "----[local]:\n"; 
@@ -48,7 +47,6 @@ let print_rule sp r : unit =
 
 
 let print_rulemod sp sm typ: unit = 
-    let mgr = Symprog.get_mgr sp in
     Printf.printf "\n";
     Printf.printf "   PRINTING %s rules of SYMBOLIC MODULE: %s.\n" 
 	typ (Symmod.get_name sm);

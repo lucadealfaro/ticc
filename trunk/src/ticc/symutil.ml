@@ -74,14 +74,12 @@ let unprime_mdd_vars symtop a var_set =
 (** This function replaces all variables in an mdd [a]
     of a symbolic module [sm] with their primed version. *)
 let prime_mdd symtop sm a = 
-  let mgr = Symprog.get_mgr symtop in
   let vAll = Symmod.get_vars sm in
   prime_mdd_vars symtop a vAll
  
 (** This function replaces all variables in an mdd [a]
     of a symbolic module [sm] with their unprimed version. *)
 let unprime_mdd symtop sm a = 
-  let mgr = Symprog.get_mgr symtop in
   let vAll  = Symmod.get_vars sm in
   let vAll' = Symprog.prime_vars symtop vAll in 
   unprime_mdd_vars symtop a vAll'

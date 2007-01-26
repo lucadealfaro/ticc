@@ -44,11 +44,9 @@ let computeNextState (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) :
 	rules := r::!rules;
       end
   in
-  let testRules : unit =
-    Symmod.iter_irules sm doOneRule;
-    Symmod.iter_lrules sm doOneRule;
-    Symmod.iter_orules sm doOneRule;
-  in
+  Symmod.iter_irules sm doOneRule;
+  Symmod.iter_lrules sm doOneRule;
+  Symmod.iter_orules sm doOneRule;
   let random = Modops.generateRandom (List.length !rules) in
   ((Ops.post_rule sp sm set (List.nth !rules random) true), (List.nth !rules random));
 ;;
@@ -163,7 +161,6 @@ let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
 	raise User_Start_State_Violates_Invariants;
       Mlglu.mdd_pick_one_minterm mgr oParsedState vAll
   in
-  let outChannel : out_channel = open_out outputFile in
   let tChannel : out_channel = open_out outputFile in
   let doSimulate : unit =
     Htmlgen.generateHtmlHeader Symprog.toplevel sm startState "Simulation Report" tChannel;
