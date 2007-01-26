@@ -245,11 +245,9 @@ let oi_transitions sp sm =
     Refer to the techrep 06-timed-ticc for details. *)
 let winI sp ?(gap: bool = true) sm =
 
-  let debug_jurdzinski = false in
-
   let mgr = Symprog.get_mgr sp in
 
-  let (rho, rho') = Symprog.get_measure_var sp sm in
+  let rho = Symprog.get_measure_var sp sm in
   (* maximum value of rho (progress measure) *)
   let max_val = (Mlglu.mdd_get_var_range mgr rho) -1 in
   (* predicate rho = rho_max *)
@@ -282,21 +280,23 @@ let winI sp ?(gap: bool = true) sm =
   let var_list'' = Symprog.get_extra_vars sp var_list in
 
   (* some debugging functions *)
-  let debug mdd str =
-    if debug_jurdzinski then begin
-      Printf.printf "** %s=\n" str;
-      flush stdout;
-      Mlglu.mdd_print mgr mdd;
-      flush stdout;
-    end
-  in
-  let debug_always mdd str =
-      Printf.printf "** %s=\n" str;
-      flush stdout;
-      Mlglu.mdd_print mgr mdd;
-      flush stdout;
-  in
-
+  (* let debug_jurdzinski = false in
+     
+     let debug mdd str =
+     if debug_jurdzinski then begin
+     Printf.printf "** %s=\n" str;
+     flush stdout;
+     Mlglu.mdd_print mgr mdd;
+     flush stdout;
+     end
+     in
+     let debug_always mdd str =
+     Printf.printf "** %s=\n" str;
+     flush stdout;
+     Mlglu.mdd_print mgr mdd;
+     flush stdout;
+     in *)
+  
   let (tauI, tauO) = io_transitions sp sm in
   (* debug tauI "tauI"; 
      debug tauO "tauO"; *)
