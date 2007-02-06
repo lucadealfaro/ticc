@@ -96,11 +96,11 @@ let has_disjoint_lactions (m1:Symmod.t) (m2:Symmod.t) : bool =
     "Marco's condition": 
 
     \forall a \in \Actions_2 . 
-    W_2(a) \cap \vstate{1} \neq \emptyset \implies a \in \Actions_1 
+    W_2(a) \cap \vstate1 \neq \emptyset \implies a \in \Actions_1 
     \forall a \in \Actions_1 .
-    W_1(a) \cap \vstate{2} \neq \emptyset \implies a \in \Actions_2. 
+    W_1(a) \cap \vstate2 \neq \emptyset \implies a \in \Actions_2. 
 
-    and    V_1^L \cap V_2^L {\equal} {\empty}
+    and    V_1^L \cap V_2^L \equal \empty
 
     and     local actions of both modules are not shared.
 

@@ -177,7 +177,7 @@ let get_newname (mname: string) (name: string) : string =
     supposed to be local.  The function creates a new variable whose
     type is the same as the one of [v].  The name of the new variable
     is identical to the one of v except that the first part of the
-    name of [v] becomes [mname] (i.e. *1.*2 -> [mname].*2].
+    name of [v] becomes [mname] (i.e. *1.*2 -> [mname].*2 ).
  *)
 let dup_var mname v : Var.t =
   let vname = Var.get_name v in
