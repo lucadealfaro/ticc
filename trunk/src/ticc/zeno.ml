@@ -1,3 +1,7 @@
+(** This module contains the algorithms which deal with
+  non-zenoness. *)
+
+
 open Vset;;
 
 let print_time msg = ()
@@ -31,6 +35,7 @@ let separated sp measure vars rho =
   let result = Mlglu.mdd_smooth_list mgr result [rho] in
   (* Printf.printf "x = %d \n" x; *)
   result
+;;
 
 
 (** Returns the transition relations of the turn-based game where
@@ -95,10 +100,10 @@ let io_transitions sp sm =
     let term_delta1 = Mlglu.mdd_and term_delta1 copy_x_x'' 1 1 in
     let term_delta1 = Mlglu.mdd_and term_delta1 blitrue 1 0 in
 
-(* debug term_action "term_action";
-    debug term_delta0 "term_delta0";
-   debug term_delta1 "term_delta1"; *)
-
+    (* debug term_action "term_action";
+       debug term_delta0 "term_delta0";
+       debug term_delta1 "term_delta1"; *)
+    
     let res = Mlglu.mdd_or term_delta0 term_delta1 1 1 in
     let res = Mlglu.mdd_or res term_action 1 1 in
     Mlglu.mdd_and res copy_x_x' 1 1
@@ -137,6 +142,8 @@ let io_transitions sp sm =
     Mlglu.mdd_or res term3 1 1
   in
   (tauI, tauO)
+;;
+
 
 (** Returns the transition relations of the turn-based game where
     output plays before input.
@@ -238,6 +245,7 @@ let oi_transitions sp sm =
     Mlglu.mdd_and res copy_x_x' 1 1
   in
   (tauO, tauI)
+;;
 
 
 (** Computes the set of states where Input does not have a strategy
@@ -423,7 +431,11 @@ let winI sp ?(gap: bool = true) sm =
   let losers = Mlglu.mdd_smooth_list mgr losers [rho] in
   losers
 
-
+    
+(** Performs the pre-computations that are useful to CpreI.
+  In particular, computes the transition relations 
+  for both players.
+ *)
 let cpreI_init sp sm =
   let mgr = Symprog.get_mgr sp in
   let (tauI, tauO) = io_transitions sp sm in
@@ -443,7 +455,37 @@ let cpreI_init sp sm =
   (mgr, tauI, tauO, bli, blo, vars, vars', vars'')
 
 
-let cpreI stuff m =
+(** Performs the pre-computations that are useful to CpreO.
+  In particular, computes the transition relations 
+  for both players.
+ *)
+let cpreO_init sp sm =
+  let mgr = Symprog.get_mgr sp in
+  let (tauO, tauI) = oi_transitions sp sm in
+  (* variables we deal with *)
+  let vars = Symmod.get_vars sm in
+  let vars' = Symprog.prime_vars sp vars in
+  (* Warning: I'm assuming that the sets vars and vars' are converted
+     into lists in the same order. Is this safe? Marco *)
+  let var_list = Vset.to_list vars in
+  (* let var_list' = Vset.to_list vars' in *)
+  let var_list'' = Symprog.get_extra_vars sp var_list in 
+  let vars'' = Vset.from_list var_list'' in
+
+  (* variables for blameI and blameO *)
+  let bli = Symprog.get_bli sp in
+  let blo = Symprog.get_blo sp in
+  (mgr, tauO, tauI, blo, bli, vars, vars', vars'')
+
+
+(** Computes the controllable predecessor operator for either player.
+
+  The first argument provides the required predicates.
+  If the first argument is the result of cpreI_init, we obtain CpreI;
+  If the first argument is the result of cpreO_init, we obtain CpreO.
+ *)
+let cpre stuff m =
+  (* variables are named as if they came from cpreI_init *)
   let (mgr, tauI, tauO, bli, blo, vars, vars', vars'') = stuff in
   let implication = Mlglu.mdd_or tauO m 0 1 in
   let term = Mlglu.mdd_consensus_list mgr implication [blo] in
@@ -455,31 +497,29 @@ let cpreI stuff m =
   term
 
 
-let winI_safety sp sm safeset =
-  let mgr = Symprog.get_mgr sp in
-  let stuff = cpreI_init sp sm in
-  let my_cpreI = cpreI stuff in
-
-  let z = ref safeset 
-  and z_diff = ref (Mlglu.mdd_one mgr) in
-
-  while not (Mlglu.mdd_is_zero !z_diff) do
-    let new_z = my_cpreI !z in
-    z_diff := Mlglu.mdd_and !z new_z 1 0;
-    z := new_z;
-
-    (* display a progress indicator *)
-    print_string ".";
-    flush stdout;
-  done;
-  !z
- 
-
+(* let winI_safety sp sm safeset = 
+   let mgr = Symprog.get_mgr sp in
+   let stuff = cpreI_init sp sm in
+   let my_cpreI = cpreI stuff in
+   
+   let z = ref set 
+   and z_diff = ref (Mlglu.mdd_one mgr) in
+   
+   while not (Mlglu.mdd_is_zero !z_diff) do
+   let new_z = my_cpreI !z in
+   z_diff := Mlglu.mdd_and !z new_z 1 0;
+   z := new_z;
+   
+   print_string ".";
+   flush stdout;
+   done;
+   !z *)
+    
 
 (** Computes the set of states where Input does not have a strategy
     to let time diverge or blame the adversary.
     Uses the algorithm based on a triple fixpoint. *)
-let winI_cpre sp ?(verbose : bool = false) sm =
+let win_cpre input sp ?(verbose : bool = false) sm =
   let mgr = Symprog.get_mgr sp in
 
   (* variables for blameI and blameO *)
@@ -489,8 +529,20 @@ let winI_cpre sp ?(verbose : bool = false) sm =
   let blitrue = Mlglu.mdd_literal mgr bli [1] in
   let blotrue = Mlglu.mdd_literal mgr blo [1] in
 
-  let stuff = cpreI_init sp sm in
-  let my_cpreI = cpreI stuff in
+  let (stuff, color0, color1, color2) =
+    if input then
+      ( cpreI_init sp sm,
+      Mlglu.mdd_and blitrue blotrue 0 0,
+      Mlglu.mdd_and blitrue blotrue 1 0,
+      blotrue )
+    else
+      ( cpreO_init sp sm,
+      Mlglu.mdd_and blitrue blotrue 0 0,
+      blotrue,
+      Mlglu.mdd_and blitrue blotrue 1 0 )
+  in
+
+  let my_cpre = cpre stuff in
 
   let z = ref (Mlglu.mdd_one mgr) 
   and z_diff = ref (Mlglu.mdd_one mgr) in
@@ -498,9 +550,8 @@ let winI_cpre sp ?(verbose : bool = false) sm =
   print_time "start main loop:";
   
   while not (Mlglu.mdd_is_zero !z_diff) do
-    let z_term = my_cpreI !z in
-    let z_term = Mlglu.mdd_and z_term blitrue 1 0 in
-    let z_term = Mlglu.mdd_and z_term blotrue 1 0 in
+    let z_term = my_cpre !z in
+    let z_term = Mlglu.mdd_and z_term color0 1 1 in
 
     (* display a progress indicator *)
     if verbose then begin
@@ -515,9 +566,8 @@ let winI_cpre sp ?(verbose : bool = false) sm =
     and y_diff = ref (Mlglu.mdd_one mgr) in
 
     while not (Mlglu.mdd_is_zero !y_diff) do
-      let y_term = my_cpreI !y in
-      let y_term = Mlglu.mdd_and y_term blitrue 1 1 in
-      let y_term = Mlglu.mdd_and y_term blotrue 1 0 in
+      let y_term = my_cpre !y in
+      let y_term = Mlglu.mdd_and y_term color1 1 1 in
 
       if verbose then begin
 	print_string "y";
@@ -528,8 +578,8 @@ let winI_cpre sp ?(verbose : bool = false) sm =
       and x_diff = ref (Mlglu.mdd_one mgr) in
      
       while not (Mlglu.mdd_is_zero !x_diff) do
-	let x_term = my_cpreI !x in
-	let x_term = Mlglu.mdd_and x_term blotrue 1 1 in
+	let x_term = my_cpre !x in
+	let x_term = Mlglu.mdd_and x_term color2 1 1 in
 
 	if verbose then begin
 	  print_string "x";
@@ -554,3 +604,35 @@ let winI_cpre sp ?(verbose : bool = false) sm =
 
   let losers = Mlglu.mdd_and (Mlglu.mdd_one mgr) !z 1 0 in
   losers
+
+let winI_cpre = win_cpre true
+let winO_cpre = win_cpre false
+
+
+(** Winning set of the composition game.
+
+  Let good be the set of locally compatible states.
+  The composition game has goal:
+
+     (Always good) and (time divergence or blame Output)
+
+  We first solve the safety goal (Always good).
+  Then, we solve the liveness goal while forcing Input to always
+  stay in the safety winning set.
+ *)
+let win_composition (sp: Symprog.t) (sm: Symmod.t) (good: Symmod.stateset_t) :
+    Symmod.stateset_t =
+
+  (* store current Input invariant *)
+  let iinv = Symmod.get_iinv sm in
+  (* compute winning set of the safety part of the goal *)
+  let win_safe = Ops.win_i_safe sp sm good in
+  (* force Input to stay in win_safe *)
+  Symmod.set_iinv sm win_safe;
+  (* play the liveness game *)
+  let lose_live = winI_cpre sp sm in
+  (* restore Input invariant: we are not supposed to modify the module
+   *)
+  Symmod.set_iinv sm iinv;
+  let win_live = Mlglu.mdd_not lose_live in
+  Mlglu.mdd_and win_safe win_live 1 1

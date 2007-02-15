@@ -426,9 +426,11 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
     let term1 = build_good_term m1 m2 m12 in 
     let term2 = build_good_term m2 m1 m12 in 
     let good_states = Mlglu.mdd_and term1 term2 1 1 in 
-    let inv12 = Symmod.get_iinv m12 in 
-    let new_inv12 = win_algo sp m12 (Mlglu.mdd_and good_states inv12 1 1) in 
-    Symmod.set_iinv m12 new_inv12; 
+    let iinv12 = Symmod.get_iinv m12 in 
+    let good_and_iinv12 = Mlglu.mdd_and good_states iinv12 1 1 in
+    (* play the composition game *)
+    let new_iinv12 = win_algo sp m12 good_and_iinv12 in 
+    Symmod.set_iinv m12 new_iinv12; 
     (* Remembers the set of bad states *)
     Symmod.set_bad_states m12 (Mlglu.mdd_not good_states);
     (* Now it must restrict the initial condition; if it becomes empty, then the 
@@ -436,7 +438,7 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
     let vars12 = Symmod.get_vars m12 in 
     let lvars12 = Symmod.get_lvars m12 in 
     let new_init = Mlglu.mdd_and (Symmod.get_init m12)
-	(Mlglu.mdd_smooth mgr new_inv12 (VarSet.diff vars12 lvars12)) 1 1 in 
+	(Mlglu.mdd_smooth mgr new_iinv12 (VarSet.diff vars12 lvars12)) 1 1 in 
     Symmod.set_init m12 new_init; 
     if Mlglu.mdd_is_zero new_init then begin
 	Printf.printf "The initial condition of module %s is empty: this is a sign of incompatibility!\n" 

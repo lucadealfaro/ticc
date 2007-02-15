@@ -527,7 +527,8 @@ let reachable  (sp: Symprog.t) (sm: Symmod.t) : Mlglu.mdd =
 (* **************************************************************** *)
 (* Winning functions for games *)
 
-(** Winning set of a safety game.  This is the least efficient implementation; 
+(** Winning set of a safety game for Input.  
+  This is the least efficient implementation; 
     see win_i_safe below for a faster one. 
     Given a set [set] of states and a module [sm], this function
     computes the set of states from which the Input player has
@@ -558,7 +559,8 @@ let win_i_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     done;
     !result
 
-(** Winning set of a safety game.
+
+(** Winning set of a safety game for Input.
     Given a set [set] of states and a module [sm], this function
     computes the set of states from which the Input player has
     a strategy to stay in the set [set].
@@ -575,12 +577,11 @@ let win_i_safe_alt_1 (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     this function, since lo_pre_star never shrinks a set. 
     To win a safety game, it's better not to move. 
  *)
-
 let win_i_safe (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
     Mlglu.mdd_not (lo_pre_star sp sm (Mlglu.mdd_not set))
 
 
-(** Winning set of a safety game.
+(** Winning set of a safety game for Output.
     There is a more efficient implementation; see below. 
     Given a set [set] of states and a module [sm], this function
     computes the set of states from which the Output/Local player has

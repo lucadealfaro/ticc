@@ -66,7 +66,13 @@ let sym_clone (m: Symmod.t) : Symmod.t =
   Symmod.symbolic_clone mgr m
 
 (** compose two modules *)
-let compose = Compose.composition Symprog.toplevel Ops.win_i_safe;;
+let compose ?(result_name:string = "") sm1 sm2 = 
+  let win_algo = if ((Symmod.is_timed sm1) or (Symmod.is_timed sm2)) then 
+    Zeno.win_composition
+  else
+    Ops.win_i_safe
+  in
+  Compose.composition Symprog.toplevel win_algo ~result_name sm1 sm2;;
 let compose_alt = Compose.composition Symprog.toplevel Ops.win_i_safe_alt_1;;
 
 (** Computes the local/output post of a module [sm] 
@@ -224,7 +230,6 @@ let print_module_full (mn: string) =
   Mod.print_debug m
 
 (** prints the rules that correspond to an action *)
-
 let print_symmod_rules = Symprint.print_rulemodact Symprog.toplevel;;
 
 (** Prints a boolean value *)
