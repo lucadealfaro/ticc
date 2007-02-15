@@ -1,22 +1,26 @@
 // A module used to test timed ticc
 
-// var g: [0..10]
-// var a: [0..10]
-
 module A: 
-    var b: [0..5]
-    var x, y: clock 
-//    stateless g
+    var b: [0..15]
+    var c: [0..15]
+    var x: clock 
 
-//    initial: a = 0 and b = 0  
+    iinv: b=15 or x=0
+    oinv: c>7 or x=0
 
-    iinv: b>0 or x>10
-    oinv: true
+    output bang:   { x>20 ==> b' = 0 and x' = 0 }
 
-    output splash: { x<20 and y<30 ==> b' = b + 1}
-    input ciao: { local: b>0 ==> b' := 0 }
+    output gulp:   { true ==> c' = c+1 }
 
+    input ciao:  { local: b>5 and x<40 ==> b' := b + 2 }
 endmodule
 
 
+// A module showing that there was an error in tau^O
+module B: 
+    var b: [0..127]
+    var x: clock 
 
+    iinv: b<100 or x=0
+    oinv: b<100 or x=0
+endmodule

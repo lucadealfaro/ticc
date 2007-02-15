@@ -9,18 +9,27 @@ let a = mk_sym "A";;
 print_module_full "A";;
 print_newline ();;
 
-Printf.printf "Zeno with gap:\n";;
-flush stdout;;
-let losers1 = zeno a true;;
-Printf.printf "Losing states:\n";;
-flush stdout;;
-print_stateset losers1;;
-
 Printf.printf "Zeno with cpre:\n";;
 flush stdout;;
-let losers2 = zeno_cpre a;;
+
+let time = Sys.time ();;
+let losers2 = zeno_cpre a ~verbose:false;;
+let time = (Sys.time ()) -. time;;
+
+(* Printf.printf "\ntime: %f \n" time;; *)
 Printf.printf "Losing states:\n";;
-flush stdout;;
 print_stateset losers2;;
+flush stdout;;
+
+Printf.printf "Zeno with gap:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let losers1 = zeno a;;
+let time = (Sys.time ()) -. time;;
+
+(* Printf.printf "\ntime: %f \n" time;; *)
+Printf.printf "Losing states:\n";;
+print_stateset losers1;;
+flush stdout;;
 
 Printf.printf "end.\n";;
