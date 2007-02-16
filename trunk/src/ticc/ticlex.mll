@@ -1,6 +1,8 @@
 (* file : ticlex.mll *)
 
 {
+  (** The Ticc lexer. *)
+  
   open Ticparse (* Assumes the parser file is "ticparse.mly".*)
   open Lexing 
 

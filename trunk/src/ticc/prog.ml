@@ -1,6 +1,6 @@
-(** prog.ml *)
+(** Definition of program (i.e., set of explicit modules). *)
 
-(** This declares the enumerative top level. *) 
+(** This declares the explicit top level. *) 
 
 type t = {
   (** name *)

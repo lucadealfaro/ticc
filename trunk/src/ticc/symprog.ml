@@ -1,4 +1,4 @@
-(** symprog.ml *)
+(** Definition of a symbolic program (i.e., a set of symbolic modules). *)
 
 (** This declares the symbolic top level, and contains functions to
     add variables, etc. *)

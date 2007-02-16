@@ -1,3 +1,5 @@
+(** Provides temporary MDD variables to {!Symbuild}. *)
+
 exception ReleasingUnallocatedVariable
 exception TooManyBits
 

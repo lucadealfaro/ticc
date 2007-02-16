@@ -1,6 +1,4 @@
-(** symmod.ml *)
-
-(** Container for symbolic module *) 
+(** Definition of a symbolic module *) 
 
 exception WrongRuleType
 exception UnknownClock 

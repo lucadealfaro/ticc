@@ -1,4 +1,5 @@
-(** symbuild.ml *)
+(** This module is responsible for building the symbolic
+  representation of a Ticc module. *)
 
 open Ast
 

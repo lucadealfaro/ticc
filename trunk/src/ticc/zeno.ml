@@ -248,10 +248,11 @@ let oi_transitions sp sm =
 ;;
 
 
-(** Computes the set of states where Input does not have a strategy
+(** Computes the set of states where Input has a strategy
     to let time diverge or blame the adversary.
+    Uses Jurdzinski's progress measure algorithm.
     Refer to the techrep 06-timed-ticc for details. *)
-let winI sp ?(gap: bool = true) sm =
+let i_live_internal sp ?(gap: bool = true) sm =
 
   let mgr = Symprog.get_mgr sp in
 
@@ -429,7 +430,7 @@ let winI sp ?(gap: bool = true) sm =
   (* states with maximum value of rho are losing *)
   let losers = Mlglu.mdd_and !mI rho_max 1 1 in
   let losers = Mlglu.mdd_smooth_list mgr losers [rho] in
-  losers
+  Mlglu.mdd_not losers
 
     
 (** Performs the pre-computations that are useful to CpreI.
@@ -497,29 +498,10 @@ let cpre stuff m =
   term
 
 
-(* let winI_safety sp sm safeset = 
-   let mgr = Symprog.get_mgr sp in
-   let stuff = cpreI_init sp sm in
-   let my_cpreI = cpreI stuff in
-   
-   let z = ref set 
-   and z_diff = ref (Mlglu.mdd_one mgr) in
-   
-   while not (Mlglu.mdd_is_zero !z_diff) do
-   let new_z = my_cpreI !z in
-   z_diff := Mlglu.mdd_and !z new_z 1 0;
-   z := new_z;
-   
-   print_string ".";
-   flush stdout;
-   done;
-   !z *)
-    
-
 (** Computes the set of states where Input does not have a strategy
     to let time diverge or blame the adversary.
     Uses the algorithm based on a triple fixpoint. *)
-let win_cpre input sp ?(verbose : bool = false) sm =
+let live_cpre input sp ?(verbose : bool = false) sm =
   let mgr = Symprog.get_mgr sp in
 
   (* variables for blameI and blameO *)
@@ -601,12 +583,12 @@ let win_cpre input sp ?(verbose : bool = false) sm =
   done;
 
   print_time "end:";
+  !z
 
-  let losers = Mlglu.mdd_and (Mlglu.mdd_one mgr) !z 1 0 in
-  losers
-
-let winI_cpre = win_cpre true
-let winO_cpre = win_cpre false
+(** Exported functions *)
+let i_live = live_cpre true
+let o_live = live_cpre false
+let i_live_alt = i_live_internal ~gap:true
 
 
 (** Winning set of the composition game.
@@ -630,9 +612,8 @@ let win_composition (sp: Symprog.t) (sm: Symmod.t) (good: Symmod.stateset_t) :
   (* force Input to stay in win_safe *)
   Symmod.set_iinv sm win_safe;
   (* play the liveness game *)
-  let lose_live = winI_cpre sp sm in
+  let win_live = i_live sp sm in
   (* restore Input invariant: we are not supposed to modify the module
    *)
   Symmod.set_iinv sm iinv;
-  let win_live = Mlglu.mdd_not lose_live in
   Mlglu.mdd_and win_safe win_live 1 1

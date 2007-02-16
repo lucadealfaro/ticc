@@ -1,4 +1,4 @@
-(* mod.ml *)
+(** Definition of an explicit (as opposed to symbolic) module. *)
 
 (* This is the type of a module *) 
 type t = {

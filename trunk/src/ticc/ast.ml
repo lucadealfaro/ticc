@@ -1,4 +1,4 @@
-(** ast.ml *)
+(** Abstract Syntax Tree. *)
 
 type pos = Lexing.position 
 

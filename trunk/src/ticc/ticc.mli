@@ -337,10 +337,25 @@ val print_symmod_rules : symbolic_module_t -> string -> unit
     Prints 'true' if [b] is true, and prints 'false' otherwise. *)
 val print_bool : bool -> unit
 
+(** {2 Operations on timed modules} *)
+
+(** [i_live sm] returns the set of I-live states of module [sm].
+  If the optional labelled argument [verbose] is set to true,
+  the function provides a more detailed progress indicator. *)
+val i_live     : ?verbose:bool -> symbolic_module_t -> stateset_t
+
+(** [o_live sm] returns the set of O-live states of module [sm].
+  If the optional labelled argument [verbose] is set to true,
+  the function provides a more detailed progress indicator. *)
+val o_live     : ?verbose:bool -> symbolic_module_t -> stateset_t
+
+(** [i_live_alt sm] returns the set of I-live states of module [sm],
+  using an alternative algorithm (Jurdzinski's progress measure
+  algorithm). *)
+val i_live_alt :                  symbolic_module_t -> stateset_t
 
 (** {2 Experimental or debugging features} *)
 
 val unwrap_stateset : stateset_t -> Mlglu.mdd 
 val wrap_stateset   : Mlglu.mdd  -> stateset_t
-val zeno      : ?gap:bool     -> symbolic_module_t -> stateset_t
-val zeno_cpre : ?verbose:bool -> symbolic_module_t -> stateset_t
+

@@ -1,6 +1,8 @@
 /* The ticc parser */ 
 
  %{
+   (** The Ticc parser. *)
+
    open Ast
      
    exception Internal_error

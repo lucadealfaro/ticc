@@ -145,11 +145,14 @@ let refinement m1 m2 = Refine.refinement Symprog.toplevel m1 m2
 (** Checks whether [m1] refines [m2] *)
 let refines m1 m2 = Refine.refines Symprog.toplevel m1 m2 
 
-(** Returns the set of losing states for Input *)
-let zeno = Zeno.winI Symprog.toplevel 
+(** Returns the set of I-live states *)
+let i_live = Zeno.i_live Symprog.toplevel 
 
-(** Returns the set of losing states for Input *)
-let zeno_cpre = Zeno.winI_cpre Symprog.toplevel 
+(** Returns the set of O-live states *)
+let o_live = Zeno.i_live Symprog.toplevel 
+
+(** Returns the set of I-live states *)
+let i_live_alt = Zeno.i_live_alt Symprog.toplevel 
 
 (** Forgets a module *)
 let forget = Modops.forget_module Symprog.toplevel 
