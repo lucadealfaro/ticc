@@ -13,23 +13,23 @@ Printf.printf "Zeno with cpre:\n";;
 flush stdout;;
 
 let time = Sys.time ();;
-let losers2 = zeno_cpre a ~verbose:false;;
+let win2 = i_live a ~verbose:false;;
 let time = (Sys.time ()) -. time;;
 
 (* Printf.printf "\ntime: %f \n" time;; *)
-Printf.printf "Losing states:\n";;
-print_stateset losers2;;
+Printf.printf "Winning states:\n";;
+print_stateset win2;;
 flush stdout;;
 
 Printf.printf "Zeno with gap:\n";;
 flush stdout;;
 let time = Sys.time ();;
-let losers1 = zeno a;;
+let win1 = i_live_alt a;;
 let time = (Sys.time ()) -. time;;
 
 (* Printf.printf "\ntime: %f \n" time;; *)
-Printf.printf "Losing states:\n";;
-print_stateset losers1;;
+Printf.printf "Winning states:\n";;
+print_stateset win1;;
 flush stdout;;
 
 Printf.printf "end.\n";;
