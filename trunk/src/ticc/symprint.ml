@@ -160,6 +160,9 @@ let print sp sm : unit =
     Symmod.iter_lrules sm (print_rule sp);
     Symmod.iter_orules sm (print_rule sp);
     Symmod.iter_irules sm (print_rule sp);
+    (* DEBUG *)
+    (* Printf.printf "* Time transition:\n\n"; flush stdout;
+       Mlglu.mdd_print mgr (Symmod.get_delta1 sm); *)
     Printf.printf "endmodule";
     Printf.printf "\n===================================\n\n";
     flush stdout

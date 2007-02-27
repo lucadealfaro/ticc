@@ -26,6 +26,9 @@ let conjoin_w_invs (sm: Symmod.t) (set: Mlglu.mdd) : Mlglu.mdd =
 
 (** This function builds the transition relation of a rule, NOT 
     including the invariant (for flexibility). 
+
+  Used by Zeno module, among others.
+
     Warning: there is a more efficient way of doing this for
     pre/post. *)
 let get_transition_rel_noinv sp (sm: Symmod.t) (r: rule_t) : Mlglu.mdd = 
@@ -366,6 +369,7 @@ let a_until (sp: Symprog.t) (sm: Symmod.t)
 let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     (r: Symmod.rule_t) (conj_inv: bool) : stateset_t =
 
+  (* To Do: update for timed modules *)
     (*Printf.printf "applying rule %s\n" (Symmod.get_rule_act r);*)
 
     let mgr = Symprog.get_mgr sp in 
@@ -477,11 +481,40 @@ let i_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) (conj_inv: bool) : s
   Symmod.iter_irules sm do_one_rule;
   !result
 
+(** Takes the timed post of a set of states [set]. 
+    This function computes the set of states that can be reached
+  from the set [set] by letting time advance by 1,
+  provided doing so does not violate invariants. *)
+let time_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) :
+  stateset_t =
+  let mgr = Symprog.get_mgr sp in
+  let c_vars      = Symmod.get_cvars sm in
+  let c_vars'     = Symprog.prime_vars sp c_vars in
+  let c_var_list  = Vset.to_list c_vars in
+  let c_var_list' = Vset.to_list c_vars' in
+
+  (*  (\exists Clocks . set /\ delta1)[Clocks / Clocks'] *)
+  let delta1 = Symmod.get_delta1 sm in
+  let temp = Mlglu.mdd_and set delta1 1 1 in
+  let temp = Mlglu.mdd_smooth mgr temp c_vars in
+  let temp = Mlglu.mdd_substitute_two_lists mgr temp c_var_list' c_var_list in
+  (* conjoin with invariants *)
+  let iinv = Symmod.get_iinv sm in
+  let oinv = Symmod.get_oinv sm in
+  let invs = Mlglu.mdd_and iinv oinv 1 1 in
+  Mlglu.mdd_and temp invs 1 1
+
+
 (** This does both i_post and lo_post, conjoining invariants. *)
 let loi_post (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
   let lo_succ  = lo_post sp sm set true in 
-  let i_succ = i_post sp sm set true in 
-  Mlglu.mdd_or lo_succ i_succ 1 1 
+  let i_succ = i_post sp sm set true in
+  let loi_succ = Mlglu.mdd_or lo_succ i_succ 1 1 in
+  if is_timed sm then
+    let time_succ = time_post sp sm set in
+    Mlglu.mdd_or loi_succ time_succ 1 1
+  else
+    loi_succ
 
 (** Computes the post of a set [set], not conjoining invariants *)
 let raw_post (do_input: bool) (do_output: bool)

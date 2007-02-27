@@ -143,7 +143,7 @@ let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
   let parsedState : stateset_t =
       if expr = "" 
       (* if no expression is given, use the initial condition *)
-      then Ops.reachable Symprog.toplevel sm 
+      then Symmod.get_init sm 
       (* otherwise, parser what the user gave *)
       else Symbuild.parse_stateset Symprog.toplevel expr
   in

@@ -191,8 +191,19 @@ let oi_transitions sp sm =
     (* build the disjunction of all input transitions *)
     let trans = ref (Mlglu.mdd_zero mgr) in
     let do_one_rule r : unit =
-      let m = Ops.get_transition_rel_noinv sp sm r in
-      trans := Mlglu.mdd_or !trans m 1 1;
+      (* The envorinment rule leads to a weird timed semantics.
+	 Even if the module has no stateless variables,
+	 there is still an environment move stating that all
+	 variables keep their value.
+	 Thus, Input can get the game stuck in a state by always
+	 playing the environment move.
+
+	 Since nondeterminism is adversarial (no fairness), 
+	 Output cannot get anything done! *)
+      if (Symmod.get_rule_act r != Symprog.env_act) then begin
+	let m = Ops.get_transition_rel_noinv sp sm r in
+	trans := Mlglu.mdd_or !trans m 1 1;
+      end
     in
     Symmod.iter_irules sm do_one_rule;
     (* conjoin with input invariant *)
@@ -255,7 +266,7 @@ let oi_transitions sp sm =
 let i_live_internal sp ?(gap: bool = true) sm =
 
   let mgr = Symprog.get_mgr sp in
-
+  (* the variable representing the progress measure *)
   let rho = Symprog.get_measure_var sp sm in
   (* maximum value of rho (progress measure) *)
   let max_val = (Mlglu.mdd_get_var_range mgr rho) -1 in
@@ -273,42 +284,19 @@ let i_live_internal sp ?(gap: bool = true) sm =
   (* literals for blameI and blameO *)
   let blitrue = Mlglu.mdd_literal mgr bli [1] in
   let blotrue = Mlglu.mdd_literal mgr blo [1] in
-
   (* slices of the parity games *)
   let color0 = Mlglu.mdd_and blitrue blotrue 0 0 in
   let color1 = Mlglu.mdd_and blitrue blotrue 1 0 in
   let color2 = blotrue in
-
   (* variables we deal with *)
-  let vars = Symmod.get_vars sm in
+  let vars  = Symmod.get_vars sm in
   let vars' = Symprog.prime_vars sp vars in
   (* Warning: I'm assuming that the sets vars and vars' are converted
      into lists in the same order. Is this safe? Marco *)
   let var_list = Vset.to_list vars in
   let var_list' = Vset.to_list vars' in
   let var_list'' = Symprog.get_extra_vars sp var_list in
-
-  (* some debugging functions *)
-  (* let debug_jurdzinski = false in
-     
-     let debug mdd str =
-     if debug_jurdzinski then begin
-     Printf.printf "** %s=\n" str;
-     flush stdout;
-     Mlglu.mdd_print mgr mdd;
-     flush stdout;
-     end
-     in
-     let debug_always mdd str =
-     Printf.printf "** %s=\n" str;
-     flush stdout;
-     Mlglu.mdd_print mgr mdd;
-     flush stdout;
-     in *)
-  
   let (tauI, tauO) = io_transitions sp sm in
-  (* debug tauI "tauI"; 
-     debug tauO "tauO"; *)
 
   (* list of variables to be smoothed *)
   let smoothy_O = blo::var_list in
@@ -359,9 +347,6 @@ let i_live_internal sp ?(gap: bool = true) sm =
        let keep_value = Mlglu.mdd_and minsucc rho_max 1 1 in
        Mlglu.mdd_or temp keep_value 1 1 
        in *)
-
-    (* debug minsucc "minsucc";
-       debug incr_minsucc "incr"; *)
 
     let term0 = Mlglu.mdd_and rho_max minsucc 1 1 in
     let temp  = Mlglu.mdd_lt_c mgr rho max_val    in
@@ -430,7 +415,11 @@ let i_live_internal sp ?(gap: bool = true) sm =
   (* states with maximum value of rho are losing *)
   let losers = Mlglu.mdd_and !mI rho_max 1 1 in
   let losers = Mlglu.mdd_smooth_list mgr losers [rho] in
-  Mlglu.mdd_not losers
+  let winners = Mlglu.mdd_not losers in
+  (* so far, winning (I-live) states could violate
+     the Input invariant. We fix this here. *)
+  let iinv = Symmod.get_iinv sm in
+  Mlglu.mdd_and winners iinv 1 1
 
     
 (** Performs the pre-computations that are useful to CpreI.
@@ -440,6 +429,13 @@ let i_live_internal sp ?(gap: bool = true) sm =
 let cpreI_init sp sm =
   let mgr = Symprog.get_mgr sp in
   let (tauI, tauO) = io_transitions sp sm in
+
+  (** DEBUG *)
+  (* Printf.printf "** tau_I = \n"; flush stdout;
+  Mlglu.mdd_print mgr tauI;      flush stdout;
+  Printf.printf "** tau_O = \n"; flush stdout;
+  Mlglu.mdd_print mgr tauO;      flush stdout; *)
+
   (* variables we deal with *)
   let vars = Symmod.get_vars sm in
   let vars' = Symprog.prime_vars sp vars in
@@ -463,6 +459,7 @@ let cpreI_init sp sm =
 let cpreO_init sp sm =
   let mgr = Symprog.get_mgr sp in
   let (tauO, tauI) = oi_transitions sp sm in
+
   (* variables we deal with *)
   let vars = Symmod.get_vars sm in
   let vars' = Symprog.prime_vars sp vars in
@@ -511,14 +508,16 @@ let live_cpre input sp ?(verbose : bool = false) sm =
   let blitrue = Mlglu.mdd_literal mgr bli [1] in
   let blotrue = Mlglu.mdd_literal mgr blo [1] in
 
-  let (stuff, color0, color1, color2) =
+  let (stuff, inv, color0, color1, color2) =
     if input then
       ( cpreI_init sp sm,
+      Symmod.get_iinv sm,
       Mlglu.mdd_and blitrue blotrue 0 0,
       Mlglu.mdd_and blitrue blotrue 1 0,
       blotrue )
     else
       ( cpreO_init sp sm,
+      Symmod.get_oinv sm,
       Mlglu.mdd_and blitrue blotrue 0 0,
       blotrue,
       Mlglu.mdd_and blitrue blotrue 1 0 )
@@ -583,11 +582,16 @@ let live_cpre input sp ?(verbose : bool = false) sm =
   done;
 
   print_time "end:";
-  !z
+  (* so far, live states could contain states that violate the
+     player's invariant. In particuar, these would be states from which
+     you can go back to the invariant in one step.
+     Thus, we conjoin with the appropriate invariant. *)
+  Mlglu.mdd_and !z inv 1 1
+
 
 (** Exported functions *)
 let i_live = live_cpre true
-let o_live = live_cpre false
+let o_live = live_cpre false 
 let i_live_alt = i_live_internal ~gap:true
 
 

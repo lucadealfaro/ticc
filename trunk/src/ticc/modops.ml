@@ -28,16 +28,37 @@ let mk_sym (mod_name: string) =
   (* builds the symbolic module *)
   let sm = Symbuild.mk_mod m Symprog.toplevel in
   (* Remembers the complement of the original iinv in bad_states *)
-  let not_iinv = Mlglu.mdd_not (Symmod.get_iinv sm) in 
+  let iinv = Symmod.get_iinv sm in
+  let oinv = Symmod.get_oinv sm in
+  let not_iinv = Mlglu.mdd_not iinv in 
   Symmod.set_bad_states sm not_iinv; 
-  (* strengthen invariants to put module into normal form *)
-  let strong_iinv = Ops.win_i_safe  Symprog.toplevel sm (Symmod.get_iinv sm)
-  and strong_oinv = Ops.win_lo_safe  Symprog.toplevel sm (Symmod.get_oinv sm) in
+
+  (* Strengthen invariants to put module into normal form *)
+  let (strong_iinv, strong_oinv) = 
+    if Symmod.is_timed sm then
+      (* ( Symmod.get_iinv sm, Symmod.get_oinv sm ) *)
+      ( Zeno.i_live Symprog.toplevel sm, 
+      Zeno.o_live Symprog.toplevel sm )
+    else
+      ( Ops.win_i_safe  Symprog.toplevel sm (Symmod.get_iinv sm),
+      Ops.win_lo_safe Symprog.toplevel sm (Symmod.get_oinv sm) )
+  in
+  if (not (Mlglu.mdd_is_zero (Mlglu.mdd_and iinv strong_iinv 1 0))) then begin
+      Printf.printf "\nThe input invariant of module %s was modified (strengthened) to ensure well-formedness.\n" mod_name; 
+    flush stdout
+  end; 
+  if (not (Mlglu.mdd_is_zero (Mlglu.mdd_and oinv strong_oinv 1 0))) then begin
+      Printf.printf "\nThe output invariant of module %s was modified (strengthened) to ensure well-formedness.\n" mod_name; 
+    flush stdout
+  end; 
   Symmod.set_iinv sm strong_iinv;
   Symmod.set_oinv sm strong_oinv;
+
+  (* Update the initial condition *)
   let new_init = Mlglu.mdd_and (Mlglu.mdd_and (Symmod.get_init sm)
     strong_iinv 1 1) strong_oinv 1 1 in 
   Symmod.set_init sm new_init; 
+
   if Mlglu.mdd_is_zero new_init then begin
     Printf.printf "\nThe module %s has an empty set of initial states!\n" mod_name; 
     flush stdout

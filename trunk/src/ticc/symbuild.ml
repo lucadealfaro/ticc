@@ -706,20 +706,37 @@ let mk_irule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.irule_t) : unit =
   (* local part of the rule *)
   let l_gc_list : (Ast.t * (Ast.t list)) list
     = Rule.get_local_igc_list r in
-  (* apply defaults: unmentioned (local) vars retain their value *)
+  (* apply defaults: local vars that are mentioned primed in some command of
+     the rule, but are not mentioned in one particular command,
+     retain their value in that command *)
   let wvars     = Rule.get_iwlvars r in
   let l_mdd     = disjoin_det_gc_list sp l_gc_list wvars in 
-  (* Conjoins with the global guarded command the formula 
-     \exists  wvars' . l_mdd 
-     This moves the blocking from the local part, to the global part, 
-     where it belongs. *) 
+  (* If the local part of the rule does not specify what happens
+     for some current values of the variables, this is interpreted
+     as an input assumption (a "block"), as in the global part.
+
+     To be consistent with the FROCOS paper, and to ensure
+     a correct implementation of Definition 21 (good states),
+     we have to move this assumption from the local part
+     to the global part, where it belongs. Thus:
+
+     we conjoin with the global guarded command the formula 
+     local_nonblock = \exists wvars' . l_mdd 
+   *) 
   let sym_wvars  = Symprog.get_id_of_varset sp wvars in
   let sym_wvars' = Symprog.prime_vars sp sym_wvars in
   let local_nonblock = Mlglu.mdd_smooth mgr l_mdd sym_wvars' in 
   let g_mdd = Mlglu.mdd_and g_mdd local_nonblock 1 1 in 
+  (* Next, we remove the block from the local part,
+     making it deterministic and complete. 
+     l_mdd = l_mdd \/ ( not local_nonblock and Unchgd(local_vars) ) 
+   *)
+  (** HERE *)
+  let unchgd = Mlglu.mdd_and local_nonblock (Symutil.unchngd sp sym_wvars)
+    0 1 in
+  (* let l_mdd = Mlglu.mdd_or l_mdd unchgd 1 1 in *)
+  let l_mdd = Mlglu.mdd_or l_mdd local_nonblock 1 0 in 
   (* add the resulting rule to the symbolic module [sm] *)
-  (** In the following line, 
-      should it be l_mdd (as it is) or local_nonblock?? - Marco *)
   let symrule = Symmod.mk_irule act sym_wvars g_mdd l_mdd in
   Symmod.add_rule sm symrule;
 ;;
@@ -802,8 +819,10 @@ let mk_delta1 (sp: Symprog.t) (sm: Symmod.t) : unit =
   (* Shall we state in this mdd that all state variables
      that are not clocks keep their value?
      Pro: cleaner
-     Con: permanence of value can be more efficiently enforced
+     Con: persistance of value can be more efficiently enforced
      by variable renaming
+
+     Conclusion: we do not state it.
    *)
   Symmod.set_delta1 sm !mdd
 ;;

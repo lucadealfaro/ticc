@@ -30,8 +30,8 @@ all: ticc
 ticc_OBJS = hsetmap.cmo hset.cmo biject.cmo var.cmo ast.cmo rule.cmo \
 	mod.cmo prog.cmo typecheck.cmo ticlex.cmo ticparse.cmo \
 	symtemp.cmo symmod.cmo symprog.cmo symutil.cmo \
-	symbuild.cmo ops.cmo htmlgen.cmo modops.cmo symprint.cmo \
-        compose.cmo simulate.cmo refine.cmo zeno.cmo ticc.cmo
+	symbuild.cmo ops.cmo htmlgen.cmo \
+        compose.cmo refine.cmo zeno.cmo modops.cmo symprint.cmo simulate.cmo ticc.cmo
 ticc_LD_ADD = ../mlglu/mlglu.cma str.cma -cclib -lstr
 
 

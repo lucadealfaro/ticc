@@ -26,8 +26,8 @@ type rule_t = {
     (** Name of symbolic module where the rule originated. 
 	Useful for ATL. *)
     mod_name: string; 
-    (** list of all primed variables.  This is used to 
-	implement defaults.   In the case of an Input rule,
+    (** list of all primed variables that are mentioned in the rule.
+        This is used to implement defaults.   In the case of an Input rule,
 	'wvars' refers to the primed variables of the InputLocal
 	rule.
 	For output and local rules, the transition relations _do not_
@@ -54,7 +54,7 @@ type t = {
   mutable gvars : VarSet.t; 
   (** list of history-ful variables; this set includes local variables *)
   mutable hvars : VarSet.t; 
-  (** clock variables *)
+  (** clock variables. A module is 'timed' if this set is not empty *)
   mutable cvars : VarSet.t; 
   (** bounds of clock variables *) 
   mutable clock_bound : (varid_t, int) Hsetmap.t; 
@@ -73,7 +73,8 @@ type t = {
   (** old invariant.  Used to justify non-iinv states *)
   mutable old_iinv : Mlglu.mdd;
   (** time transition, this mdd only states that clock variables
-      increase their value by 1 *)
+    increase their value by 1. If module is not timed, delta1 is set
+    to true *)
   mutable delta1 : Mlglu.mdd;
   (** local output transition rules *) 
   lrules : (string, rule_t) Hsetmap.t; 

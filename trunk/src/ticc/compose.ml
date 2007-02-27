@@ -220,7 +220,8 @@ let product (sp: Symprog.t) ?(result_name="") (m1: Symmod.t) (m2: Symmod.t)
 		       _other_ module keep their value.  Also, wvars
 		       needs to be fixed. 
 		     *)
-		    let other_hvars = get_hvars other_sm in
+		    let other_hvars = VarSet.diff (get_hvars other_sm)
+		                                  (get_lvars other_sm) in
 		    (* The global variables of the other module cannot
 		       change.  This comes from the FROCOS paper, and
 		       the reason is subtle: if an output transition
@@ -390,32 +391,54 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
        rule.  We then ask that the output rule transition complies
        with the input rule.  We use an auxiliary function, in order to
        avoid having to write two separate iterations. *)
-    let build_good_term (mo: Symmod.t) (mi: Symmod.t) (m12: Symmod.t) : Mlglu.mdd = 
-	let vAll_12' = Symprog.prime_vars sp (Symmod.get_vars m12) in
+    let build_good_term (mo: Symmod.t) (mi: Symmod.t) (m12: Symmod.t)
+      : Mlglu.mdd = 
+      
+      let inv_o = Symmod.get_oinv mo in 
+      let inv_i = Symmod.get_iinv mi in 
+      let all_vars  = Symmod.get_vars m12 in 
+      let all_vars' = Symprog.prime_vars sp all_vars in
+      let mi_vars = Symmod.get_vars mi in 
+      let inv_o' = Symutil.prime_mdd_vars sp inv_o all_vars in
+      let inv_i' = Symutil.prime_mdd_vars sp inv_i all_vars in
+      
 	(* This is the function that will be folded over all output rules *)
 	let check_output_rule (ro: rule_t) (good_term: Mlglu.mdd) : Mlglu.mdd = 
-	    let ro_wvars = Symmod.get_rule_wvars ro in 
 	    (* Find the best match for ro in mi *)
 	    match Symmod.best_rule_match mi (Symmod.get_rule_act ro) with 
 	      (* Not shared: do nothing *)
 	      None -> good_term 
 	    | Some ri -> begin 
+		(** DEBUG *)
+		(* Printf.printf " * output rule: %s \n"
+		   (Symmod.get_rule_act ro);
+		   Printf.printf " * input rule: %s \n"
+		   (Symmod.get_rule_act ri);
+		   flush stdout; *)
+
 		  (* The transition of ro must be acceptable by ri *)
 		  (* Computes the hatted transition relations *)
 		  let rho_o = Symmod.get_orule_mdd ro in 
-		  let (rho_ig, rho_il) = Symmod.get_rule_ig_il_mdds ri in 
-		  let inv_o = Symmod.get_oinv mo in 
-		  let inv_i = Symmod.get_iinv mi in 
-		  let allv = Symmod.get_vars m12 in 
-		  let hat_rho_o = Mlglu.mdd_and rho_o  (Symutil.prime_mdd_vars sp inv_o allv) 1 1 in 
-		  let hat_rho_i = Mlglu.mdd_and rho_ig (Symutil.prime_mdd_vars sp inv_i allv) 1 1 in 
-		  (* Computed the unchanged variables relation *)
-		  let unch_vars = VarSet.diff (Symmod.get_gvars mi) ro_wvars in 
+		  let ro_wvars = Symmod.get_rule_wvars ro in 
+	    	  let (rho_ig, rho_il) = Symmod.get_rule_ig_il_mdds ri in 
+		  let ri_wvars = Symmod.get_rule_wvars ri in
+		  let hat_rho_o  = Mlglu.mdd_and rho_o  inv_o' 1 1 in 
+		  let hat_rho_ig = Mlglu.mdd_and rho_ig inv_i' 1 1 in 
+		  
+		  (* Global variables of mi that are not mentioned primed by
+		     rho_o should retain their value.
+		     Also, local variables of mi that are not
+		     mentioned primed by rho_il should also retain
+		     their value. *)
+		  let ch_vars = VarSet.union ro_wvars ri_wvars in
+		  let unch_vars = VarSet.diff mi_vars ch_vars in 
 		  let unch_term = Symutil.unchngd sp unch_vars in 
-		  (* (hat_rho_o /\ unch_term) ==> hat_rho_i *)
+		  (* hat_rho_o /\ unch_term /\ rho_il *)
 		  let conj = Mlglu.mdd_and hat_rho_o unch_term 1 1 in 
-		  let impl = Mlglu.mdd_or conj hat_rho_i 0 1 in 
-		  let good_part = Mlglu.mdd_consensus mgr impl vAll_12' in 
+		  let conj = Mlglu.mdd_and conj rho_il 1 1 in
+		  (* (hat_rho_o /\ unch_term /\ rho_il) ==> hat_rho_ig *)
+		  let impl = Mlglu.mdd_or conj hat_rho_ig 0 1 in 
+		  let good_part = Mlglu.mdd_consensus mgr impl all_vars' in 
 		  let result = Mlglu.mdd_and good_part good_term 1 1 in 
 		  result
 	      end
@@ -426,6 +449,13 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
     let term1 = build_good_term m1 m2 m12 in 
     let term2 = build_good_term m2 m1 m12 in 
     let good_states = Mlglu.mdd_and term1 term2 1 1 in 
+
+    (** DEBUG *)
+    (* Printf.printf " * term1: \n"; flush stdout;
+       Mlglu.mdd_print mgr term1;
+       Printf.printf " * term2: \n"; flush stdout;
+       Mlglu.mdd_print mgr term2; *)
+    
     let iinv12 = Symmod.get_iinv m12 in 
     let good_and_iinv12 = Mlglu.mdd_and good_states iinv12 1 1 in
     (* play the composition game *)
