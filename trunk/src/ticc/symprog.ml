@@ -14,9 +14,11 @@ type t = {
   (** MDD manager *)
   mgr: Mlglu.mdd_manager; 
 
-  (** auxiliary variables for parity game *)
+  (** auxiliary variables for liveness game *)
   bli: varid_t;
   blo: varid_t;
+  delta0: varid_t;
+  delta1: varid_t;
 
   (** These are GLOBAL mappings, also for variables local to 
       the modules. *)
@@ -45,7 +47,9 @@ let env_act = "_env_action"
 
 (** Creates an empty symbolic toplevel *)
 let mk (n: string) : t = 
-  let mgr = Mlglu.mdd_init [2; 2] ["bli"; "blo"] [1; 1] in
+  let mgr = Mlglu.mdd_init [2; 2; 2; 2] 
+    ["bli"; "blo"; "delta0"; "delta1"]
+    [1; 1; 1; 1] in
   {
     name = n; 
 
@@ -53,6 +57,8 @@ let mk (n: string) : t =
 
     bli = 0;
     blo = 1;
+    delta0 = 2;
+    delta1 = 3;
 
     var_to_ids  = Hsetmap.mk ();
     id_to_var_p = Hsetmap.mk ();
@@ -128,9 +134,11 @@ let get_var_p s (id: varid_t) : (Var.t * bool) =
 (** Checks whether a variable is present *)
 let is_var_def s v = Hsetmap.mem s.var_to_ids v 
 
-(** ********** Support for parity games *********************** *)
+(** ********** Support for liveness games ******************* *)
 let get_bli s = s.bli
 let get_blo s = s.blo
+let get_delta0 s = s.delta0
+let get_delta1 s = s.delta1
 
 
 (** Adds interleaved variables to the manager (does nothing for 

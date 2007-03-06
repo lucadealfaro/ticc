@@ -1,7 +1,6 @@
 (** This module contains the algorithms which deal with
   non-zenoness. *)
 
-
 open Vset;;
 
 let print_time msg = ()
@@ -10,7 +9,6 @@ let print_time msg = ()
     Printf.printf " %f\n" time;
     flush stdout *)
 ;;
-
 
 
 (** Returns the set of states which have a measure which
@@ -38,18 +36,24 @@ let separated sp measure vars rho =
 ;;
 
 
-(** Returns the transition relations of the turn-based game where
-    input plays before output.
+(** If [input_first] is true, returns the transition relations 
+  of the turn-based game where input plays before output.
+  Otherwise, returns the transition relations 
+  of the turn-based game where output plays before input.
  *)
-let io_transitions sp sm =
+let turn_transitions sp sm (input_first: bool) =
   let mgr = Symprog.get_mgr sp in
 
-  (* variables for blameI and blameO *)
+  (* variables for blameI, blameO, d0, d1 *)
   let bli = Symprog.get_bli sp in
   let blo = Symprog.get_blo sp in
-  (* literals for blameI and blameO *)
-  let blitrue = Mlglu.mdd_literal mgr bli [1] in
-  let blotrue = Mlglu.mdd_literal mgr blo [1] in
+  let d0  = Symprog.get_delta0 sp in
+  let d1  = Symprog.get_delta1 sp in
+  (* literals for the above variables *)
+  let bli_true = Mlglu.mdd_literal mgr bli [1] in
+  let blo_true = Mlglu.mdd_literal mgr blo [1] in
+  let d0true  = Mlglu.mdd_literal mgr d0  [1] in
+  let d1true  = Mlglu.mdd_literal mgr d1  [1] in
 
   (* variables we deal with *)
   let vars = Symmod.get_vars sm in
@@ -79,26 +83,65 @@ let io_transitions sp sm =
   let copy_x_x'' = Mlglu.mdd_substitute_two_lists mgr 
     copy_x_x' var_list' var_list'' in
 
-  (* the input transition relation *)
-  let tauI =
-    (* build the disjunction of all input transitions *)
-    let trans = ref (Mlglu.mdd_zero mgr) in
-    let do_one_rule r : unit =
+  (* build the disjunction of all input transitions *)
+  let itrans = ref (Mlglu.mdd_zero mgr) in
+  let do_one_rule r : unit =
+    (* The envorinment rule leads to a weird timed semantics.
+       Even if the module has no stateless variables,
+       there is still an environment move stating that all
+       variables keep their value.
+       Thus, Input can get the game stuck in a state by always
+       playing the environment move.
+       
+       Since nondeterminism is adversarial (no fairness), 
+       Output cannot get anything done! *)
+    if (Symmod.get_rule_act r != Symprog.env_act) then begin
       let m = Ops.get_transition_rel_noinv sp sm r in
-      trans := Mlglu.mdd_or !trans m 1 1;
-    in
-    Symmod.iter_irules sm do_one_rule;
-    (* conjoin with input invariant *)
-    trans := Mlglu.mdd_and !trans iinv' 1 1;
-    (* rename variables: X' -> X'' *)
-    trans := Mlglu.mdd_substitute_two_lists mgr !trans var_list' var_list'';
+      itrans := Mlglu.mdd_or !itrans m 1 1;
+    end
+  in
+  Symmod.iter_irules sm do_one_rule;
+  (* conjoin with input invariant *)
+  itrans := Mlglu.mdd_and !itrans iinv' 1 1;
 
-    let term_action = Mlglu.mdd_and blitrue !trans 1 1 in
-    let term_delta0 = Mlglu.mdd_and blitrue copy_x_x'' 1 1 in
-    let delta1_and_iinv = Mlglu.mdd_and delta1 iinv' 1 1 in
-    let term_delta1 = Mlglu.mdd_smooth mgr delta1_and_iinv vars' in
+  (* build the disjunction of all output and local transitions *)
+  let otrans = ref (Mlglu.mdd_zero mgr) in
+  let do_one_rule r : unit =
+    let m = Ops.get_transition_rel_noinv sp sm r in
+    otrans := Mlglu.mdd_or !otrans m 1 1;
+  in
+  Symmod.iter_lrules sm do_one_rule;
+  Symmod.iter_orules sm do_one_rule;
+  (* conjoin with output invariant *)
+  otrans := Mlglu.mdd_and !otrans oinv' 1 1;
+
+  (* For readability, blame variables are named as if
+     Input played first. *)
+  let (trans_first, trans_second, inv_first', inv_second, blitrue,
+  blotrue) =
+    if input_first then
+      (!itrans, !otrans, iinv', oinv, bli_true, blo_true)
+    else
+      (!otrans, !itrans, oinv', iinv, blo_true, bli_true)
+  in
+  
+  (* the transition relation of the first player to move *)
+  let tau_first =
+    (* rename variables: X' -> X'' *)
+    let trans_first = Mlglu.mdd_substitute_two_lists mgr trans_first 
+      var_list' var_list'' in
+    
+    let term_delta0 = Mlglu.mdd_and copy_x_x''  d0true 1 1 in
+    let term_delta0 = Mlglu.mdd_and term_delta0 d1true 1 0 in
+
+    let term_action = Mlglu.mdd_and trans_first d0true 1 0 in
+    let term_action = Mlglu.mdd_and term_action d1true 1 0 in
+
+    let delta1_and_inv = Mlglu.mdd_and delta1 inv_first' 1 1 in
+    let term_delta1 = Mlglu.mdd_smooth mgr delta1_and_inv vars' in
     let term_delta1 = Mlglu.mdd_and term_delta1 copy_x_x'' 1 1 in
-    let term_delta1 = Mlglu.mdd_and term_delta1 blitrue 1 0 in
+    let term_delta1 = Mlglu.mdd_and term_delta1 d1true 1 1 in
+    let term_delta1 = Mlglu.mdd_and term_delta1 d0true 1 0 in
 
     (* debug term_action "term_action";
        debug term_delta0 "term_delta0";
@@ -109,160 +152,53 @@ let io_transitions sp sm =
     Mlglu.mdd_and res copy_x_x' 1 1
   in
 
-  (* the output transition relation *)
-  let tauO =
-    (* build the disjunction of all output and local transitions *)
-    let trans = ref (Mlglu.mdd_zero mgr) in
-    let do_one_rule r : unit =
-      let m = Ops.get_transition_rel_noinv sp sm r in
-      trans := Mlglu.mdd_or !trans m 1 1;
-    in
-    Symmod.iter_lrules sm do_one_rule;
-    Symmod.iter_orules sm do_one_rule;
-    (* conjoin with output invariant *)
-    trans := Mlglu.mdd_and !trans oinv' 1 1;
+  (* the transition relation of the second player to move.
+     For readability, blame variables are named as if
+     Input played first. *)
+  let tau_second =
     (* rename variables: (X,X') -> (X',X) *)
     let var_var' = List.append var_list  var_list' in
     let var'_var = List.append var_list' var_list  in
-    trans := Mlglu.mdd_substitute_two_lists mgr !trans var_var' var'_var;
+    let trans_second = Mlglu.mdd_substitute_two_lists mgr trans_second
+      var_var' var'_var in
 
-    let term1 = Mlglu.mdd_or  copy_x_x'' !trans  1 1 in
-    let term1 = Mlglu.mdd_and term1   blotrue    1 1 in
+    let d0_or_d1 = Mlglu.mdd_or d0true d1true 1 1 in
+    let temp = Mlglu.mdd_xnor blotrue d0_or_d1 in
+    let term_delta0 = Mlglu.mdd_neq_s mgr bli d1 in
+    let term_delta0 = Mlglu.mdd_and term_delta0 temp 1 1 in
+    let term_delta0 = Mlglu.mdd_and term_delta0 copy_x_x'' 1 1 in
+    
     let inverted_delta1 = 
       Mlglu.mdd_substitute_two_lists mgr delta1 var_var' var'_var in
-    let inverted_delta1_and_oinv = 
-      Mlglu.mdd_and inverted_delta1 oinv 1 1 in
-    let term2 = Mlglu.mdd_smooth mgr inverted_delta1_and_oinv vars in
-    let term2 = Mlglu.mdd_and term2 blitrue    1 1 in
-    let term2 = Mlglu.mdd_and term2 blotrue    1 0 in
-    let term2 = Mlglu.mdd_and term2 copy_x_x'' 1 1 in
-    let term3 = Mlglu.mdd_and blitrue blotrue    0 0 in
-    let term3 = Mlglu.mdd_and term3 inverted_delta1_and_oinv 1 1 in
-    let res   = Mlglu.mdd_or  term1 term2 1 1 in
-    Mlglu.mdd_or res term3 1 1
-  in
-  (tauI, tauO)
-;;
-
-
-(** Returns the transition relations of the turn-based game where
-    output plays before input.
- *)
-let oi_transitions sp sm =
-  let mgr = Symprog.get_mgr sp in
-
-  (* variables for blameI and blameO *)
-  let bli = Symprog.get_bli sp in
-  let blo = Symprog.get_blo sp in
-  (* literals for blameI and blameO *)
-  let blitrue = Mlglu.mdd_literal mgr bli [1] in
-  let blotrue = Mlglu.mdd_literal mgr blo [1] in
-
-  (* variables we deal with *)
-  let vars = Symmod.get_vars sm in
-  let cvars = Symmod.get_cvars sm in
-  let not_cvars = VS.diff vars cvars in
-  let vars' = Symprog.prime_vars sp vars in
-  (* Warning: I'm assuming that the sets vars and vars' are converted
-     into lists in the same order. Is this safe? Marco *)
-  let var_list = Vset.to_list vars in
-  let var_list' = Vset.to_list vars' in
-  let var_list'' = Symprog.get_extra_vars sp var_list in
-
-  (* some popular predicates *)
-  let iinv = Symmod.get_iinv sm in
-  let oinv = Symmod.get_oinv sm in
-  let iinv' = Mlglu.mdd_substitute_two_lists mgr 
-    iinv var_list var_list' in
-  let oinv' = Mlglu.mdd_substitute_two_lists mgr 
-     oinv var_list var_list' in 
-  (* the mdd representing a time step *)
-  let delta1 = Symmod.get_delta1 sm in
-  (* add the constraint that non-clock variables keep their value
-     during a time step *)
-  let delta1 = Symutil.and_unchngd sp delta1 not_cvars in
-
-  let copy_x_x'  = Symutil.unchngd sp vars in
-  let copy_x_x'' = Mlglu.mdd_substitute_two_lists mgr 
-    copy_x_x' var_list' var_list'' in
-
-  (* the input transition relation *)
-  let tauI =
-    (* build the disjunction of all input transitions *)
-    let trans = ref (Mlglu.mdd_zero mgr) in
-    let do_one_rule r : unit =
-      (* The envorinment rule leads to a weird timed semantics.
-	 Even if the module has no stateless variables,
-	 there is still an environment move stating that all
-	 variables keep their value.
-	 Thus, Input can get the game stuck in a state by always
-	 playing the environment move.
-
-	 Since nondeterminism is adversarial (no fairness), 
-	 Output cannot get anything done! *)
-      if (Symmod.get_rule_act r != Symprog.env_act) then begin
-	let m = Ops.get_transition_rel_noinv sp sm r in
-	trans := Mlglu.mdd_or !trans m 1 1;
-      end
-    in
-    Symmod.iter_irules sm do_one_rule;
-    (* conjoin with input invariant *)
-    trans := Mlglu.mdd_and !trans iinv' 1 1;
-    (* rename variables: (X,X') -> (X',X) *)
-    let var_var' = List.append var_list  var_list' in
-    let var'_var = List.append var_list' var_list  in
-    trans := Mlglu.mdd_substitute_two_lists mgr !trans var_var' var'_var;
-
-    let term1 = Mlglu.mdd_or  copy_x_x'' !trans  1 1 in
-    let term1 = Mlglu.mdd_and term1      blitrue 1 1 in
-    let inverted_delta1 = 
-      Mlglu.mdd_substitute_two_lists mgr delta1 var_var' var'_var in
-    let inverted_delta1_and_iinv = 
-      Mlglu.mdd_and inverted_delta1 iinv 1 1 in
-    let term2 = Mlglu.mdd_smooth mgr inverted_delta1_and_iinv vars in
-    let term2 = Mlglu.mdd_and term2 blotrue    1 1 in
-    let term2 = Mlglu.mdd_and term2 blitrue    1 0 in
-    let term2 = Mlglu.mdd_and term2 copy_x_x'' 1 1 in
-    let term3 = Mlglu.mdd_and blitrue blotrue    0 0 in
-    let term3 = Mlglu.mdd_and term3 inverted_delta1_and_iinv 1 1 in
-    let res   = Mlglu.mdd_or  term1 term2 1 1 in
-    Mlglu.mdd_or res term3 1 1
-  in
-
-  (* the output transition relation *)
-  let tauO =
-    (* build the disjunction of all output and local transitions *)
-    let trans = ref (Mlglu.mdd_zero mgr) in
-    let do_one_rule r : unit =
-      let m = Ops.get_transition_rel_noinv sp sm r in
-      trans := Mlglu.mdd_or !trans m 1 1;
-    in
-    Symmod.iter_lrules sm do_one_rule;
-    Symmod.iter_orules sm do_one_rule;
-    (* conjoin with output invariant *)
-    trans := Mlglu.mdd_and !trans oinv' 1 1;
-    (* rename variables: X' -> X'' *)
-    trans := Mlglu.mdd_substitute_two_lists mgr !trans var_list' var_list'';
-
-    let term_action = Mlglu.mdd_and blotrue !trans 1 1 in
-    let term_delta0 = Mlglu.mdd_and blotrue copy_x_x'' 1 1 in
-    let delta1_and_oinv = Mlglu.mdd_and delta1 oinv' 1 1 in
-    let term_delta1 = Mlglu.mdd_smooth mgr delta1_and_oinv vars' in
+    let inverted_delta1_and_inv = 
+      Mlglu.mdd_and inverted_delta1 inv_second 1 1 in
+    let temp = Mlglu.mdd_smooth mgr inverted_delta1_and_inv vars in
+    let term_delta1 = Mlglu.mdd_and blitrue blotrue 1 0 in
     let term_delta1 = Mlglu.mdd_and term_delta1 copy_x_x'' 1 1 in
-    let term_delta1 = Mlglu.mdd_and term_delta1 blotrue 1 0 in
+    let term_delta1 = Mlglu.mdd_and term_delta1 temp 1 1 in
+
+    let term_delta1_bis = Mlglu.mdd_and blitrue blotrue 0 0 in
+    let term_delta1_bis = Mlglu.mdd_and term_delta1_bis d1true 1 1 in
+    let term_delta1_bis = Mlglu.mdd_and 
+      term_delta1_bis inverted_delta1_and_inv 1 1 in
+
+    let term_action = Mlglu.mdd_and blitrue blotrue 0 1 in
+    let term_action = Mlglu.mdd_and term_action trans_second 1 1 in
 
     let res = Mlglu.mdd_or term_delta0 term_delta1 1 1 in
-    let res = Mlglu.mdd_or res term_action 1 1 in
-    Mlglu.mdd_and res copy_x_x' 1 1
+    let res = Mlglu.mdd_or res term_delta1_bis 1 1 in
+    Mlglu.mdd_or res term_action 1 1
   in
-  (tauO, tauI)
+  (tau_first, tau_second)
 ;;
 
 
 (** Computes the set of states where Input has a strategy
     to let time diverge or blame the adversary.
     Uses Jurdzinski's progress measure algorithm.
-    Refer to the techrep 06-timed-ticc for details. *)
+    Refer to the techrep 06-timed-ticc for details. 
+
+  OBSOLETE !!! *)
 let i_live_internal sp ?(gap: bool = true) sm =
 
   let mgr = Symprog.get_mgr sp in
@@ -296,7 +232,7 @@ let i_live_internal sp ?(gap: bool = true) sm =
   let var_list = Vset.to_list vars in
   let var_list' = Vset.to_list vars' in
   let var_list'' = Symprog.get_extra_vars sp var_list in
-  let (tauI, tauO) = io_transitions sp sm in
+  let (tauI, tauO) = turn_transitions sp sm true in
 
   (* list of variables to be smoothed *)
   let smoothy_O = blo::var_list in
@@ -422,58 +358,31 @@ let i_live_internal sp ?(gap: bool = true) sm =
   Mlglu.mdd_and winners iinv 1 1
 
     
-(** Performs the pre-computations that are useful to CpreI.
+(** Performs the pre-computations that are useful to Cpre.
+  Argument [input_first] fixes which player moves first.
   In particular, computes the transition relations 
   for both players.
  *)
-let cpreI_init sp sm =
+let cpre_init sp sm (input_first: bool) =
   let mgr = Symprog.get_mgr sp in
-  let (tauI, tauO) = io_transitions sp sm in
-
-  (** DEBUG *)
-  (* Printf.printf "** tau_I = \n"; flush stdout;
-  Mlglu.mdd_print mgr tauI;      flush stdout;
-  Printf.printf "** tau_O = \n"; flush stdout;
-  Mlglu.mdd_print mgr tauO;      flush stdout; *)
+  let (tau_first, tau_second) = turn_transitions sp sm input_first in
 
   (* variables we deal with *)
   let vars = Symmod.get_vars sm in
   let vars' = Symprog.prime_vars sp vars in
-  (* Warning: I'm assuming that the sets vars and vars' are converted
-     into lists in the same order. Is this safe? Marco *)
   let var_list = Vset.to_list vars in
-  (* let var_list' = Vset.to_list vars' in *)
+  let var_list' = Vset.to_list vars' in 
   let var_list'' = Symprog.get_extra_vars sp var_list in 
-  let vars'' = Vset.from_list var_list'' in
 
   (* variables for blameI and blameO *)
   let bli = Symprog.get_bli sp in
   let blo = Symprog.get_blo sp in
-  (mgr, tauI, tauO, bli, blo, vars, vars', vars'')
+  let d0  = Symprog.get_delta0 sp in
+  let d1  = Symprog.get_delta1 sp in
 
-
-(** Performs the pre-computations that are useful to CpreO.
-  In particular, computes the transition relations 
-  for both players.
- *)
-let cpreO_init sp sm =
-  let mgr = Symprog.get_mgr sp in
-  let (tauO, tauI) = oi_transitions sp sm in
-
-  (* variables we deal with *)
-  let vars = Symmod.get_vars sm in
-  let vars' = Symprog.prime_vars sp vars in
-  (* Warning: I'm assuming that the sets vars and vars' are converted
-     into lists in the same order. Is this safe? Marco *)
-  let var_list = Vset.to_list vars in
-  (* let var_list' = Vset.to_list vars' in *)
-  let var_list'' = Symprog.get_extra_vars sp var_list in 
-  let vars'' = Vset.from_list var_list'' in
-
-  (* variables for blameI and blameO *)
-  let bli = Symprog.get_bli sp in
-  let blo = Symprog.get_blo sp in
-  (mgr, tauO, tauI, blo, bli, vars, vars', vars'')
+  let var_first  = var_list' @ var_list'' @ [d0; d1] in
+  let var_second = var_list @ [bli; blo] in
+  (mgr, tau_first, tau_second, var_first, var_second)
 
 
 (** Computes the controllable predecessor operator for either player.
@@ -482,22 +391,25 @@ let cpreO_init sp sm =
   If the first argument is the result of cpreI_init, we obtain CpreI;
   If the first argument is the result of cpreO_init, we obtain CpreO.
  *)
-let cpre stuff m =
-  (* variables are named as if they came from cpreI_init *)
-  let (mgr, tauI, tauO, bli, blo, vars, vars', vars'') = stuff in
-  let implication = Mlglu.mdd_or tauO m 0 1 in
-  let term = Mlglu.mdd_consensus_list mgr implication [blo] in
-  let term = Mlglu.mdd_consensus      mgr term vars in
-  let term = Mlglu.mdd_and tauI term 1 1 in
-  let term = Mlglu.mdd_smooth_list mgr term [bli] in
-  let term = Mlglu.mdd_smooth      mgr term vars' in
-  let term = Mlglu.mdd_smooth      mgr term vars'' in
-  term
+let cpre stuff (first: bool) m =
 
+  let (mgr, tau_first, tau_second, var_first, var_second) = stuff in
+  let implication = Mlglu.mdd_or tau_second m 0 1 in
+  if (first) then
+    let term = Mlglu.mdd_consensus_list mgr implication var_second in
+    let term = Mlglu.mdd_and term tau_first 1 1 in
+    Mlglu.mdd_smooth_list mgr term var_first
+  else
+    let term = Mlglu.mdd_smooth_list mgr implication var_second in
+    let term = Mlglu.mdd_or tau_first term 0 1 in
+    Mlglu.mdd_consensus_list mgr term var_first
+      
 
-(** Computes the set of states where Input does not have a strategy
-    to let time diverge or blame the adversary.
-    Uses the algorithm based on a triple fixpoint. *)
+(** If [input] is true, computes the set of states 
+  where Input has a strategy to let time diverge 
+  or blame the adversary (the set of I-live states).
+  If [input] is false, computes the set of O-live states.
+  Uses the algorithm based on a triple fixpoint. *)
 let live_cpre input sp ?(verbose : bool = false) sm =
   let mgr = Symprog.get_mgr sp in
 
@@ -507,23 +419,31 @@ let live_cpre input sp ?(verbose : bool = false) sm =
   (* literals for blameI and blameO *)
   let blitrue = Mlglu.mdd_literal mgr bli [1] in
   let blotrue = Mlglu.mdd_literal mgr blo [1] in
-
+  
+  (* we choose the semantics of Timed Interfaces,
+     where Output moves first both in the I-liveness game
+     and in the O-liveness game *)
+  let input_moves_first = false in
+  let first_player_is_controlling = not input in
+  
+  (* the third argument of [cpre_init] controls 
+     who moves first (not whose Cpre it is) *)
   let (stuff, inv, color0, color1, color2) =
     if input then
-      ( cpreI_init sp sm,
+      ( cpre_init sp sm input_moves_first,
       Symmod.get_iinv sm,
       Mlglu.mdd_and blitrue blotrue 0 0,
       Mlglu.mdd_and blitrue blotrue 1 0,
       blotrue )
     else
-      ( cpreO_init sp sm,
+      ( cpre_init sp sm input_moves_first,
       Symmod.get_oinv sm,
       Mlglu.mdd_and blitrue blotrue 0 0,
       blotrue,
       Mlglu.mdd_and blitrue blotrue 1 0 )
   in
 
-  let my_cpre = cpre stuff in
+  let my_cpre = cpre stuff first_player_is_controlling in
 
   let z = ref (Mlglu.mdd_one mgr) 
   and z_diff = ref (Mlglu.mdd_one mgr) in
