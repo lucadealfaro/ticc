@@ -1,8 +1,8 @@
 // A module to test the use of timed ticc for scheduling. 
 
-
 module Cpu: 
     var busy: bool
+    initial: ~busy
 
     input start* : { local: ~busy ==> busy' := true  }
     input stop*  : { local:  busy ==> busy' := false } 
@@ -13,7 +13,7 @@ module TaskA:
     var done:   bool
     var c:      clock
     oinv: c <= 2 or ~active
-
+    initial: c = 0
 
     input startA : { local: ~done & ~active ==> c' := 0, active' := true }
     output stopA : { active ==> ~active' & done' }
@@ -23,6 +23,7 @@ endmodule
 module ClockA: 
     var c:  clock
     oinv:   c <= 4
+    initial: c = 0
 
     output periodA: { c = 4 ==> c' = 0 }
 endmodule
@@ -31,8 +32,8 @@ module TaskB:
     var active: bool
     var done:   bool
     var c:      clock
-    oinv: c <= 3 or ~active
-
+    oinv: c <= 1 or ~active
+    initial: c = 0
 
     input startB : { local: ~done & ~active ==> c' := 0, active' := true }
     output stopB : { active ==> ~active' & done' }
@@ -41,8 +42,9 @@ endmodule
 
 module ClockB: 
     var c:  clock
-    oinv:   c <= 5
+    oinv:   c <= 3
+    initial: c = 0
 
-    output periodB: { c = 5 ==> c' = 0 }
+    output periodB: { c = 3 ==> c' = 0 }
 endmodule
 

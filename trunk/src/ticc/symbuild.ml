@@ -734,8 +734,8 @@ let mk_irule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.irule_t) : unit =
   (** HERE *)
   let unchgd = Mlglu.mdd_and local_nonblock (Symutil.unchngd sp sym_wvars)
     0 1 in
-  (* let l_mdd = Mlglu.mdd_or l_mdd unchgd 1 1 in *)
-  let l_mdd = Mlglu.mdd_or l_mdd local_nonblock 1 0 in 
+  let l_mdd = Mlglu.mdd_or l_mdd unchgd 1 1 in 
+  (* let l_mdd = Mlglu.mdd_or l_mdd local_nonblock 1 0 in *)
   (* add the resulting rule to the symbolic module [sm] *)
   let symrule = Symmod.mk_irule act sym_wvars g_mdd l_mdd in
   Symmod.add_rule sm symrule;

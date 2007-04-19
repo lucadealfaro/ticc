@@ -10,7 +10,6 @@ let print_time msg = ()
     flush stdout *)
 ;;
 
-
 (** Returns the set of states which have a measure which
     is separated from 0.
     In other words, returns all states that have a measure value m > 0
@@ -174,6 +173,7 @@ let turn_transitions sp sm (input_first: bool) =
       Mlglu.mdd_and inverted_delta1 inv_second 1 1 in
     let temp = Mlglu.mdd_smooth mgr inverted_delta1_and_inv vars in
     let term_delta1 = Mlglu.mdd_and blitrue blotrue 1 0 in
+    let term_delta1 = Mlglu.mdd_and term_delta1 d1true 1 0 in
     let term_delta1 = Mlglu.mdd_and term_delta1 copy_x_x'' 1 1 in
     let term_delta1 = Mlglu.mdd_and term_delta1 temp 1 1 in
 
@@ -189,6 +189,15 @@ let turn_transitions sp sm (input_first: bool) =
     let res = Mlglu.mdd_or res term_delta1_bis 1 1 in
     Mlglu.mdd_or res term_action 1 1
   in
+
+  (** DEBUG *)
+(* Printf.printf " tau_first: \n"; flush stdout;
+  let temp = Mlglu.mdd_and tau_first d1true 1 1 in
+  let smooth_list = List.append var_list' var_list'' in
+  let temp = Mlglu.mdd_smooth_list mgr temp smooth_list in
+  Mlglu.mdd_print mgr temp;
+   Printf.printf " end tau_first \n"; flush stdout; *)
+
   (tau_first, tau_second)
 ;;
 
@@ -197,9 +206,8 @@ let turn_transitions sp sm (input_first: bool) =
     to let time diverge or blame the adversary.
     Uses Jurdzinski's progress measure algorithm.
     Refer to the techrep 06-timed-ticc for details. 
-
-  OBSOLETE !!! *)
-let i_live_internal sp ?(gap: bool = true) sm =
+ *)
+let i_live_pmeasure sp ?(gap: bool = true) sm =
 
   let mgr = Symprog.get_mgr sp in
   (* the variable representing the progress measure *)
@@ -217,9 +225,12 @@ let i_live_internal sp ?(gap: bool = true) sm =
   (* variables for blameI and blameO *)
   let bli = Symprog.get_bli sp in
   let blo = Symprog.get_blo sp in
-  (* literals for blameI and blameO *)
+  let d0  = Symprog.get_delta0 sp in
+  let d1  = Symprog.get_delta1 sp in
+  (* literals for the above variables *)
   let blitrue = Mlglu.mdd_literal mgr bli [1] in
   let blotrue = Mlglu.mdd_literal mgr blo [1] in
+
   (* slices of the parity games *)
   let color0 = Mlglu.mdd_and blitrue blotrue 0 0 in
   let color1 = Mlglu.mdd_and blitrue blotrue 1 0 in
@@ -232,48 +243,50 @@ let i_live_internal sp ?(gap: bool = true) sm =
   let var_list = Vset.to_list vars in
   let var_list' = Vset.to_list vars' in
   let var_list'' = Symprog.get_extra_vars sp var_list in
-  let (tauI, tauO) = turn_transitions sp sm true in
+  (* we adopt the semantics where output always moves first *)
+  let (tau_first, tau_second) = turn_transitions sp sm false in
 
   (* list of variables to be smoothed *)
-  let smoothy_O = blo::var_list in
-  let smoothy_I = bli::(var_list'@var_list'') in
+  let smoothy_second = bli::blo::var_list in
+  let smoothy_first = d0::(d1::(var_list'@var_list'')) in
 
-  (* lift operator for Output.
+  (* lift operator for the second player to move.
      Given the current measures for input and output states,
-     it returns the new measure for output states. *)
-  let liftO (mI: Mlglu.mdd) (mO: Mlglu.mdd) : Mlglu.mdd =
-    let res = Mlglu.mdd_and tauO mI 1 1 in
+     it returns the new measure for the second player to move. *)
+  let lift_second (curr_m: Mlglu.mdd) (old_m: Mlglu.mdd) : Mlglu.mdd =
+    let res = Mlglu.mdd_and tau_second curr_m 1 1 in
 
     (* the sequence a -> b takes a "long" time *)
     print_time "a:";
-    let res = Mlglu.mdd_smooth_list mgr res smoothy_O in
+    let res = Mlglu.mdd_smooth_list mgr res smoothy_second in
     print_time "b:";
 
     (* optionally apply the gap optimization *)
     let new_res = if gap then begin
-      (* take maximum with respect to old Output measure *)
-      Mlglu.mdd_or res mO 1 1 
+      (* take maximum with respect to old second measure *)
+      Mlglu.mdd_or res old_m 1 1 
     end else
       res
     in
-    Mlglu.mdd_max new_res rho
+    Mlglu.mdd_min new_res rho
   in
 
-  (* lift operator for Input.
+  (* lift operator for the first player to move.
      Given the current measures for input and output states,
      it returns the new measure for input states. *)
-  let liftI (mI: Mlglu.mdd) (mO: Mlglu.mdd) : Mlglu.mdd =
+  let lift_first (old_m: Mlglu.mdd) (curr_m: Mlglu.mdd) : Mlglu.mdd =
 
-    let measure' = Mlglu.mdd_substitute_two_lists mgr 
-      mO var_list var_list' in
+    let measure' = curr_m in
+      (* was: Mlglu.mdd_substitute_two_lists mgr curr_m var_list
+	 var_list' in *)
 
     (* the sequence c -> d takes a "long" time *)
     print_time "c:";
-    let res = Mlglu.mdd_and tauI measure' 1 1 in
-    let res = Mlglu.mdd_smooth_list mgr res smoothy_I in
+    let res = Mlglu.mdd_and tau_first measure' 1 1 in
+    let res = Mlglu.mdd_smooth_list mgr res smoothy_first in
     print_time "d:";
 
-    let minsucc = Mlglu.mdd_min res rho in
+    let minsucc = Mlglu.mdd_max res rho in
     let incr_minsucc = Mlglu.mdd_incr minsucc rho in
 
     (* let temp = Mlglu.mdd_and minsucc incr_rho 1 1 in
@@ -299,7 +312,7 @@ let i_live_internal sp ?(gap: bool = true) sm =
     (* optionally apply the gap optimization *)
     if gap then begin
       (* take maximum with respect to old Input measure *)
-      let temp = Mlglu.mdd_or res mI 1 1 in
+      let temp = Mlglu.mdd_or res old_m 1 1 in
 
       Mlglu.mdd_max temp rho
     end else
@@ -310,6 +323,7 @@ let i_live_internal sp ?(gap: bool = true) sm =
   let new_mI = ref rho_zero in
   let mO     = ref rho_zero in
   let diff   = ref (Mlglu.mdd_one mgr) in
+  (* all variables in the progress measure *)
   let measure_vars = bli :: (blo :: var_list) in
 
   while not (Mlglu.mdd_is_zero !diff) do
@@ -317,9 +331,9 @@ let i_live_internal sp ?(gap: bool = true) sm =
     print_time "cycle starts:";
 
     (* update output measure *)
-    mO     := liftO !mI !mO;
+    mO     := lift_second !mI !mO;
     (* update input measure *)
-    new_mI := liftI !mI !mO;
+    new_mI := lift_first !mI !mO;
     (* display a progress indicator *)
     print_string ".";
     flush stdout;
@@ -409,7 +423,7 @@ let cpre stuff (first: bool) m =
   where Input has a strategy to let time diverge 
   or blame the adversary (the set of I-live states).
   If [input] is false, computes the set of O-live states.
-  Uses the algorithm based on a triple fixpoint. *)
+  Uses the Emerson-Jutla algorithm based on a triple fixpoint. *)
 let live_cpre input sp ?(verbose : bool = false) sm =
   let mgr = Symprog.get_mgr sp in
 
@@ -420,7 +434,7 @@ let live_cpre input sp ?(verbose : bool = false) sm =
   let blitrue = Mlglu.mdd_literal mgr bli [1] in
   let blotrue = Mlglu.mdd_literal mgr blo [1] in
   
-  (* we choose the semantics of Timed Interfaces,
+  (* We choose the semantics of Timed Interfaces,
      where Output moves first both in the I-liveness game
      and in the O-liveness game *)
   let input_moves_first = false in
@@ -512,7 +526,7 @@ let live_cpre input sp ?(verbose : bool = false) sm =
 (** Exported functions *)
 let i_live = live_cpre true
 let o_live = live_cpre false 
-let i_live_alt = i_live_internal ~gap:true
+let i_live_alt = i_live_pmeasure ~gap:true
 
 
 (** Winning set of the composition game.

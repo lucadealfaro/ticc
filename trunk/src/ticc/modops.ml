@@ -36,9 +36,9 @@ let mk_sym (mod_name: string) =
   (* Strengthen invariants to put module into normal form *)
   let (strong_iinv, strong_oinv) = 
     if Symmod.is_timed sm then
-      (* ( Symmod.get_iinv sm, Symmod.get_oinv sm ) *)
-      ( Zeno.i_live Symprog.toplevel sm, 
-      Zeno.o_live Symprog.toplevel sm )
+      ( iinv, oinv ) 
+	(* ( Zeno.i_live Symprog.toplevel sm, 
+	   Zeno.o_live Symprog.toplevel sm )  *)
     else
       ( Ops.win_i_safe  Symprog.toplevel sm (Symmod.get_iinv sm),
       Ops.win_lo_safe Symprog.toplevel sm (Symmod.get_oinv sm) )

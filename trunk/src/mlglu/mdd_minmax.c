@@ -58,7 +58,7 @@ mdd_t* mdd_max_on_mdd(mdd_manager* mgr, mdd_t* mdd, int id)
  * Other values of max lead to failure.
  *
  * Let z_0 ... z_{n-1} be the binary variables encoding var_id,
- * where z_0 repesents the Most Significant Bit.
+ * where z_0 represents the Most Significant Bit.
  * Let Z_{<i} denote the set of variables { z_0, ... , z_{i-1} }.
  * For maximum, we use the following algorithm:
  *
@@ -151,7 +151,7 @@ mdd_t* mdd_minmax(mdd_t* mdd, int id, int max)
  * the value of var_id is not already maxed out.
  * 
  * Let z_0 ... z_{n-1} be the binary variables encoding var_id,
- * where z_0 repesents the Most Significant Bit.
+ * where z_0 represents the Most Significant Bit.
  * Let Z_{<i} denote the set of variables { z_0, ... , z_{i-1} }.
  * We use the following algorithm:
  *
