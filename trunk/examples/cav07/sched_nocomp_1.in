@@ -3,7 +3,7 @@
 *)
 
 open Ticc;;
-parse "scheduling_nocomposition.si" ;;
+parse "sched_nocomp_1.si" ;;
 
 Printf.printf "Mk_symbolic:\n";;
 flush stdout;;
