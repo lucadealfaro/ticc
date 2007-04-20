@@ -1,0 +1,40 @@
+(* 
+	Comparison between two implementations of zenoness game.
+*)
+
+open Ticc;;
+parse "marcin_still_wins.si" ;;
+let a = mk_sym "A";;
+
+if false then begin
+  print_symmod a;
+  print_newline ()
+end;;
+
+Printf.printf "I-live states with EJ:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let winners = i_live a ~verbose:true;;
+let time = (Sys.time ()) -. time;;
+Printf.printf "\ntime: %f \n" time;;
+flush stdout;;
+
+Printf.printf "I-live states with Jurdzinski+gap:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let winners2 = i_live_alt a;;
+let time = (Sys.time ()) -. time;;
+Printf.printf "\ntime: %f \n" time;;
+flush stdout;;
+
+if false then begin
+  print_stateset winners;
+  print_stateset winners2
+end;;
+
+if (not (Mlglu.mdd_is_zero (Mlglu.mdd_and winners winners2 1 0))) then
+	Printf.printf "Aaargh1! \n";;
+if (not (Mlglu.mdd_is_zero (Mlglu.mdd_and winners winners2 0 1))) then
+	Printf.printf "Aaargh2! \n";;
+
+Printf.printf "end.\n";;
