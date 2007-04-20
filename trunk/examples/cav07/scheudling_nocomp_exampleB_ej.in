@@ -3,7 +3,7 @@
 *)
 
 open Ticc;;
-parse "scheduling_easy.si" ;;
+parse "scheduling_exampleB.si" ;;
 
 Printf.printf "Mk_symbolic:\n";;
 flush stdout;;
@@ -19,7 +19,7 @@ flush stdout;;
 Printf.printf "Computing I-live states with Emerson-Jutla:\n";;
 flush stdout;;
 let time = Sys.time ();;
-let winners = i_live ~verbose:true m;;
+let winners = i_live m;;
 let time = (Sys.time ()) -. time;;
 Printf.printf "\ntime: %f \n" time;;
 (* Printf.printf "i-live states:\n";; *)
