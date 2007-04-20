@@ -4,8 +4,8 @@ module Scheduling:
     var cpu, activeA, activeB, activeC, doneA, doneB, doneC: bool 
     var cA, dA, cB, dB, cC, dC: clock
 
-    oinv: (activeA -> dA <= 3) & (activeB -> dB <= 5) & (activeC -> dC <= 3)
-    iinv: (cA <= 4) & (cB <= 9) & (cC <= 12)
+    oinv: (activeA -> dA <= 2) & (activeB -> dB <= 1) & (activeC -> dC <= 1)
+    iinv: (cA <= 4) & (cB <= 3) & (cC <= 2)
 
     initial: cA = 0 & dA = 0 & cB = 0 & dB = 0 & cC = 0 & dC = 0
  
@@ -21,6 +21,6 @@ module Scheduling:
     output stopC : { activeC ==> ~activeC' & ~cpu' & doneC' }
 
     input periodA: { local: doneA & cA = 4 ==> cA' := 0, doneA' := false } 
-    input periodB: { local: doneB & cB = 9 ==> cB' := 0, doneB' := false } 
-    input periodC: { local: doneC & cC = 9 ==> cC' := 0, doneC' := false } 
+    input periodB: { local: doneB & cB = 3 ==> cB' := 0, doneB' := false } 
+    input periodC: { local: doneC & cC = 2 ==> cC' := 0, doneC' := false } 
 endmodule
