@@ -116,31 +116,31 @@ let turn_transitions sp sm (input_first: bool) =
 
   (* For readability, blame variables are named as if
      Input played first. *)
-  let (trans_first, trans_second, inv_first', inv_second, blitrue,
-  blotrue) =
+  let (trans_first, trans_second, inv_first', inv_second, 
+  bl_first, bl_first_true, bl_second_true) =
     if input_first then
-      (!itrans, !otrans, iinv', oinv, bli_true, blo_true)
+      (!itrans, !otrans, iinv', oinv, bli, bli_true, blo_true)
     else
-      (!otrans, !itrans, oinv', iinv, blo_true, bli_true)
+      (!otrans, !itrans, oinv', iinv, blo, blo_true, bli_true)
   in
   
   (* the transition relation of the first player to move *)
   let tau_first =
-    (* rename variables: X' -> X'' *)
-    let trans_first = Mlglu.mdd_substitute_two_lists mgr trans_first 
-      var_list' var_list'' in
     
     let term_delta0 = Mlglu.mdd_and copy_x_x''  d0true 1 1 in
     let term_delta0 = Mlglu.mdd_and term_delta0 d1true 1 0 in
-
-    let term_action = Mlglu.mdd_and trans_first d0true 1 0 in
-    let term_action = Mlglu.mdd_and term_action d1true 1 0 in
 
     let delta1_and_inv = Mlglu.mdd_and delta1 inv_first' 1 1 in
     let term_delta1 = Mlglu.mdd_smooth mgr delta1_and_inv vars' in
     let term_delta1 = Mlglu.mdd_and term_delta1 copy_x_x'' 1 1 in
     let term_delta1 = Mlglu.mdd_and term_delta1 d1true 1 1 in
     let term_delta1 = Mlglu.mdd_and term_delta1 d0true 1 0 in
+
+    (* rename variables: X' -> X'' *)
+    let trans_first = Mlglu.mdd_substitute_two_lists mgr trans_first 
+      var_list' var_list'' in
+    let term_action = Mlglu.mdd_and trans_first d0true 1 0 in
+    let term_action = Mlglu.mdd_and term_action d1true 1 0 in
 
     (* debug term_action "term_action";
        debug term_delta0 "term_delta0";
@@ -162,27 +162,27 @@ let turn_transitions sp sm (input_first: bool) =
       var_var' var'_var in
 
     let d0_or_d1 = Mlglu.mdd_or d0true d1true 1 1 in
-    let temp = Mlglu.mdd_xnor blotrue d0_or_d1 in
-    let term_delta0 = Mlglu.mdd_neq_s mgr bli d1 in
+    let temp = Mlglu.mdd_xnor bl_second_true d0_or_d1 in
+    let term_delta0 = Mlglu.mdd_neq_s mgr bl_first d1 in
     let term_delta0 = Mlglu.mdd_and term_delta0 temp 1 1 in
     let term_delta0 = Mlglu.mdd_and term_delta0 copy_x_x'' 1 1 in
-    
+
     let inverted_delta1 = 
       Mlglu.mdd_substitute_two_lists mgr delta1 var_var' var'_var in
     let inverted_delta1_and_inv = 
       Mlglu.mdd_and inverted_delta1 inv_second 1 1 in
     let temp = Mlglu.mdd_smooth mgr inverted_delta1_and_inv vars in
-    let term_delta1 = Mlglu.mdd_and blitrue blotrue 1 0 in
+    let term_delta1 = Mlglu.mdd_and bl_first_true bl_second_true 1 0 in
     let term_delta1 = Mlglu.mdd_and term_delta1 d1true 1 0 in
     let term_delta1 = Mlglu.mdd_and term_delta1 copy_x_x'' 1 1 in
     let term_delta1 = Mlglu.mdd_and term_delta1 temp 1 1 in
 
-    let term_delta1_bis = Mlglu.mdd_and blitrue blotrue 0 0 in
+    let term_delta1_bis = Mlglu.mdd_and bl_first_true bl_second_true 0 0 in
     let term_delta1_bis = Mlglu.mdd_and term_delta1_bis d1true 1 1 in
     let term_delta1_bis = Mlglu.mdd_and 
       term_delta1_bis inverted_delta1_and_inv 1 1 in
 
-    let term_action = Mlglu.mdd_and blitrue blotrue 0 1 in
+    let term_action = Mlglu.mdd_and bl_first_true bl_second_true 0 1 in
     let term_action = Mlglu.mdd_and term_action trans_second 1 1 in
 
     let res = Mlglu.mdd_or term_delta0 term_delta1 1 1 in
@@ -191,13 +191,22 @@ let turn_transitions sp sm (input_first: bool) =
   in
 
   (** DEBUG *)
-(* Printf.printf " tau_first: \n"; flush stdout;
-  let temp = Mlglu.mdd_and tau_first d1true 1 1 in
-  let smooth_list = List.append var_list' var_list'' in
-  let temp = Mlglu.mdd_smooth_list mgr temp smooth_list in
-  Mlglu.mdd_print mgr temp;
-   Printf.printf " end tau_first \n"; flush stdout; *)
+  (* Printf.printf " tau_first: \n"; flush stdout;
+     let temp = Mlglu.mdd_and tau_first d1true 1 1 in
+     let smooth_list = List.append var_list' var_list'' in
+     let temp = Mlglu.mdd_smooth_list mgr temp smooth_list in
+     Mlglu.mdd_print mgr temp;
+     Printf.printf " end tau_first \n"; flush stdout; *)
 
+  (** DEBUG *)
+  (* Printf.printf " tau_first: \n"; flush stdout;
+     Mlglu.mdd_print mgr tau_first;
+     Printf.printf " end tau \n"; flush stdout; 
+     
+     Printf.printf " tau_second: \n"; flush stdout;
+     Mlglu.mdd_print mgr tau_second;
+     Printf.printf " end tau \n"; flush stdout; *)
+  
   (tau_first, tau_second)
 ;;
 
@@ -251,8 +260,19 @@ let i_live_pmeasure sp ?(gap: bool = true) sm =
   let smoothy_first = d0::(d1::(var_list'@var_list'')) in
 
   (* lift operator for the second player to move.
-     Given the current measures for input and output states,
-     it returns the new measure for the second player to move. *)
+     The second player moves from "virtual states" that are
+     assumed to have color 2.
+     Therefore, this lift operation is straightforward.
+
+     Given the current measure for regular states 
+     and the old measure for virtual states,
+     it returns the new measure for virtual states. 
+
+     This is the _first_ lift to be performed in every algorithm iteration.
+
+     Types: curr_m[vars, blI, blO, rho]
+            tau_second[vars', vars'', d0, d1; X, blI, blO] 
+            old_m[vars', vars'', d0, d1, rho] *)
   let lift_second (curr_m: Mlglu.mdd) (old_m: Mlglu.mdd) : Mlglu.mdd =
     let res = Mlglu.mdd_and tau_second curr_m 1 1 in
 
@@ -261,19 +281,31 @@ let i_live_pmeasure sp ?(gap: bool = true) sm =
     let res = Mlglu.mdd_smooth_list mgr res smoothy_second in
     print_time "b:";
 
+    (** IMPORTANT: we are assuming the second player 
+      is the controlling player (minimizer) *)
+    let result = Mlglu.mdd_min res rho in
+
     (* optionally apply the gap optimization *)
-    let new_res = if gap then begin
-      (* take maximum with respect to old second measure *)
-      Mlglu.mdd_or res old_m 1 1 
+    if gap then begin
+      (* take maximum with respect to old measure for virtual states *)
+      let temp = Mlglu.mdd_or result old_m 1 1 in
+      Mlglu.mdd_max temp rho 
     end else
       res
-    in
-    Mlglu.mdd_min new_res rho
   in
 
   (* lift operator for the first player to move.
-     Given the current measures for input and output states,
-     it returns the new measure for input states. *)
+
+     Given the current measure for virtual states 
+     and the old measure for regular states,
+     it returns the new measure for regular states. 
+
+     This is the _second_ lift to be performed in every algorithm iteration.
+
+     Types: old_m[vars, blI, blO, rho]
+            tau_first[vars; vars', vars'', d0, d1] 
+            curr_m[vars', vars'', d0, d1, rho]
+     output: [vars, blI, blO, rho] *)
   let lift_first (old_m: Mlglu.mdd) (curr_m: Mlglu.mdd) : Mlglu.mdd =
 
     let measure' = curr_m in
@@ -286,6 +318,8 @@ let i_live_pmeasure sp ?(gap: bool = true) sm =
     let res = Mlglu.mdd_smooth_list mgr res smoothy_first in
     print_time "d:";
 
+    (** IMPORTANT: we are assuming the first player 
+      is the adversary (maximizer) *)
     let minsucc = Mlglu.mdd_max res rho in
     let incr_minsucc = Mlglu.mdd_incr minsucc rho in
 
@@ -304,16 +338,18 @@ let i_live_pmeasure sp ?(gap: bool = true) sm =
     let temp  = Mlglu.mdd_and temp  rho_zero 1 1 in
     let term0 = Mlglu.mdd_or  term0 temp     1 1 in
     let term0 = Mlglu.mdd_and term0 color0   1 1 in
+
     let term1 = Mlglu.mdd_and color1 incr_minsucc 1 1 in
+
     let term2 = Mlglu.mdd_and color2 minsucc 1 1 in
+
     let res = Mlglu.mdd_or term0 term1 1 1 in
     let res = Mlglu.mdd_or res term2 1 1 in
 
     (* optionally apply the gap optimization *)
     if gap then begin
-      (* take maximum with respect to old Input measure *)
+      (* take maximum with respect to old regular measure *)
       let temp = Mlglu.mdd_or res old_m 1 1 in
-
       Mlglu.mdd_max temp rho
     end else
       res
@@ -405,16 +441,17 @@ let cpre_init sp sm (input_first: bool) =
   If the first argument is the result of cpreI_init, we obtain CpreI;
   If the first argument is the result of cpreO_init, we obtain CpreO.
  *)
-let cpre stuff (first: bool) m =
+let cpre stuff (first_is_controlling: bool) m =
 
   let (mgr, tau_first, tau_second, var_first, var_second) = stuff in
-  let implication = Mlglu.mdd_or tau_second m 0 1 in
-  if (first) then
+  if (first_is_controlling) then
+    let implication = Mlglu.mdd_or tau_second m 0 1 in
     let term = Mlglu.mdd_consensus_list mgr implication var_second in
     let term = Mlglu.mdd_and term tau_first 1 1 in
     Mlglu.mdd_smooth_list mgr term var_first
   else
-    let term = Mlglu.mdd_smooth_list mgr implication var_second in
+    let tau_second_and_m = Mlglu.mdd_and tau_second m 1 1 in
+    let term = Mlglu.mdd_smooth_list mgr tau_second_and_m var_second in
     let term = Mlglu.mdd_or tau_first term 0 1 in
     Mlglu.mdd_consensus_list mgr term var_first
       
@@ -500,11 +537,16 @@ let live_cpre input sp ?(verbose : bool = false) sm =
 	  print_string "x";
 	  flush stdout;
 	end;
-	
+
 	let all_terms = Mlglu.mdd_or x_term y_term 1 1 in
 	let all_terms = Mlglu.mdd_or all_terms z_term 1 1 in
 	x_diff := Mlglu.mdd_and !x all_terms 1 0;
 	x := all_terms;
+
+      (** DEBUG *)
+      (* Printf.printf " x: \n"; flush stdout;
+	 Mlglu.mdd_print mgr !x;
+	 Printf.printf " end x \n"; flush stdout; *)
       done;
 
       y_diff := Mlglu.mdd_and !x !y 1 0;

@@ -6,32 +6,36 @@ open Ticc;;
 parse "marcin_wins.si" ;;
 let a = mk_sym "A";;
 
-print_module_full "A";;
-print_newline ();;
+if false then begin
+  print_symmod a;
+  print_newline ()
+end;;
 
-Printf.printf "Zeno with cpre:\n";;
+Printf.printf "I-live states with Jurdzinski+gap:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let winners2 = i_live_alt a;;
+let time = (Sys.time ()) -. time;;
+Printf.printf "\ntime: %f \n" time;;
+
+Printf.printf "I-live states with EJ:\n";;
 flush stdout;;
 
 let time = Sys.time ();;
-let losers2 = zeno_cpre a ~verbose:true;;
+let winners = i_live a ~verbose:true;;
 let time = (Sys.time ()) -. time;;
 
 Printf.printf "\ntime: %f \n" time;;
-Printf.printf "Losing states:\n";;
 flush stdout;;
 
-Printf.printf "Zeno with gap:\n";;
-flush stdout;;
-let time = Sys.time ();;
-let losers1 = zeno a;;
-let time = (Sys.time ()) -. time;;
+if false then begin
+  print_stateset winners;
+  print_stateset winners2
+end;;
 
-Printf.printf "\ntime: %f \n" time;;
-Printf.printf "Losing states:\n";;
-flush stdout;;
-
-(* print_stateset losers2;;
-print_stateset losers1;; *)
-
+if (not (Mlglu.mdd_is_zero (Mlglu.mdd_and winners winners2 1 0))) then
+	Printf.printf "Aaargh1! \n";;
+if (not (Mlglu.mdd_is_zero (Mlglu.mdd_and winners winners2 0 1))) then
+	Printf.printf "Aaargh2! \n";;
 
 Printf.printf "end.\n";;
