@@ -4,7 +4,7 @@ module Scheduling:
     var cpu, activeA, activeB, doneA, doneB: bool 
     var cA, dA, cB, dB: clock
 
-    oinv: (activeA -> dA <= 3) & (activeB -> dB <= 8)
+    oinv: (activeA -> dA <= 2) & (activeB -> dB <= 1)
     iinv: (cA <= 4) & (cB <= 9)
 
     initial: cA = 0 & cB = 0 & dA = 0 & dB = 0
