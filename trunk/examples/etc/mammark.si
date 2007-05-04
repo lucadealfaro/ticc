@@ -3,14 +3,16 @@ module BatteryReader:
   initial: s = 0 
 
   input  read_bat: { local: s = 0 ==> s' := 1 } 
-  output ad_on: { s = 1 ==> s' = 2 }
+//  output ad_on: { s = 1 ==> s' = 2 }    --- I remove this, and I add
+//                                            skip_step below. Luca
+  local skip_step: { s = 1 ==> s' = 2 }
   output set_del_ad: { s = 2 ==> s' = 3 }
   input  get_del_ad: { local: s = 3 ==> s' := 4 }
-//  output ad_start:   { s = 4 ==> s' = 5 } 
-//  output ad_read:    { s = 5 ==> s' = 6 } 
-//  output ad_off:     { s = 6 ==> s' = 7 } 
-//  output write_data: { s = 7 ==> s' = 8 } 
-//  input  data_written: { local: s = 8 ==> s' := 0 } 
+  output ad_start:   { s = 4 ==> s' = 5 } 
+  output ad_read:    { s = 5 ==> s' = 6 } 
+  output ad_off:     { s = 6 ==> s' = 7 } 
+  output write_data: { s = 7 ==> s' = 8 } 
+  input  data_written: { local: s = 8 ==> s' := 0 } 
 endmodule
 
 module ADdel: 
