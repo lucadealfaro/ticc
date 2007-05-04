@@ -6,6 +6,14 @@ let add = mk_sym "ADdel";;
 let ad  = mk_sym "AD";;
 let starter = mk_sym "Starter";;
 
+print_symmod br;;
+
+print_string "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";;
+
+print_symmod add;;
+
+print_string "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";;
+
 let q1 = compose br add;;
 
 print_symmod q1;;
