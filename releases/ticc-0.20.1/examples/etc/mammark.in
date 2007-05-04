@@ -1,0 +1,30 @@
+open Ticc;;
+parse "mammark.si";;
+
+let br  = mk_sym "BatteryReader";;
+let add = mk_sym "ADdel";;
+let ad  = mk_sym "AD";;
+let starter = mk_sym "Starter";;
+
+let q1 = compose br add;;
+
+print_symmod q1;;
+
+print_string "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";;
+
+let q2 = compose q1 ad;;
+
+print_symmod q2;;
+
+print_string "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";;
+
+let q3 = compose q2 starter;;
+
+print_symmod q3;;
+
+(*
+print_string "Restriction of action read_bat in br_add:";;
+print_input_restriction br_add "read_bat";;
+print_string "Restriction of action read_bat in allthree:";;
+print_input_restriction allthree "read_bat";;
+*)

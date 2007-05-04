@@ -1,0 +1,40 @@
+module BatteryReader: 
+  var s: [0..8]
+  initial: s = 0 
+
+  input  read_bat: { local: s = 0 ==> s' := 1 } 
+//  output ad_on: { s = 1 ==> s' = 2 }
+  output set_del_ad: { s = 2 ==> s' = 3 }
+  input  get_del_ad: { local: s = 3 ==> s' := 4 }
+  output ad_start:   { s = 4 ==> s' = 5 } 
+  output ad_read:    { s = 5 ==> s' = 6 } 
+  output ad_off:     { s = 6 ==> s' = 7 } 
+  output write_data: { s = 7 ==> s' = 8 } 
+  input  data_written: { local: s = 8 ==> s' := 0 } 
+endmodule
+
+module ADdel: 
+  var s: [0..1]
+
+  initial: s = 0 
+
+  input set_del_ad: { local: s = 0 ==> s' := 1 } 
+  output get_del_ad: { s = 1 ==> s' = 0 } 
+endmodule
+
+module AD: 
+  var s: [0..2]
+  initial: s = 0 
+
+  input ad_on:    { local: s = 0 ==> s' := 1 } 
+  input ad_start: { local: s = 1 ==> s' := 2 } 
+  input ad_read:  { local: s = 2 ==> s' := 1 } 
+  input ad_off:   { local: s = 1 ==> s' := 0 } 
+endmodule
+
+module Starter: 
+  var s: [0..1]
+  initial: s = 0
+
+  output read_bat: { s = 0 ==> s' = 1 }
+endmodule

@@ -1,0 +1,32 @@
+open Ticc;;
+parse "mammark.si";;
+
+let br  = mk_sym "BatteryReader";;
+let add = mk_sym "ADdel";;
+let ad  = mk_sym "AD";;
+let starter = mk_sym "Starter";;
+
+
+let br_add = compose br add;;
+let allthree = compose br_add ad;;
+let allfour = compose allthree starter;;
+
+let all = compose (compose (compose br add) ad) starter;;
+
+print_symmod all;;
+
+print_string "Restriction of action read_bat in br_add:";;
+print_input_restriction br_add "read_bat";;
+print_string "Restriction of action read_bat in allthree:";;
+print_input_restriction allthree "read_bat";;
+
+
+(*
+print_symmod fire1;;
+print_symmod fire2;;
+print_symmod controlunit;;
+
+let composed = compose (compose controlunit fire1) fire2;;
+
+print_symmod composed;;
+*)
