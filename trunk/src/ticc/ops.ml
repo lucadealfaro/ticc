@@ -344,21 +344,20 @@ let apre (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t) : stateset_t =
     \mu X . ( target_set \union (passage_set \inters a_pre (X) ))
  *)
 let a_until (sp: Symprog.t) (sm: Symmod.t) 
-	(passage_set: stateset_t) (target_set: stateset_t) : stateset_t =
-    let mgr = Symprog.get_mgr sp in
-    let result = ref (Mlglu.mdd_zero mgr) in 
-    let frontier = ref (Mlglu.mdd_zero mgr) in 
-    result := target_set; 
-    frontier := !result; 
-    while not (Mlglu.mdd_is_zero !frontier) do 
-	let apre_frontier = internal_apre true true sp sm !result in 
-	let frontier' = Mlglu.mdd_and apre_frontier passage_set 1 1 in 
-	frontier := Mlglu.mdd_and frontier' !result 1 0; 
-	result   := Mlglu.mdd_or  !frontier  !result 1 1
-    done; 
-    !result
-
-
+  (passage_set: stateset_t) (target_set: stateset_t) : stateset_t =
+  let mgr = Symprog.get_mgr sp in
+  let result = ref (Mlglu.mdd_zero mgr) in 
+  let frontier = ref (Mlglu.mdd_zero mgr) in 
+  result := target_set; 
+  frontier := !result; 
+  while not (Mlglu.mdd_is_zero !frontier) do 
+    let apre_frontier = internal_apre true true sp sm !result in 
+    let frontier' = Mlglu.mdd_and apre_frontier passage_set 1 1 in 
+    frontier := Mlglu.mdd_and frontier' !result 1 0; 
+    result   := Mlglu.mdd_or  !frontier  !result 1 1
+  done; 
+  !result
+    
 
 (* **************************************************************** *)
 (* Post and reachability *)
@@ -369,54 +368,54 @@ let a_until (sp: Symprog.t) (sm: Symmod.t)
 let post_rule (sp: Symprog.t) (sm: Symmod.t) (set: stateset_t)
     (r: Symmod.rule_t) (conj_inv: bool) : stateset_t =
 
-  (* To Do: update for timed modules *)
-    (*Printf.printf "applying rule %s\n" (Symmod.get_rule_act r);*)
+  (* TODO: update for timed modules *)
+  (*Printf.printf "applying rule %s\n" (Symmod.get_rule_act r);*)
 
-    let mgr = Symprog.get_mgr sp in 
+  let mgr = Symprog.get_mgr sp in 
     
-    let w  = Symmod.get_rule_wvars r in 
-    let allvars = Symmod.get_vars sm in 
-    let allvars'= Symprog.prime_vars sp allvars in
-    let local = Symmod.get_lvars sm in  
+  let w  = Symmod.get_rule_wvars r in 
+  let allvars = Symmod.get_vars sm in 
+  let allvars'= Symprog.prime_vars sp allvars in
+  let local = Symmod.get_lvars sm in  
+  
+  match (Symmod.get_rule_tran r) with 
     
-    match (Symmod.get_rule_tran r) with 
+    Symmod.Loc tau | Symmod.Out tau -> 
+      (* the result is 
+	 (\exists w . (\tau /\ set)[notw'/notw] )[allvars/allvars'] ) 
+         /\ oinv
+       *)
+      let notw = VarSet.diff allvars w in 
+      let set_tau = Mlglu.mdd_and set tau 1 1 in 
+      let set_tau_notw' =  Symutil.prime_mdd_vars sp set_tau notw in
+      let result  = Mlglu.mdd_smooth mgr set_tau_notw' w in
+      let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
+      if conj_inv then begin
+	let oinv = Symmod.get_oinv sm in
+	Mlglu.mdd_and unprimed_result oinv 1 1
+      end
+      else unprimed_result
 	
-	Symmod.Loc tau | Symmod.Out tau -> 
-	  (* the result is 
-	     (\exists w . (\tau /\ set)[notw'/notw] )[allvars/allvars'] ) 
-             /\ oinv
-	  *)
-	  let notw = VarSet.diff allvars w in 
-	  let set_tau = Mlglu.mdd_and set tau 1 1 in 
-	  let set_tau_notw' =  Symutil.prime_mdd_vars sp set_tau notw in
-	  let result  = Mlglu.mdd_smooth mgr set_tau_notw' w in
-	  let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
-	  if conj_inv then begin
-	    let oinv = Symmod.get_oinv sm in
-	    Mlglu.mdd_and unprimed_result oinv 1 1
-	  end
-	  else unprimed_result
-	      
-      | Symmod.Inp (taug, taul) -> 
-	  
-	  (* the result is
-	     ( (\exists allvars . 
-	        (taug /\ taul /\ set)[(V^l \ w)'/(V^l \ w)] )[allvars/allvars'] ) /\ iinv
-	     where w is the set of variables that can be rewritten by taul
-	  *)
-	  let local_notw = VarSet.diff local w in
-	  let taul_set      = Mlglu.mdd_and set taul 1 1 in 
-	  let taul_set_taug = Mlglu.mdd_and taul_set taug 1 1 in 
-	  let result_prime_notw = 
-	    Symutil.prime_mdd_vars sp taul_set_taug local_notw in
-	  let result = Mlglu.mdd_smooth mgr result_prime_notw allvars in
-	  let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
-	  if conj_inv then begin
-	    let iinv = Symmod.get_iinv sm in
-	    Mlglu.mdd_and unprimed_result iinv 1 1
-	  end
-	  else unprimed_result
-
+  | Symmod.Inp (taug, taul) -> 
+      
+      (* the result is
+	 ( (\exists allvars . 
+	 (taug /\ taul /\ set)[(V^l \ w)'/(V^l \ w)] )[allvars/allvars'] ) /\ iinv
+	 where w is the set of variables that can be rewritten by taul
+       *)
+      let local_notw = VarSet.diff local w in
+      let taul_set      = Mlglu.mdd_and set taul 1 1 in 
+      let taul_set_taug = Mlglu.mdd_and taul_set taug 1 1 in 
+      let result_prime_notw = 
+	Symutil.prime_mdd_vars sp taul_set_taug local_notw in
+      let result = Mlglu.mdd_smooth mgr result_prime_notw allvars in
+      let unprimed_result = Symutil.unprime_mdd_vars sp result allvars' in
+      if conj_inv then begin
+	let iinv = Symmod.get_iinv sm in
+	Mlglu.mdd_and unprimed_result iinv 1 1
+      end
+      else unprimed_result
+	
 (** Takes the local/output post of a set of states [set]. 
     This function computes the set of states that can be reached
     from a set [set] by application of the union of all

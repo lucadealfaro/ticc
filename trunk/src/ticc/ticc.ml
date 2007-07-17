@@ -20,6 +20,15 @@ exception Modules_not_composable = Compose.Modules_not_composable
     modules being composed are incompatible. *)
 exception Incompatible_Modules = Compose.Incompatible_Modules
 
+(** Raises an exception if [sm] is timed. *)
+let assert_untimed (sm: Symmod.t) : unit =
+  if Symmod.is_timed sm then
+    begin
+      Printf.printf "Operation not supported on timed modules.\n";
+      raise NoTimedSupport
+    end;
+;;
+
 (** Parses a file. 
     When parse aborts because of an error, all the parsed stuff is
     lost, so that you can try to parse the file again after correcting
@@ -73,6 +82,7 @@ let compose ?(result_name:string = "") sm1 sm2 =
     Ops.win_i_safe
   in
   Compose.composition Symprog.toplevel win_algo ~result_name sm1 sm2;;
+
 let compose_alt = Compose.composition Symprog.toplevel Ops.win_i_safe_alt_1;;
 
 (** Computes the local/output post of a module [sm] 
@@ -248,37 +258,45 @@ let print_bool b =
 
 let ctl_e_until (sm: symbolic_module_t) 
 	(b: stateset_t) (r: stateset_t) : stateset_t = 
-    Ops.e_until Symprog.toplevel sm b r
+  assert_untimed sm;
+  Ops.e_until Symprog.toplevel sm b r
 
 let ctl_e_waitfor (sm: symbolic_module_t) 
 	(b: stateset_t) (r: stateset_t) : stateset_t = 
-    Ops.e_waitfor Symprog.toplevel sm b r 
+  assert_untimed sm;
+  Ops.e_waitfor Symprog.toplevel sm b r 
 
 let ctl_e_f (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
-    let mgr = Symprog.get_mgr Symprog.toplevel in 
-    let one = Mlglu.mdd_one mgr in 
-    Ops.e_until Symprog.toplevel sm one r
+  assert_untimed sm;
+  let mgr = Symprog.get_mgr Symprog.toplevel in 
+  let one = Mlglu.mdd_one mgr in 
+  Ops.e_until Symprog.toplevel sm one r
 
 let ctl_e_g (sm: symbolic_module_t) (b: stateset_t) : stateset_t = 
-    let mgr = Symprog.get_mgr Symprog.toplevel in 
-    let zero = Mlglu.mdd_zero mgr in 
-    ctl_e_waitfor sm b zero 
-
+  assert_untimed sm;
+  let mgr = Symprog.get_mgr Symprog.toplevel in 
+  let zero = Mlglu.mdd_zero mgr in 
+  ctl_e_waitfor sm b zero 
+    
 let ctl_e_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
-    Ops.e_pre Symprog.toplevel sm r 
+  assert_untimed sm;
+  Ops.e_pre Symprog.toplevel sm r 
 
-let ctl_e_input_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
-    Ops.e_input_pre Symprog.toplevel sm r 
+let ctl_e_input_next (sm: symbolic_module_t) (r: stateset_t) :
+  stateset_t = 
+  assert_untimed sm;
+  Ops.e_input_pre Symprog.toplevel sm r 
 
 let ctl_e_output_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
-    Ops.e_output_pre Symprog.toplevel sm r 
+  assert_untimed sm;
+  Ops.e_output_pre Symprog.toplevel sm r 
 
 (* Universal *)
 
 (** Uses: \forall \box B = \not \exists \diam \not B *)
 let ctl_a_g (sm: symbolic_module_t) (b: stateset_t) : stateset_t = 
-    let result = Mlglu.mdd_not (ctl_e_f sm (Mlglu.mdd_not b)) in 
-    Ops.conjoin_w_invs sm result
+  let result = Mlglu.mdd_not (ctl_e_f sm (Mlglu.mdd_not b)) in 
+  Ops.conjoin_w_invs sm result
 
 (** Uses: \forall (B \waitfor R) 
     = \not \exists (\not R \Until (\not R \inters \not B)) *)
@@ -306,13 +324,16 @@ let ctl_a_f (sm: symbolic_module_t) (r: stateset_t) : stateset_t =
     ctl_a_until sm one r
 
 let ctl_a_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
-    Ops.apre Symprog.toplevel sm r
+  assert_untimed sm;
+  Ops.apre Symprog.toplevel sm r
 
 let ctl_a_input_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
-    Ops.i_apre Symprog.toplevel sm r
+  assert_untimed sm;
+  Ops.i_apre Symprog.toplevel sm r
 
 let ctl_a_output_next (sm: symbolic_module_t) (r: stateset_t) : stateset_t = 
-    Ops.lo_apre Symprog.toplevel sm r
+  assert_untimed sm;
+  Ops.lo_apre Symprog.toplevel sm r
 
 let ctl_and = set_and
 let ctl_or  = set_or

@@ -17,6 +17,9 @@ open Ast;;
 (** Random Simulation *)
 exception User_Start_State_Violates_Invariants
 
+(** Time is not supported yet. *) 
+exception NoTimedSupport;; 
+
 (** The following function computes the next stateset of a simulation cycle
     given a state. The algorithm,
 
@@ -140,6 +143,11 @@ let mdd_cube_to_string (set : stateset_t) (vAll : VarSet.t option) :
 
 let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
     (outputFile: string) : unit =
+  if Symmod.is_timed sm then
+    begin
+      Printf.printf "Operation not supported on timed modules.\n";
+      raise NoTimedSupport
+    end;
   let parsedState : stateset_t =
       if expr = "" 
       (* if no expression is given, use the initial condition *)
