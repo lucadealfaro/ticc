@@ -587,6 +587,7 @@ let disjoin_gc_list (sp: Symprog.t) (l: (Ast.t * Ast.t) list)
 
 (** Builds the symbolic representation of the disjunction of a list
     of deterministic guarded commands.
+    Applies to the local part of an input rule.
 
     Differently from the normal guarded commands,
     the list of deterministic guarded commands has a strict priority,
@@ -644,6 +645,7 @@ let disjoin_det_gc_list (sp: Symprog.t) (l: (Ast.t * (Ast.t list)) list)
 
     (* Use the portion below if you decide that the local part should not
        be blocking, so that when no guard applies, nothing changes.
+
        let otherwise_nothing = Symutil.and_unchngd sp !not_previous_cmds
        (Symprog.get_id_of_varset sp wvars) in 
        Mlglu.mdd_or !mdd otherwise_nothing 1 1 
@@ -718,23 +720,26 @@ let mk_irule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.irule_t) : unit =
      To be consistent with the FROCOS paper, and to ensure
      a correct implementation of Definition 21 (good states),
      we have to move this assumption from the local part
-     to the global part, where it belongs. Thus:
+     to the global part, where it belongs. 
 
-     we conjoin with the global guarded command the formula 
+     Thus, we conjoin the global guarded command with the formula:
      local_nonblock = \exists wvars' . l_mdd 
    *) 
   let sym_wvars  = Symprog.get_id_of_varset sp wvars in
   let sym_wvars' = Symprog.prime_vars sp sym_wvars in
   let local_nonblock = Mlglu.mdd_smooth mgr l_mdd sym_wvars' in 
   let g_mdd = Mlglu.mdd_and g_mdd local_nonblock 1 1 in 
-  (* Next, we remove the block from the local part,
-     making it deterministic and complete. 
-     l_mdd = l_mdd \/ ( not local_nonblock and Unchgd(local_vars) ) 
+  (* Next, to be consistent with the FROCOS paper, we _should_ 
+     remove the block from the local part, making it deterministic and complete.
+     That is, we should do:
+       l_mdd = l_mdd \/ ( (not local_nonblock) and Unchgd(local_vars) ) 
+
+     which would be done by the following code:
+       let unchgd = Mlglu.mdd_and local_nonblock (Symutil.unchngd sp sym_wvars) 0 1 in
+       let l_mdd  = Mlglu.mdd_or l_mdd unchgd 1 1 in 
+
+     However, for efficiency, we do not do this.
    *)
-  (** HERE *)
-  let unchgd = Mlglu.mdd_and local_nonblock (Symutil.unchngd sp sym_wvars)
-    0 1 in
-  let l_mdd = Mlglu.mdd_or l_mdd unchgd 1 1 in 
   (* let l_mdd = Mlglu.mdd_or l_mdd local_nonblock 1 0 in *)
   (* add the resulting rule to the symbolic module [sm] *)
   let symrule = Symmod.mk_irule act sym_wvars g_mdd l_mdd in

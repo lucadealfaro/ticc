@@ -458,8 +458,16 @@ let cpre stuff (first_is_controlling: bool) m =
 
 (** If [input] is true, computes the set of states 
   where Input has a strategy to let time diverge 
-  or blame the adversary (the set of I-live states).
-  If [input] is false, computes the set of O-live states.
+  or blame the adversary (the set of I-live states), i.e.
+
+  infinitely often tick or eventually forever blame_O
+
+  If [input] is false, computes the set of O-live states, i.e. 
+
+  infinitely often tick or eventually forever not blame_O
+  (equivalently, 
+  infinitely often tick or eventually forever blame_I and not blame_O)
+
   Uses the Emerson-Jutla algorithm based on a triple fixpoint. *)
 let live_cpre input sp ?(verbose : bool = false) sm =
   let mgr = Symprog.get_mgr sp in

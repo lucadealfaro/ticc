@@ -436,7 +436,7 @@ let composition (sp:Symprog.t) win_algo ?(result_name="") (m1: Symmod.t) (m2: Sy
 		  (* hat_rho_o /\ unch_term /\ rho_il *)
 		  let conj = Mlglu.mdd_and hat_rho_o unch_term 1 1 in 
 		  let conj = Mlglu.mdd_and conj rho_il 1 1 in
-		  (* (hat_rho_o /\ unch_term /\ rho_il) ==> hat_rho_ig *)
+		  (* impl = (hat_rho_o /\ unch_term /\ rho_il) ==> hat_rho_ig *)
 		  let impl = Mlglu.mdd_or conj hat_rho_ig 0 1 in 
 		  let good_part = Mlglu.mdd_consensus mgr impl all_vars' in 
 		  let result = Mlglu.mdd_and good_part good_term 1 1 in 

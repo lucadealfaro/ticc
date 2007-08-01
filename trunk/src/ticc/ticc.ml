@@ -150,10 +150,16 @@ let print_restr_paths sm (r: string) (n_traces: int) =
 let close m a = Modops.close_input_action Symprog.toplevel m a 
 
 (** Returns the most general refinement relation between [m1] and [m2] *)
-let refinement m1 m2 = Refine.refinement Symprog.toplevel m1 m2 
+let refinement m1 m2 = 
+  assert_untimed m1;
+  assert_untimed m2;
+  Refine.refinement Symprog.toplevel m1 m2 
 
 (** Checks whether [m1] refines [m2] *)
-let refines m1 m2 = Refine.refines Symprog.toplevel m1 m2 
+let refines m1 m2 = 
+  assert_untimed m1;
+  assert_untimed m2;
+  Refine.refines Symprog.toplevel m1 m2 
 
 (** Returns the set of I-live states *)
 let i_live = Zeno.i_live Symprog.toplevel 
@@ -179,6 +185,7 @@ let wrap_stateset (s: Mlglu.mdd) : stateset_t =
     expression for the given number of cycles. *)
 let simulate (sm: Symmod.t) (expr: string) (nCycles: int)
     (outFile: string) : unit =
+  assert_untimed sm;
   Simulate.simulate sm expr nCycles outFile
 ;;
 

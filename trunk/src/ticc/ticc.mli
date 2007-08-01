@@ -257,11 +257,11 @@ val ctl_not: symbolic_module_t -> stateset_t -> stateset_t
     with respect to local and output actions. *)
 val lo_post : symbolic_module_t -> stateset_t -> stateset_t
 
-(** [i_post m set] compustes the Post of [set], in the symbolic module
+(** [i_post m set] computes the Post of [set], in the symbolic module
     [m], with respect to input actions. *)
 val i_post : symbolic_module_t -> stateset_t -> stateset_t
 
-(** [post m set] compustes the Post of [set], in the symbolic module
+(** [post m set] computes the Post of [set], in the symbolic module
     [m], with respect to input, output, and local actions. *)
 val post : symbolic_module_t -> stateset_t -> stateset_t
 
