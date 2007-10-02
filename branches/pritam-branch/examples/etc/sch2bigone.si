@@ -1,0 +1,63 @@
+// A module to test the use of timed ticc for scheduling. 
+
+module S: 
+    var active, cpu: bool 
+    var c, clok: clock
+
+    oinv: (active -> clok <= 1)
+    iinv: c <= 2
+
+    input startA : { local: ~active ==> 
+	active' := true, clok' := 0 } 
+
+    output stopA : { active ==> ~active' } 
+
+    input period: { local: c = 2 & ~active ==> c' := 0 } 
+endmodule
+
+
+module T: 
+    var activeA: bool 
+    var cA, dA: clock
+
+    oinv: (activeA -> dA <= 1) // & (activeB -> dB <= 1)
+    iinv: cA <= 2 
+
+    initial: cA = 0 & dA = 0
+ 
+    input startA : { local: ~activeA ==> 
+			    activeA' := true, dA' := 0 } 
+
+//    input startB : { local: ~activeB & ~cpu ==> 
+//			    activeB' := true, cpu' := true, dB' := 0 } 
+
+    output stopA : { activeA ==> ~activeA' } 
+//    output stopB : { activeB ==> ~activeB' & ~cpu' }
+
+    input period: { local: ~activeA & cA = 4 ==> 
+                       cA' := 0 } 
+endmodule
+
+
+module OldScheduling: 
+    var cpu, activeA, activeB, doneA, doneB: bool 
+    var cA, dA, cB, dB: clock
+
+    oinv: (activeA -> dA <= 2) & (activeB -> dB <= 1)
+    iinv: cA <= 4 & cB <= 5
+
+    initial: cA = 0 & cB = 0 & dA = 0 & dB = 0
+ 
+    input startA : { local: ~doneA & ~activeA & ~cpu ==> 
+			    activeA' := true, cpu' := true, dA' := 0 } 
+    input startB : { local: ~doneB & ~activeB & ~cpu ==> 
+			    activeB' := true, cpu' := true, dB' := 0 } 
+
+    output stopA : { activeA ==> ~activeA' & ~cpu' & doneA' } 
+    output stopB : { activeB ==> ~activeB' & ~cpu' & doneB' }
+
+    input periodA: { local: doneA & cA = 4 ==> 
+                       cA' := 0, doneA' := false } 
+    input periodB: { local: doneB & cB = 5 ==> 
+                       cB' := 0, doneB' := false } 
+endmodule

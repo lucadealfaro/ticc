@@ -1,0 +1,11 @@
+open Ticc;;
+parse "fire-detector.si";;
+let cu = mk_sym "ControlUnit";;
+let fd1 = mk_sym "FireDetector1";;
+
+try let composed = compose cu fd1 in
+    print_symmod composed;
+with _ -> print_endline "Exception was raised.";;
+
+flush stdout;;
+

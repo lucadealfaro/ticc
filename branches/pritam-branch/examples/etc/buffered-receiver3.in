@@ -1,0 +1,21 @@
+(*
+ * Buffered-Receiver example
+ *)
+
+open Ticc;;
+
+let srcfile = "../../examples/etc/buffered-receiver3.si" in
+parse srcfile;;
+
+let buffer = mk_sym "Buffer";;
+let receiver = mk_sym "Receiver";;
+
+
+print_symmod buffer;;
+print_symmod receiver;;
+
+
+let composition = compose buffer receiver;;
+
+print_symmod composition;;
+

@@ -1,0 +1,39 @@
+open Ticc;;
+
+parse "fire-detector-disable.si" ;;
+
+clone "FireDetector1" "FireDetector4";;
+
+(* print_toplevel () ;; *)
+
+let fire1 = mk_sym "FireDetector1";;
+let fire3 = mk_sym "FireDetector3";;
+let wfire2 = mk_sym "Faulty_FireDetector2";;
+let controlunit = mk_sym "ControlUnit";;
+let disable = mk_sym "Disable";;
+
+print_symmod fire1;;
+print_symmod fire3;;
+print_symmod wfire2;;
+
+let c = compose fire1  controlunit;;
+let d = compose wfire2 controlunit;; 
+
+print_symmod c;;
+print_symmod d;;
+
+(*
+print_stateset (get_iinv c);;
+print_stateset (get_iinv d);;
+*)
+
+print_string "Restriction of action disable in correct composition:";;
+print_input_restriction c "disable";;
+print_string "Restriction of action disable in defective compsotion:";;
+print_input_restriction d "disable";;
+
+print_string "Restriction of action smoke in correct composition:";;
+print_input_restriction c "smoke1";;
+print_string "Restriction of action smoke in defective composition:";;
+print_input_restriction d "smoke2";;
+

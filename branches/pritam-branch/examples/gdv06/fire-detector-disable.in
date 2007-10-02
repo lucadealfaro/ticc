@@ -1,0 +1,18 @@
+open Ticc;;
+
+parse "fire-detector-disable.si" ;;
+
+let fire1       = mk_sym "FireDetector1";;
+let wfire1      = mk_sym "Faulty_FireDetector1";;
+let fire2       = mk_sym "FireDetector2";;
+let controlunit = mk_sym "ControlUnit";;
+let disable     = mk_sym "Disable";;
+
+let c = compose wfire1  controlunit;;
+
+print_string "Path witnessing the restriction of input action smoke1\n";;
+print_string "in a composition where the fire detector does not\n";;
+print_string "implement disable:\n";;
+
+print_restr_paths c "smoke1" 1;;
+
