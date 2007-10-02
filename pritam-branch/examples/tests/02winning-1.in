@@ -1,0 +1,8 @@
+open Ticc;;
+parse "printer-s-frocos.si";;
+let user1   = mk_sym "User1";;
+let x0 = parse_stateset "busy = false";;
+let w = win_i_safe user1 x0;;
+print_stateset w;;
+flush stdout;;
+

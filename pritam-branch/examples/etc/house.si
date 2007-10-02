@@ -1,0 +1,275 @@
+// Rooms: K(itchen), L(iving room), B(athroom), (bed)R(oom)
+// What: plumb(ing), electr(ical), floor (painting), wall (painting), clean
+// Values: 0 (ok), 1 (to do)
+
+// Busy: someone is working on it 
+var K_busy, L_busy, B_busy, R_busy: bool 
+
+// Whether broken or not 
+var K_plumb, K_electr, K_floor, K_wall, K_clean: bool 
+var L_plumb, L_electr, L_floor, L_wall, L_clean: bool 
+var B_plumb, B_electr, B_floor, B_wall, B_clean: bool 
+var R_plumb, R_electr, R_floor, R_wall, R_clean: bool 
+var plumb_active, electr_active, floor_active, wall_active, clean_active: bool 
+
+// This is the initial condition 
+stateset initcond: ~K_busy & ~L_busy & ~B_busy & ~R_busy
+	 & ~plumb_active & ~electr_active & ~floor_active & ~wall_active & ~clean_active
+
+
+
+// This is the module that breaks things. 
+module Breaks: 
+  stateless
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean
+
+  output break_K_plumb : { ~K_plumb ==> K_plumb' & K_floor' & K_wall' & K_clean' } 
+  output break_L_plumb : { ~L_plumb ==> L_plumb' & L_floor' & L_wall' & L_clean' } 
+  output break_B_plumb : { ~B_plumb ==> B_plumb' & B_floor' & B_wall' & B_clean' } 
+  output break_R_plumb : { ~R_plumb ==> R_plumb' & R_floor' & R_wall' & R_clean' } 
+
+  output break_K_electr : { ~K_electr ==> K_electr' & K_wall' & K_clean' } 
+  output break_L_electr : { ~L_electr ==> L_electr' & L_wall' & L_clean' } 
+  output break_B_electr : { ~B_electr ==> B_electr' & B_wall' & B_clean' } 
+  output break_R_electr : { ~R_electr ==> R_electr' & R_wall' & R_clean' } 
+endmodule
+
+
+
+// This is the module that calls for repairs
+module Calls: 
+  stateless // If we track these, then we would have to know about repairs/breakdowns 
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean,
+	 plumb_active, electr_active, floor_active, wall_active, clean_active
+
+  output call_plumb  : { ~plumb_active  & (K_plumb  | L_plumb  | B_plumb  | R_plumb ) ==> plumb_active' }
+  output call_electr : { ~electr_active & (K_electr | L_electr | B_electr | R_electr) ==> electr_active' }
+  output call_floor  : { ~floor_active  & (K_floor  | L_floor  | B_floor  | R_floor ) ==> floor_active' }
+  output call_wall   : { ~wall_active   & (K_wall   | L_wall   | B_wall   | R_wall  ) ==> wall_active' }
+  output call_clean  : { ~clean_active  & (K_clean  | L_clean  | B_clean  | R_clean ) ==> clean_active' }
+
+endmodule  
+
+
+
+module Plumber:
+  var working: bool // whether working or not 
+  var Kw, Lw, Bw, Rw: bool  // room where working 
+  initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateset plumber_in_kitchen: Kw 
+  stateless // If we track these, then we would have to know about repairs/breakdowns 
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean
+
+  input  call_plumb : { global: ~plumb_active ==> plumb_active'
+                        local:  true          ==> working' := false } 
+  output done_plumb : { plumb_active & ~working & ~K_plumb & ~L_plumb & ~B_plumb & ~R_plumb 
+                        ==> ~plumb_active' } 
+
+  // Does the work 
+  output K_start_plumb  : { plumb_active & ~working & K_plumb & ~K_busy ==> working' & Kw' & K_busy' }
+  output L_start_plumb  : { plumb_active & ~working & L_plumb & ~L_busy ==> working' & Lw' & L_busy' }
+  output B_start_plumb  : { plumb_active & ~working & B_plumb & ~B_busy ==> working' & Bw' & B_busy' }
+  output R_start_plumb  : { plumb_active & ~working & R_plumb & ~R_busy ==> working' & Rw' & R_busy' }
+  output K_done_plumb   : { plumb_active & Kw ==> ~K_plumb' & ~Kw' & ~K_busy' & ~working' } 
+  output L_done_plumb   : { plumb_active & Lw ==> ~L_plumb' & ~Lw' & ~L_busy' & ~working' } 
+  output B_done_plumb   : { plumb_active & Bw ==> ~B_plumb' & ~Bw' & ~B_busy' & ~working' } 
+  output R_done_plumb   : { plumb_active & Rw ==> ~R_plumb' & ~Rw' & ~R_busy' & ~working' } 
+
+  // Checks that nobody else is working on the same room
+  input  K_* : { local: ~Kw ==>  } 
+  input  L_* : { local: ~Lw ==>  } 
+  input  B_* : { local: ~Bw ==>  } 
+  input  R_* : { local: ~Rw ==>  } 
+
+endmodule
+
+
+
+module Electrician:
+  var working: bool
+  var Kw, Lw, Bw, Rw: bool  // room where working 
+  initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateless // If we track these, then we would have to know about repairs/breakdowns 
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean
+
+  input  call_electr : { global: ~electr_active ==> electr_active' 
+                         local:  true           ==> working' := false } 
+  output done_electr : { electr_active & ~working & ~K_electr & ~L_electr & ~B_electr & ~R_electr 
+                         ==> ~electr_active' } 
+
+  // Does the work 
+  output K_start_electr : { electr_active & ~working & K_electr & ~K_busy ==> working' & Kw' & K_busy' }
+  output L_start_electr : { electr_active & ~working & L_electr & ~L_busy ==> working' & Lw' & L_busy' }
+  output B_start_electr : { electr_active & ~working & B_electr & ~B_busy ==> working' & Bw' & B_busy' }
+  output R_start_electr : { electr_active & ~working & R_electr & ~R_busy ==> working' & Rw' & R_busy' }
+  output K_done_electr  : { electr_active & Kw ==> ~K_electr' & ~Kw' & ~K_busy' & ~working' } 
+  output L_done_electr  : { electr_active & Lw ==> ~L_electr' & ~Lw' & ~L_busy' & ~working' } 
+  output B_done_electr  : { electr_active & Bw ==> ~B_electr' & ~Bw' & ~B_busy' & ~working' } 
+  output R_done_electr  : { electr_active & Rw ==> ~R_electr' & ~Rw' & ~R_busy' & ~working' } 
+
+  // Checks that nobody else is working on the same room
+  input  K_* : { local: ~Kw ==>  } 
+  input  L_* : { local: ~Lw ==>  } 
+  input  B_* : { local: ~Bw ==>  } 
+  input  R_* : { local: ~Rw ==>  } 
+
+endmodule
+
+
+
+// This module is like electrician, but does not pay attention to who
+// is working in a room before starting work. 
+// It should not be compatible with Plumber or the other modules. 
+// The conflict is actually just for the kitchen. 
+module RudeElectrician:
+  var working: bool
+  var Kw, Lw, Bw, Rw: bool  // room where working 
+  initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateset guard: electr_active & ~working & K_electr
+  stateless // If we track these, then we would have to know about repairs/breakdowns 
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean
+
+  input  call_electr : { global: ~electr_active ==> electr_active' 
+                         local:  true           ==> working' := false } 
+  output done_electr : { electr_active & ~working & ~K_electr & ~L_electr & ~B_electr & ~R_electr 
+                         ==> ~electr_active' } 
+
+  // Does the work 
+  output K_start_electr : { electr_active & ~working & K_electr           ==> working' & Kw' & K_busy' }
+  output L_start_electr : { electr_active & ~working & L_electr & ~L_busy ==> working' & Lw' & L_busy' }
+  output B_start_electr : { electr_active & ~working & B_electr & ~B_busy ==> working' & Bw' & B_busy' }
+  output R_start_electr : { electr_active & ~working & R_electr & ~R_busy ==> working' & Rw' & R_busy' }
+  output K_done_electr  : { electr_active & Kw ==> ~K_electr' & ~Kw' & ~K_busy' & ~working' } 
+  output L_done_electr  : { electr_active & Lw ==> ~L_electr' & ~Lw' & ~L_busy' & ~working' } 
+  output B_done_electr  : { electr_active & Bw ==> ~B_electr' & ~Bw' & ~B_busy' & ~working' } 
+  output R_done_electr  : { electr_active & Rw ==> ~R_electr' & ~Rw' & ~R_busy' & ~working' } 
+
+  // Checks that nobody else is working on the same room
+  input  K_* : { local: ~Kw ==>  } 
+  input  L_* : { local: ~Lw ==>  } 
+  input  B_* : { local: ~Bw ==>  } 
+  input  R_* : { local: ~Rw ==>  } 
+
+endmodule
+
+
+
+module Floors:
+  var working: bool
+  var Kw, Lw, Bw, Rw: bool  // room where working 
+  initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateless // If we track these, then we would have to know about repairs/breakdowns 
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean
+
+  input  call_floor : { global: ~floor_active ==> floor_active' 
+                        local:  true          ==> working' := false } 
+  output done_floor : { floor_active & ~working & ~K_floor & ~L_floor & ~B_floor & ~R_floor 
+                        ==> ~floor_active' } 
+
+  // Does the work 
+  output K_start_floor : { floor_active & ~working & K_floor & ~K_busy ==> working' & Kw' & K_busy' }
+  output L_start_floor : { floor_active & ~working & L_floor & ~L_busy ==> working' & Lw' & L_busy' }
+  output B_start_floor : { floor_active & ~working & B_floor & ~B_busy ==> working' & Bw' & B_busy' }
+  output R_start_floor : { floor_active & ~working & R_floor & ~R_busy ==> working' & Rw' & R_busy' }
+  output K_done_floor  : { floor_active & Kw ==> ~K_floor' & ~Kw' & ~K_busy' & ~working' } 
+  output L_done_floor  : { floor_active & Lw ==> ~L_floor' & ~Lw' & ~L_busy' & ~working' } 
+  output B_done_floor  : { floor_active & Bw ==> ~B_floor' & ~Bw' & ~B_busy' & ~working' } 
+  output R_done_floor  : { floor_active & Rw ==> ~R_floor' & ~Rw' & ~R_busy' & ~working' } 
+
+  // Checks that nobody else is working on the same room
+  input  K_* : { local: ~Kw ==>  } 
+  input  L_* : { local: ~Lw ==>  } 
+  input  B_* : { local: ~Bw ==>  } 
+  input  R_* : { local: ~Rw ==>  } 
+
+endmodule
+
+
+
+module Walls:
+  var working: bool
+  var Kw, Lw, Bw, Rw: bool  // room where working 
+  initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateless // If we track these, then we would have to know about repairs/breakdowns 
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean
+
+  input  call_wall : { global: ~wall_active ==> wall_active'
+                       local:  true         ==> working' := false } 
+  output done_wall : { wall_active & ~working & ~K_wall & ~L_wall & ~B_wall & ~R_wall 
+                       ==> ~wall_active' } 
+
+  // Does the work 
+  output K_start_wall : { wall_active & ~working & K_wall & ~K_busy ==> working' & Kw' & K_busy' }
+  output L_start_wall : { wall_active & ~working & L_wall & ~L_busy ==> working' & Lw' & L_busy' }
+  output B_start_wall : { wall_active & ~working & B_wall & ~B_busy ==> working' & Bw' & B_busy' }
+  output R_start_wall : { wall_active & ~working & R_wall & ~R_busy ==> working' & Rw' & R_busy' }
+  output K_done_wall  : { wall_active & Kw ==> ~K_wall' & ~Kw' & ~K_busy' & ~working' } 
+  output L_done_wall  : { wall_active & Lw ==> ~L_wall' & ~Lw' & ~L_busy' & ~working' } 
+  output B_done_wall  : { wall_active & Bw ==> ~B_wall' & ~Bw' & ~B_busy' & ~working' } 
+  output R_done_wall  : { wall_active & Rw ==> ~R_wall' & ~Rw' & ~R_busy' & ~working' } 
+
+  // Checks that nobody else is working on the same room
+  input  K_* : { local: ~Kw ==>  } 
+  input  L_* : { local: ~Lw ==>  } 
+  input  B_* : { local: ~Bw ==>  } 
+  input  R_* : { local: ~Rw ==>  } 
+
+endmodule
+
+
+
+module Clean:
+  var working: bool
+  var Kw, Lw, Bw, Rw: bool  // room where working 
+  initial: ~working & ~Kw & ~Lw & ~Bw & ~Rw
+  stateless // If we track these, then we would have to know about repairs/breakdowns 
+         K_plumb, K_electr, K_floor, K_wall, K_clean,
+         L_plumb, L_electr, L_floor, L_wall, L_clean,
+         B_plumb, B_electr, B_floor, B_wall, B_clean,
+         R_plumb, R_electr, R_floor, R_wall, R_clean
+
+  input  call_clean : { global: ~clean_active ==> clean_active' 
+                        local:  true          ==> working' := false } 
+  output done_clean : { clean_active & ~working & ~K_clean & ~L_clean & ~B_clean & ~R_clean 
+                        ==> ~clean_active' } 
+
+  // Does the work 
+  output K_start_clean : { clean_active & ~working & K_clean & ~K_busy ==> working' & Kw' & K_busy' }
+  output L_start_clean : { clean_active & ~working & L_clean & ~L_busy ==> working' & Lw' & L_busy' }
+  output B_start_clean : { clean_active & ~working & B_clean & ~B_busy ==> working' & Bw' & B_busy' }
+  output R_start_clean : { clean_active & ~working & R_clean & ~R_busy ==> working' & Rw' & R_busy' }
+  output K_done_clean  : { clean_active & Kw ==> ~K_clean' & ~Kw' & ~K_busy' & ~working' } 
+  output L_done_clean  : { clean_active & Lw ==> ~L_clean' & ~Lw' & ~L_busy' & ~working' } 
+  output B_done_clean  : { clean_active & Bw ==> ~B_clean' & ~Bw' & ~B_busy' & ~working' } 
+  output R_done_clean  : { clean_active & Rw ==> ~R_clean' & ~Rw' & ~R_busy' & ~working' } 
+
+  // Checks that nobody else is working on the same room
+  input  K_* : { local: ~Kw ==>  } 
+  input  L_* : { local: ~Lw ==>  } 
+  input  B_* : { local: ~Bw ==>  } 
+  input  R_* : { local: ~Rw ==>  } 
+
+endmodule
+
+

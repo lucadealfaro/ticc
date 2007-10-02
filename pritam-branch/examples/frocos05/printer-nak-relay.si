@@ -1,0 +1,55 @@
+var busy: bool       // global variable indicating a printer busy 
+var size:  [0..10]   // size of the print job
+var size1: [0..10]   // size of request to spool 1 
+var size2: [0..10]   // size of request to spool 2
+var spooler: [0..5]  // spooler who requested the job 
+
+module Printer:
+  output ack   : { busy & size < 5 ==> not busy' } // accept if size < 5
+                               // ack? is not allowed
+
+  output nack  : { busy & size > 4 ==> not busy' } // reject if size > 4
+                               // nack? is not allowed
+
+  input  print : { global: not busy ==> busy' }
+endmodule
+
+module Spool1:
+  var s: [0..2]
+  var sz: [0..10]   // size of request 
+  stateless size, spooler 
+
+  output print : { s = 1 & not busy ==> busy' &
+                                  s' = 2 & spooler' = 1 & size' = sz }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  req1  : { local: s = 0 ==> s' := 1, sz' := size1'  
+                  else  true  ==>  }                 
+
+  input  ack   : { local: s = 2 ==> s' := 0 
+                  else  true  ==>   }
+
+  input nack   : { local: false ==>  } // We don't want to have rejections
+
+endmodule
+
+module Spool2:
+  var s: [0..2]
+  var sz: [0..10]   // size of request 
+  stateless size, spooler 
+
+  output print : { s = 1 & not busy ==> busy' &
+                                  s' = 2 & spooler' = 2 & size' = sz }
+  input  print : { }  // print? is allowed and ignored 
+
+  input  req2  : {  local: s = 0 ==> s' := 1, sz' := size2'  
+                  else  true  ==>  }                 
+
+  input  ack   : { local: s = 2 ==> s' := 0 
+                  else  true  ==>   }
+
+  input nack   : { local: s = 2 ==> s' := 0           // acceped
+                  else  true  ==>         } 
+
+endmodule
+

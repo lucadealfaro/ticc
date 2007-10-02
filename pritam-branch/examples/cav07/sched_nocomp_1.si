@@ -1,0 +1,26 @@
+// A module to test the use of timed ticc for scheduling. 
+
+module Scheduling: 
+    var cpu, activeA, activeB, activeC, doneA, doneB, doneC: bool 
+    var cA, dA, cB, dB, cC, dC: clock
+
+    oinv: (activeA -> dA <= 2) & (activeB -> dB <= 2) & (activeC -> dC <= 1)
+    iinv: (cA <= 4) & (cB <= 5) & (cC <= 2)
+
+    initial: cA = 0 & dA = 0 & cB = 0 & dB = 0 & cC = 0 & dC = 0
+ 
+    input startA : { local: ~doneA & ~activeA & ~cpu ==> 
+			    activeA' := true, cpu' := true, dA' := 0 } 
+    input startB : { local: ~doneB & ~activeB & ~cpu ==> 
+			    activeB' := true, cpu' := true, dB' := 0 } 
+    input startC : { local: ~doneC & ~activeC & ~cpu ==> 
+			    activeC' := true, cpu' := true, dC' := 0 } 
+
+    output stopA : { activeA ==> ~activeA' & ~cpu' & doneA' } 
+    output stopB : { activeB ==> ~activeB' & ~cpu' & doneB' }
+    output stopC : { activeC ==> ~activeC' & ~cpu' & doneC' }
+
+    input periodA: { local: doneA & cA = 4 ==> cA' := 0, doneA' := false } 
+    input periodB: { local: doneB & cB = 5 ==> cB' := 0, doneB' := false } 
+    input periodC: { local: doneC & cC = 2 ==> cC' := 0, doneC' := false } 
+endmodule

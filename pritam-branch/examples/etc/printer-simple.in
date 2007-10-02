@@ -1,0 +1,9 @@
+open Ticc;;
+let srcfile = "../../examples/printer-simple.si" in
+parse srcfile;;
+let printer = mk_sym "Printer";;
+let user1   = mk_sym "User1";;
+print_symmod printer;;
+print_symmod user1;;
+flush stdout;;
+

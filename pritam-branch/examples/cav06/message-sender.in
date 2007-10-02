@@ -1,0 +1,19 @@
+open Ticc;;
+
+parse "message-sender.si";;
+
+let upper     = mk_sym "UpperLayer";;
+let mid       = mk_sym "MidLayer";;
+
+let c = compose upper mid;;
+
+
+
+(* Trouble here is the starting point of the transition that will lead
+   to problems.  This stuff is here only for diagnostic purposes. *)
+
+print_restr_paths c "nack" 1;;
+
+
+
+

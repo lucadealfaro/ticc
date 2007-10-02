@@ -1,0 +1,15 @@
+open Ticc;;
+
+parse "basic-fire.si" ;;
+
+let fire1       = mk_sym "FireDetector1";;
+let controlunit = mk_sym "ControlUnit";;
+
+(* Composes the control unit with the first fire detector *)
+
+let c = compose fire1  controlunit;;
+
+print_symmod c;;
+print_string "\nReachable states:\n";;
+print_stateset (reachable c);;
+

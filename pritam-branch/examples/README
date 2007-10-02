@@ -1,0 +1,6 @@
+This is the examples directory. 
+There are several examples for TICC, arranged in subdirectories: 
+
+  frocos05:  examples related to the "Sociable Interfaces" paper, FROCOS 2005. 
+  tests:     examples used to check that TICC is correctly built. 
+  etc:       undocumented examples useful to the developers. 

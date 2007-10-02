@@ -1,0 +1,56 @@
+(*
+ * Printer example, from the FROCOS05 paper "Sociable Interfaces".
+ *
+ * This ocaml script demonstrates loading a model from a file,
+ * instantiating modules, and composing them together.
+ *)
+
+(* In order to get convenient access to the Ticc functions,
+ * we import them into the local namespace. *)
+open Ticc;;
+
+
+(* Load the model from a file, using the 'parse' function.
+ * When you parse a file, the information is stored in
+ * Ticc's global namespace. 
+ * Notice that is is possible to parse several files. If this results
+ * in a syntax error, only the information parsed in the last file is
+ * lost. 
+ *)
+
+parse "printer-s-frocos.si";;
+
+(* To do anything useful with the model, you need to build the
+ * symbolic representation of modules.  This is done by the 'mk_sym'
+ * function. 
+ *)
+
+let user1 = mk_sym "User1";;
+let user2 = mk_sym "User2";;
+let printer = mk_sym "Printer";;
+
+(* For debugging purposes, it can be helpful to print out
+ * the symbolic representation of a module.  This is not necessarily
+ * very readable. 
+ *)
+
+print_symmod user1;;
+print_symmod user2;;
+print_symmod printer;;
+
+(* The ultimate purpose of defining modules is to be able to
+ * compose them.  The Ticc 'compose' function only composes two
+ * modules at a time, so we have to do the composition in two steps. *)
+
+let composed = compose (compose printer user1) user2;;
+
+(* And print the final composition. *)
+
+print_symmod composed;;
+
+(* Let's also print the input restriction on the composition *)
+print_input_restriction composed "print";;
+
+(* Now simulate the final composed module for 16 cycles *)
+simulate composed "busy & (user < 2) & (size > 3) & (size < 7)" 16 "printer-s-frocos.html";;
+

@@ -1,0 +1,35 @@
+(* 
+	Comparison between two implementations of zenoness game.
+*)
+
+open Ticc;;
+parse "zeno.si" ;;
+let a = mk_sym "A";;
+
+print_module_full "A";;
+print_newline ();;
+
+Printf.printf "Zeno with cpre:\n";;
+flush stdout;;
+
+let time = Sys.time ();;
+let win2 = i_live a ~verbose:false;;
+let time = (Sys.time ()) -. time;;
+
+(* Printf.printf "\ntime: %f \n" time;; *)
+Printf.printf "Winning states:\n";;
+print_stateset win2;;
+flush stdout;;
+
+Printf.printf "Zeno with gap:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let win1 = i_live_alt a;;
+let time = (Sys.time ()) -. time;;
+
+(* Printf.printf "\ntime: %f \n" time;; *)
+Printf.printf "Winning states:\n";;
+print_stateset win1;;
+flush stdout;;
+
+Printf.printf "end.\n";;

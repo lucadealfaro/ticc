@@ -1,0 +1,49 @@
+(* 
+	Comparison between two implementations of zenoness game.
+*)
+
+open Ticc;;
+parse "sch2bigone.si" ;;
+let m = mk_sym "OldScheduling";;
+(* let m = mk_sym "S";; *)
+
+print_symmod m;;
+flush stdout;;
+
+let time = Sys.time ();;
+let winners = i_live m;;
+let time = (Sys.time ()) -. time;;
+
+Printf.printf "\ntime: %f \n" time;;
+Printf.printf "i-live states:\n";;
+print_stateset winners;;
+
+let losers = Mlglu.mdd_not winners;;
+Printf.printf "i-dead states:\n";;
+print_stateset losers;;
+
+flush stdout;;
+
+let time = Sys.time ();;
+let o_winners = o_live m ~verbose:true;;
+let time = (Sys.time ()) -. time;;
+
+Printf.printf "\ntime: %f \n" time;;
+Printf.printf "o-live states:\n";;
+print_stateset o_winners;;
+flush stdout;;
+
+exit 0;;
+
+Printf.printf "Zeno with gap:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let winners = i_live_alt m;;
+let time = (Sys.time ()) -. time;;
+
+Printf.printf "\ntime: %f \n" time;;
+Printf.printf "Winning states:\n";;
+print_stateset winners;;
+flush stdout;;
+
+Printf.printf "end.\n";;
