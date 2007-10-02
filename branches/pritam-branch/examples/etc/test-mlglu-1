@@ -1,9 +1,0 @@
-(* $Id: test-mlglu-1,v 1.1 2005/06/23 21:13:03 luca Exp $ *)
-
-open Mlglu;;
-let m = mdd_init [15;15;15;15;15] [] [];;
-let a = mdd_gt_c m 0 3;;
-let b = mdd_lt_c m 0 2;;
-let c = mdd_and a b 1 1;;
-Printf.printf "false = %b\n" (mdd_is_tautology c 1);;
-Printf.printf "true  = %b\n" (mdd_is_tautology c 0);;

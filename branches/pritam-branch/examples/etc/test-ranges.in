@@ -1,8 +1,0 @@
-(* $Id: test-ranges.in,v 1.3 2005/09/01 22:12:50 luca Exp $ *)
-
-open Ticc;;
-parse "../../examples/test-ranges.si";;
-print_toplevel ();;
-flush stdout;; 
-print_string "-----------------";; 
-mk_sym "Cart";;

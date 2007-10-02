@@ -1,4 +1,0 @@
-CSRC += epd.c
-HEADERS += epd.h
-
-DEPENDENCYFILES = $(CSRC)

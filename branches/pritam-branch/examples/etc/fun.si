@@ -1,8 +1,0 @@
-module a:
-var s:[0..4]
-
-output axel:{true ==>s'=s-1}
-
-oinv: s < 2
-
-endmodule
