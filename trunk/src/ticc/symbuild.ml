@@ -738,7 +738,11 @@ let mk_irule (sp: Symprog.t) (sm: Symmod.t) (r: Rule.irule_t) : unit =
        let unchgd = Mlglu.mdd_and local_nonblock (Symutil.unchngd sp sym_wvars) 0 1 in
        let l_mdd  = Mlglu.mdd_or l_mdd unchgd 1 1 in 
 
-     However, for efficiency, we do not do this.
+     However, to keep l_mdd simple, we do not do this.
+   *)
+  (* Alternatively, we could make the local part complete,
+     but non-deterministic, as in:
+       l_mdd = l_mdd \/ (not local_nonblock)
    *)
   (* let l_mdd = Mlglu.mdd_or l_mdd local_nonblock 1 0 in *)
   (* add the resulting rule to the symbolic module [sm] *)
