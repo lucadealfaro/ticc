@@ -1,0 +1,29 @@
+open Ticc;;
+
+parse "jasper2.si";;
+
+let m1 = mk_sym "M1";;
+print_symmod m1;; 
+
+let m2 = mk_sym "M2";;
+print_symmod m2;; 
+
+let m3 = mk_sym "M3";;
+print_symmod m3;; 
+
+print_string "\nComputing m12:\n";;
+let m12 = compose m1 m2;;
+print_symmod m12;;
+print_string "\nComputing m23:\n";;
+let m23 = compose m2 m3;;
+print_symmod m23;;
+
+print_string "\nComputing m123a:\n";;
+let m123a = compose m12 m3;;
+print_symmod m123a;;
+
+print_string "\nComputing m123b:\n";;
+let m123b = compose m1 m23;;
+print_symmod m123b;;
+
+

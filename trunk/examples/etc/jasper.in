@@ -1,0 +1,14 @@
+open Ticc;;
+
+parse "jasper.si";;
+
+let m1 = mk_sym "M1";;
+print_symmod m1;; 
+
+let m2 = mk_sym "M2";;
+print_symmod m2;; 
+
+print_symmod (compose m1 m2);;
+
+(* ------------ *)
+

@@ -1,0 +1,9 @@
+module M1:
+var c1: bool
+output a : { true ==> c1' = ~c1 }
+endmodule
+
+module M2:
+var c2: bool
+output b : { true ==> c2' = ~c2 }
+endmodule

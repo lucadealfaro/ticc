@@ -1,0 +1,15 @@
+var u: bool 
+
+module M1:
+var c1: bool
+output a : { true ==> c1' = ~c1 & u' = ~u}
+endmodule
+
+module M2:
+var c2: bool 
+endmodule
+
+module M3: 
+var c3: bool 
+output a : { true ==> c3' = ~c3 }
+endmodule
