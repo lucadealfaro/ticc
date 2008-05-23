@@ -359,3 +359,8 @@ val i_live_alt :                  symbolic_module_t -> stateset_t
 val unwrap_stateset : stateset_t -> Mlglu.mdd 
 val wrap_stateset   : Mlglu.mdd  -> stateset_t
 
+(* abstraction refinement *)
+(* val create_initial_abstract_module : symbolic_module_t -> stateset_t -> Abstract.t
+val compute_abstract_cpre : Abstract.t -> bool -> bool -> stateset_t *)
+val abstract_ctl_e_f :  symbolic_module_t -> stateset_t -> stateset_t ->  bool 
+val ctl_e_f_init : symbolic_module_t -> stateset_t -> stateset_t -> bool

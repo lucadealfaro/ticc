@@ -348,3 +348,15 @@ let ctl_or  = set_or
 let ctl_not sm b = 
     Ops.conjoin_w_invs sm (set_not b)
     
+(**********************abstraction refinement**********************)
+let abstract_ctl_e_f = Abstract.ctl_e_f
+(*let create_initial_abstract_module = Abstract.create_initial_abstract_module
+let compute_abstract_cpre = Abstract.compute_abstract_cpre*)
+let ctl_e_f_init (sm: symbolic_module_t)  (init: stateset_t) (r: stateset_t): bool = 
+  assert_untimed sm;
+  let mgr = Symprog.get_mgr Symprog.toplevel in 
+  let one = Mlglu.mdd_one mgr in 
+  let setv = Ops.e_until Symprog.toplevel sm one r in
+  let initset = set_and  setv init in
+  if Mlglu.mdd_is_zero initset then false else true 
+

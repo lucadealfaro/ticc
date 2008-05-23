@@ -8,9 +8,12 @@ parse "scheduling_easy.si" ;;
 Printf.printf "Mk_symbolic:\n";;
 flush stdout;;
 let time = Sys.time ();;
-let m = mk_sym "Scheduling";;
-let time = (Sys.time ()) -. time;;
-Printf.printf "\ntime: %f \n" time;;
+let m = mk_sym "Scheduling" ;;
+let time1 = (Sys.time ()) -. time;;
+Printf.printf "\ntime: %f \n" time1;;
+let m2 = mk_sym "Scheduling" ;;
+let time2 = (Sys.time ()) -. time1;;
+Printf.printf "\ntime: %f \n" time22;;
 
 (* print_symmod m;; *)
 flush stdout;;

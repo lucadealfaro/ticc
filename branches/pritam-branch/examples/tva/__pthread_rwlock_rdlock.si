@@ -1,0 +1,416 @@
+ var THREAD_SELF_FLTS_tid:[0..4]
+ var pi_0:[0..127]
+ //initcond: THREAD_SELF_FLTS_tid = 0 & pi_0 = 0 
+ var rwlock_FLTP___data_FLTS___nr_writers_queued_fSfT__ptr:[0..127]
+// initial: rwlock_FLTP___data_FLTS___nr_writers_queued_fSfT__ptr = 0
+ var rwlock_FLTP___data_FLTS___writer_fSfT__ptr:[0..127]
+// initial: rwlock_FLTP___data_FLTS___writer_fSfT__ptr = 0
+ var rwlock_FLTP___data_FLTS___lock_fSfT__ptr:[0..127]
+// initial: rwlock_FLTP___data_FLTS___lock_fSfT__ptr = 0
+ var rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr:[0..127]
+// initial: rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr = 0
+ var rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr:[0..127]
+// initial: rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr = 0
+ var rwlock_FLTP___data_FLTS___shared_fSfT__ptr:[0..127]
+// initial: rwlock_FLTP___data_FLTS___shared_fSfT__ptr = 0
+var rwlock_FLTP___data_FLTS___readers_wakeup_fSfT__ptr:[0..127]
+//initial: rwlock_FLTP___data_FLTS___readers_wakeup_fSfT__ptr = 0
+
+
+module pthread_rwlock_rdlock1:
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_8:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_8 = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_7:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_7 = 0
+ var __fn__assert__c:[0..8]
+ initial: __fn__assert__c = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_6:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_6 = 0
+ var __fn____pthread_rwlock_rdlock__waitval:[0..127]
+ initial: __fn____pthread_rwlock_rdlock__waitval = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_17:[0..8]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_17 = 0
+ var __fn____pthread_rwlock_rdlock____fSfT__cIl_tmp:[0..127]
+ initial: __fn____pthread_rwlock_rdlock____fSfT__cIl_tmp = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_5:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_5 = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_16:[0..8]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_16 = 0
+ var __fn____pthread_rwlock_rdlock____retres:[0..127]
+ initial: __fn____pthread_rwlock_rdlock____retres = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_15:[0..8]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_15 = 0
+ var __fn____pthread_rwlock_rdlock__result:[0..128]
+ initial: __fn____pthread_rwlock_rdlock__result = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_10:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_10 = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_11:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_11 = 0
+  var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_12:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_12 = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_9:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_9 = 0
+ var __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_13:[0..127]
+ initial: __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_13 = 0
+ var s:[0..65]
+ initial: s = 7
+ output __pthread_rwlock_rdlock_0:{
+ s=7 ==>
+     s'=8
+     & __fn____pthread_rwlock_rdlock__result' = 0 
+     ;
+ }
+ output __pthread_rwlock_rdlock_1:{
+ s=8 ==>
+     s'=9
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_5' = rwlock_FLTP___data_FLTS___lock_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_2:{
+ s=9 ==>
+     s'=10
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_6' = rwlock_FLTP___data_FLTS___shared_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_3:{
+ s=10 ==>
+     s'=11
+     ;
+ }
+ output __pthread_rwlock_rdlock_4:{
+ s=11 ==>
+     s'=12
+     ;
+ }
+ output __pthread_rwlock_rdlock_5:{
+ s=12 ==>
+     s'=13
+     ;
+ s=12 ==>
+     s'=55
+     ;
+ }
+ output __pthread_rwlock_rdlock_6:{
+ s=13 ==>
+     s'=14
+     ;
+ }
+ output __pthread_rwlock_rdlock_7:{
+ s=55 ==>
+     s'=56
+     ;
+ }
+ output __pthread_rwlock_rdlock_8:{
+ s=14 & rwlock_FLTP___data_FLTS___writer_fSfT__ptr   = 0  ==>
+     s'=15
+     ;
+ s=14 & rwlock_FLTP___data_FLTS___writer_fSfT__ptr  != 0  ==>
+     s'=31
+     ;
+ }
+ output __pthread_rwlock_rdlock_9:{
+ s=56 ==>
+     s'=57
+     ;
+ }
+ output __pthread_rwlock_rdlock_10:{
+ s=15 ==>
+     s'=16
+     ;
+ }
+ output __pthread_rwlock_rdlock_11:{
+ s=31 & rwlock_FLTP___data_FLTS___writer_fSfT__ptr   = THREAD_SELF_FLTS_tid==>
+     s'=32
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_16' = 1;
+ 
+  s=31 & rwlock_FLTP___data_FLTS___writer_fSfT__ptr   != THREAD_SELF_FLTS_tid ==>
+     s'=32
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_16' = 0;
+
+ }
+ output __pthread_rwlock_rdlock_12:{
+ s=57 ==>
+     s'=58
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_12' = rwlock_FLTP___data_FLTS___lock_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_13:{
+ s=16 & rwlock_FLTP___data_FLTS___nr_writers_queued_fSfT__ptr   = 0  ==>
+     s'=17
+     ;
+ s=16 & rwlock_FLTP___data_FLTS___nr_writers_queued_fSfT__ptr  != 0  ==>
+     s'=19
+     ;
+ }
+ output __pthread_rwlock_rdlock_14:{
+ s=32 ==>
+     s'=33
+     ;
+ }
+ output __pthread_rwlock_rdlock_15:{
+ s=58 ==>
+     s'=59
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_13' = rwlock_FLTP___data_FLTS___shared_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_16:{
+ s=17 ==>
+     s'=23
+     ;
+ }
+ output __pthread_rwlock_rdlock_17:{
+ s=19 ==>
+     s'=20
+     & __fn____pthread_rwlock_rdlock____fSfT__cIl_tmp' = pi_0 
+     ;
+ }
+ output __pthread_rwlock_rdlock_18:{
+ s=33 & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_16   = 0  ==>
+     s'=34
+     ;
+ s=33 & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_16  != 0  ==>
+     s'=37
+     ;
+ }
+ output __pthread_rwlock_rdlock_19:{
+ s=59 ==>
+     s'=60
+     ;
+ }
+ output __pthread_rwlock_rdlock_20:{
+ s=23 ==>
+     s'=24
+     & rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr' = rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr  + 1 
+     ;
+ }
+ output __pthread_rwlock_rdlock_21:{
+ s=20 ==>
+     s'=21
+     ;
+ }
+ output __pthread_rwlock_rdlock_22:{
+ s=34 ==>
+     s'=35
+     & __fn____pthread_rwlock_rdlock__result' = 35 
+     ;
+ }
+ output __pthread_rwlock_rdlock_23:{
+ s=37 ==>
+     s'=38
+     & rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr' = rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr  + 1 
+     ;
+ }
+ output __pthread_rwlock_rdlock_24:{
+ s=60 ==>
+     s'=61
+     ;
+ }
+ output __pthread_rwlock_rdlock_25:{
+ s=24 &  rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr   = 0 ==>
+     s'=25
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_15' =  1;
+
+  s=24 &  rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr != 0 ==>
+     s'=25
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_15' =  0 
+     ;
+ }
+ output __pthread_rwlock_rdlock_26:{
+ s=21 & __fn____pthread_rwlock_rdlock____fSfT__cIl_tmp  != 0  ==>
+     s'=22
+     ;
+ s=21 & __fn____pthread_rwlock_rdlock____fSfT__cIl_tmp   = 0  ==>
+     s'=31
+     ;
+ }
+ output __pthread_rwlock_rdlock_27:{
+ s=35 ==>
+     s'=57
+     ;
+ }
+ output __pthread_rwlock_rdlock_28:{
+ s=38 &  rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr   = 0 ==>
+     s'=39
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_17' =  1;
+  s=38 &  rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr != 0 ==>
+     s'=39
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_17' =  0 
+     ;
+ }
+ output __pthread_rwlock_rdlock_29:{
+ s=61 & __fn____pthread_rwlock_rdlock__result   = 0 ==>
+     s'=1
+     & __fn__assert__c' = 1;
+ s=61 & __fn____pthread_rwlock_rdlock__result  != 0 ==>
+     s'=1
+     & __fn__assert__c' = 0;
+ }
+ output __pthread_rwlock_rdlock_30:{
+ s=25 ==>
+     s'=26
+     ;
+ }
+ output __pthread_rwlock_rdlock_31:{
+ s=22 ==>
+     s'=23
+     ;
+ }
+ output __pthread_rwlock_rdlock_32:{
+ s=39 ==>
+     s'=40
+     ;
+ }
+ output __pthread_rwlock_rdlock_33:{
+ s=1 ==>
+     s'=2
+     ;
+ }
+ output __pthread_rwlock_rdlock_34:{
+ s=26 & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_15   = 0  ==>
+     s'=27
+     ;
+ s=26 & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_15  != 0  ==>
+     s'=29
+     ;
+ }
+ output __pthread_rwlock_rdlock_35:{
+ s=40 & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_17   = 0  ==>
+     s'=41
+     ;
+ s=40 & __fn____pthread_rwlock_rdlock___fSfT_CiL_simplerstatements__tmp_17  != 0  ==>
+     s'=45
+     ;
+ }
+ output __pthread_rwlock_rdlock_36:{
+ s=2 & __fn__assert__c   = 0  ==>
+     s'=3
+     ;
+ s=2 & __fn__assert__c  != 0  ==>
+     s'=6
+     ;
+ }
+ output __pthread_rwlock_rdlock_37:{
+ s=27 ==>
+     s'=28
+     & rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr' = rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr  - 1 
+     ;
+ }
+ output __pthread_rwlock_rdlock_38:{
+ s=29 ==>
+     s'=57
+     ;
+ }
+ output __pthread_rwlock_rdlock_39:{
+ s=41 ==>
+     s'=42
+     & rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr' = rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr   - 1 
+     ;
+ }
+ output __pthread_rwlock_rdlock_40:{
+ s=45 ==>
+     s'=46
+     & __fn____pthread_rwlock_rdlock__waitval' = rwlock_FLTP___data_FLTS___readers_wakeup_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_41:{
+ s=3 ==>
+     s'=4
+     ;
+ }
+ output __pthread_rwlock_rdlock_42:{
+ s=6 ==>
+     s'=62
+     ;
+ }
+ output __pthread_rwlock_rdlock_43:{
+ s=28 ==>
+     s'=29
+     & __fn____pthread_rwlock_rdlock__result' = 11 
+     ;
+ }
+ output __pthread_rwlock_rdlock_44:{
+ s=42 ==>
+     s'=43
+     & __fn____pthread_rwlock_rdlock__result' = 11 
+     ;
+ }
+ output __pthread_rwlock_rdlock_45:{
+ s=46 ==>
+     s'=47
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_7' = rwlock_FLTP___data_FLTS___lock_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_46:{
+ s=62 ==>
+     s'=63
+     ;
+ }
+ output __pthread_rwlock_rdlock_47:{
+ s=43 ==>
+     s'=57
+     ;
+ }
+ output __pthread_rwlock_rdlock_48:{
+ s=47 ==>
+     s'=48
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_8' = rwlock_FLTP___data_FLTS___shared_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_49:{
+ s=63 ==>
+     s'=64
+     ;
+ }
+ output __pthread_rwlock_rdlock_50:{
+ s=48 ==>
+     s'=49
+     ;
+ }
+ output __pthread_rwlock_rdlock_51:{
+ s=64 ==>
+     s'=65
+     & __fn____pthread_rwlock_rdlock____retres' = __fn____pthread_rwlock_rdlock__result 
+     ;
+ }
+ output __pthread_rwlock_rdlock_52:{
+ s=49 ==>
+     s'=50
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_9' = rwlock_FLTP___data_FLTS___shared_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_53:{
+ s=65 ==>
+     s'=65
+     ;
+ }
+ output __pthread_rwlock_rdlock_54:{
+ s=50 ==>
+     s'=51
+     ;
+ }
+ output __pthread_rwlock_rdlock_55:{
+ s=51 ==>
+     s'=52
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_10' = rwlock_FLTP___data_FLTS___lock_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_56:{
+ s=52 ==>
+     s'=53
+     & __fn____pthread_rwlock_rdlock___fSfT_CiL_functionspill__tmp_11' = rwlock_FLTP___data_FLTS___shared_fSfT__ptr 
+     ;
+ }
+ output __pthread_rwlock_rdlock_57:{
+ s=53 ==>
+     s'=54
+     ;
+ }
+ output __pthread_rwlock_rdlock_58:{
+ s=54 ==>
+     s'=12
+     & rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr' = rwlock_FLTP___data_FLTS___nr_readers_queued_fSfT__ptr   -1      ;
+ }
+ output error:{
+ s=4 ==> s'=4;
+ }
+ endmodule

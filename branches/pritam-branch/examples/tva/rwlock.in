@@ -1,0 +1,35 @@
+open Ticc;;
+open Printf;;
+parse "__pthread_rwlock_rdlock.si";;
+
+
+
+let rdlock = mk_sym "pthread_rwlock_rdlock1";;
+
+
+let glob_init = parse_stateset  "
+   rwlock_FLTP___data_FLTS___nr_readers_fSfT__ptr = 0
+ & 
+rwlock_FLTP___data_FLTS___shared_fSfT__ptr = 0
+ & rwlock_FLTP___data_FLTS___lock_fSfT__ptr = 0
+ & rwlock_FLTP___data_FLTS___nr_writers_queued_fSfT__ptr = 0
+ & rwlock_FLTP___data_FLTS___writer_fSfT__ptr = 0
+ & pthread_rwlock_rdlock1.s=7";;
+
+
+let reachset = parse_stateset "pthread_rwlock_rdlock1.s=4";;
+
+let start = Sys.time () in
+let v = abstract_ctl_e_f rdlock glob_init reachset in
+let stop = Sys.time() in
+Printf.printf "\n time taken : %f \n" (stop -. start); 
+print_bool v;;
+print_string "\n";;
+
+
+let start = Sys.time () in
+let v = ctl_e_f_init rdlock glob_init reachset in
+let stop = Sys.time() in
+Printf.printf "\n time taken : %f \n" (stop -. start); 
+print_bool v;;
+print_string "\n";;

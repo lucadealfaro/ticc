@@ -10,6 +10,15 @@ let print_time msg = ()
     flush stdout *)
 ;;
 
+let print_mdd s mgr x : unit =
+        (*
+         Printf.printf " \n"; flush stdout;
+         print_string s;
+         Printf.printf " \n"; flush stdout;
+	 Mlglu.mdd_print mgr x;
+	 Printf.printf " end x \n";*)
+          flush stdout
+;;
 (** Returns the set of states which have a measure which
     is separated from 0.
     In other words, returns all states that have a measure value m > 0
@@ -131,7 +140,9 @@ let turn_transitions sp sm (input_first: bool) =
     let term_delta0 = Mlglu.mdd_and term_delta0 d1true 1 0 in
 
     let delta1_and_inv = Mlglu.mdd_and delta1 inv_first' 1 1 in
+     print_mdd "deltainv" mgr delta1_and_inv;
     let term_delta1 = Mlglu.mdd_smooth mgr delta1_and_inv vars' in
+     print_mdd "delta1init" mgr term_delta1;
     let term_delta1 = Mlglu.mdd_and term_delta1 copy_x_x'' 1 1 in
     let term_delta1 = Mlglu.mdd_and term_delta1 d1true 1 1 in
     let term_delta1 = Mlglu.mdd_and term_delta1 d0true 1 0 in
@@ -145,7 +156,11 @@ let turn_transitions sp sm (input_first: bool) =
     (* debug term_action "term_action";
        debug term_delta0 "term_delta0";
        debug term_delta1 "term_delta1"; *)
-    
+    print_mdd "step" mgr delta1;
+    print_mdd "oinv" mgr oinv;
+    print_mdd "delta0" mgr term_delta0;
+    print_mdd "delta1" mgr term_delta1;
+    print_mdd "action" mgr term_action;
     let res = Mlglu.mdd_or term_delta0 term_delta1 1 1 in
     let res = Mlglu.mdd_or res term_action 1 1 in
     Mlglu.mdd_and res copy_x_x' 1 1
@@ -162,9 +177,10 @@ let turn_transitions sp sm (input_first: bool) =
       var_var' var'_var in
 
     let d0_or_d1 = Mlglu.mdd_or d0true d1true 1 1 in
-    let temp = Mlglu.mdd_xnor bl_second_true d0_or_d1 in
+    let temp1 = Mlglu.mdd_xnor bl_second_true d0_or_d1 in
     let term_delta0 = Mlglu.mdd_neq_s mgr bl_first d1 in
-    let term_delta0 = Mlglu.mdd_and term_delta0 temp 1 1 in
+    print_mdd "2delta0init" mgr term_delta0;
+    let term_delta0 = Mlglu.mdd_and term_delta0 temp1 1 1 in
     let term_delta0 = Mlglu.mdd_and term_delta0 copy_x_x'' 1 1 in
 
     let inverted_delta1 = 
@@ -184,7 +200,12 @@ let turn_transitions sp sm (input_first: bool) =
 
     let term_action = Mlglu.mdd_and bl_first_true bl_second_true 0 1 in
     let term_action = Mlglu.mdd_and term_action trans_second 1 1 in
-
+      
+    print_mdd "2temp1" mgr temp1;
+    print_mdd "2delta0" mgr term_delta0;
+    print_mdd "2delta1" mgr term_delta1;
+    print_mdd "2delta1bus" mgr term_delta1_bis;
+    print_mdd "action" mgr term_action;
     let res = Mlglu.mdd_or term_delta0 term_delta1 1 1 in
     let res = Mlglu.mdd_or res term_delta1_bis 1 1 in
     Mlglu.mdd_or res term_action 1 1
@@ -469,7 +490,7 @@ let cpre stuff (first_is_controlling: bool) m =
   infinitely often tick or eventually forever blame_I and not blame_O)
 
   Uses the Emerson-Jutla algorithm based on a triple fixpoint. *)
-let live_cpre input sp ?(verbose : bool = false) sm =
+let live_cpre input sp ?(verbose : bool = true) sm =
   let mgr = Symprog.get_mgr sp in
 
   (* variables for blameI and blameO *)
@@ -487,15 +508,16 @@ let live_cpre input sp ?(verbose : bool = false) sm =
   
   (* the third argument of [cpre_init] controls 
      who moves first (not whose Cpre it is) *)
+  let initstuff = cpre_init sp sm input_moves_first in
   let (stuff, inv, color0, color1, color2) =
     if input then
-      ( cpre_init sp sm input_moves_first,
+      ( initstuff,
       Symmod.get_iinv sm,
       Mlglu.mdd_and blitrue blotrue 0 0,
       Mlglu.mdd_and blitrue blotrue 1 0,
       blotrue )
     else
-      ( cpre_init sp sm input_moves_first,
+      ( initstuff,
       Symmod.get_oinv sm,
       Mlglu.mdd_and blitrue blotrue 0 0,
       blotrue,

@@ -1,0 +1,24 @@
+open Ticc;;
+parse "printer-nak.si";;
+let printer = mk_sym "Printer";;
+print_symmod printer;;
+
+
+let reachset = parse_stateset "busy";;
+let am = create_initial_abstract_module printer reachset in
+let set1 = compute_abstract_cpre am true true in
+print_stateset set1;;
+print_stateset reachset;;
+
+(*let user2 = mk_sym "User2";;
+let printer = mk_sym "Printer";;
+let user1 = mk_sym "User1";;
+print_symmod user1;;
+print_symmod user2;;
+print_symmod printer;;
+
+let partial  = compose printer user1;; 
+let composed = compose partial user2;;
+
+print_symmod partial;; 
+print_symmod composed;;i*)

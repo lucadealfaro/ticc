@@ -31,14 +31,21 @@ let mk_sym (mod_name: string) =
   let iinv = Symmod.get_iinv sm in
   let oinv = Symmod.get_oinv sm in
   let not_iinv = Mlglu.mdd_not iinv in 
-  Symmod.set_bad_states sm not_iinv; 
-
+  Symmod.set_bad_states sm not_iinv;
+    let efficient = true in
   (* Strengthen invariants to put module into normal form *)
   let (strong_iinv, strong_oinv) = 
-    if Symmod.is_timed sm then
+    if Symmod.is_timed sm then begin
       (* ( iinv, oinv ) *)
-      ( Zeno.i_live Symprog.toplevel sm, 
-      Zeno.o_live Symprog.toplevel sm ) 
+      if efficient then
+     ( Timedabs.i_live Symprog.toplevel sm,
+      Timedabs.o_live Symprog.toplevel sm) 
+     else
+     (Zeno.i_live Symprog.toplevel sm, Zeno.o_live Symprog.toplevel sm)
+    
+ end
+
+   
     else
       ( Ops.win_i_safe  Symprog.toplevel sm (Symmod.get_iinv sm),
       Ops.win_lo_safe Symprog.toplevel sm (Symmod.get_oinv sm) )

@@ -1,0 +1,17 @@
+(* 
+	Comparison between two implementations of zenoness game.
+*)
+
+open Ticc;;
+parse "scheduling_small.si" ;;
+
+Printf.printf "Mk_symbolic:\n";;
+flush stdout;;
+let time = Sys.time ();;
+let m = mk_sym "S";;
+let time = (Sys.time ()) -. time;;
+Printf.printf "\ntime: %f \n" time;;
+
+(* print_symmod m;; *)
+flush stdout;;
+
