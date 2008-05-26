@@ -162,10 +162,10 @@ let refines m1 m2 =
   Refine.refines Symprog.toplevel m1 m2 
 
 (** Returns the set of I-live states *)
-let i_live = Zeno.i_live Symprog.toplevel 
+let i_live = Timedabs.i_live Symprog.toplevel 
 
 (** Returns the set of O-live states *)
-let o_live = Zeno.o_live Symprog.toplevel 
+let o_live = Timedabs.o_live Symprog.toplevel 
 
 (** Returns the set of I-live states *)
 let i_live_alt = Zeno.i_live_alt Symprog.toplevel 

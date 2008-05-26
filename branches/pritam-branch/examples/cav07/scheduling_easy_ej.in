@@ -11,20 +11,25 @@ let time = Sys.time ();;
 let m = mk_sym "Scheduling" ;;
 let time1 = (Sys.time ()) -. time;;
 Printf.printf "\ntime: %f \n" time1;;
-let m2 = mk_sym "Scheduling" ;;
-let time2 = (Sys.time ()) -. time1;;
-Printf.printf "\ntime: %f \n" time22;;
+flush stdout;;
 
 (* print_symmod m;; *)
-flush stdout;;
 
 (* EJ *)
 Printf.printf "Computing I-live states with Emerson-Jutla:\n";;
 flush stdout;;
-let time = Sys.time ();;
-let winners = i_live ~verbose:true m;;
-let time = (Sys.time ()) -. time;;
-Printf.printf "\ntime: %f \n" time;;
+let time2 = Sys.time ();;
+let winners = i_live m;;
+let time3 = (Sys.time ()) -. time2;;
+Printf.printf "\ntime: %f \n" time3;;
+flush stdout;;
+(*
+let time4 = Sys.time ();;
+let winners1 = o_live m;;
+let time5 = (Sys.time ()) -. time4;;
+Printf.printf "\ntime: %f \n" time5;;
+flush stdout;;
+*)
 (* Printf.printf "i-live states:\n";; *)
 (* print_stateset winners;; *)
 (* let losers = Mlglu.mdd_not winners;;

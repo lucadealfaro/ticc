@@ -1,3 +1,4 @@
+
 (* 
 	Comparison between two implementations of zenoness game.
 *)
@@ -20,8 +21,13 @@ Printf.printf "Computing I-live states with Emerson-Jutla:\n";;
 flush stdout;;
 let time = Sys.time ();;
 let winners = i_live m;;
-let time = (Sys.time ()) -. time;;
-Printf.printf "\ntime: %f \n" time;;
+(* let time = (Sys.time ()) -. time;;
+Printf.printf "\ni time: %f \n" time;;
+let time = Sys.time ();;*)
+let winners = o_live m;;
+(*let time = (Sys.time ()) -. time;;
+Printf.printf "\no time: %f \n" time;;
+*)
 (* Printf.printf "i-live states:\n";; *)
 (* print_stateset winners;; *)
 (* let losers = Mlglu.mdd_not winners;;

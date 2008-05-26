@@ -11,7 +11,7 @@ let time = Sys.time ();;
 let m = mk_sym "S";;
 let time = (Sys.time ()) -. time;;
 Printf.printf "\ntime: %f \n" time;;
-
+let x  = i_live m in
 (* print_symmod m;; *)
 flush stdout;;
 

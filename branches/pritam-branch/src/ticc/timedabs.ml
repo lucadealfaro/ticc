@@ -226,34 +226,32 @@ let cpre_init sp sm (input_first: bool) =
 let cpre stuff (first_is_controlling: bool) m : Mlglu.mdd =
 
   let (mgr, tau_first, tau_second, var_first, var_second, prime, dprime) = stuff in
-  let term =  ref (Mlglu.mdd_one mgr) in
-  let term1 = ref (Mlglu.mdd_zero mgr) in 
-  let inv_trans_or old vlist tr : unit=
+  let one =  Mlglu.mdd_one mgr in
+  let zero = Mlglu.mdd_zero mgr in 
+  let inv_trans_or old vlist a tr : Mlglu.mdd =
       let (t,p,d) = tr in
       let tmp = Mlglu.mdd_or t old 0 1 in
       let tmp1 = if p then (Mlglu.mdd_or tmp prime 1 0) else tmp in
       let tmp2 = if d then (Mlglu.mdd_or tmp1 dprime 1 0) else tmp1 in
       let tmp3 = Mlglu.mdd_consensus_list mgr tmp2 vlist in
-      term := Mlglu.mdd_and !term tmp3 1 1  
+      Mlglu.mdd_and a tmp3 1 1  
     in 
-   let trans_and old vlist tr:unit =
+   let trans_and old vlist b tr: Mlglu.mdd =
       let (t,p,d) = tr in
       let tmp = Mlglu.mdd_and old t 1 1 in
       let tmp1 = if p then (Mlglu.mdd_and tmp prime 1 1) else tmp in
       let tmp2 = if d then (Mlglu.mdd_and tmp1 dprime 1 1) else tmp1 in
       let tmp3 = Mlglu.mdd_smooth_list mgr tmp2 vlist in
-      term1 := Mlglu.mdd_or !term1 tmp3 1 1    
+      Mlglu.mdd_or b tmp3 1 1    
    in
     if (first_is_controlling) then begin    
-     List.iter (inv_trans_or m var_second) tau_second;   
-     List.iter (trans_and !term var_first) tau_first;
-     !term1
+      let newterm = List.fold_left (inv_trans_or m var_second) one tau_second in   
+       List.fold_left (trans_and newterm var_first) zero tau_first
     end
     else
      begin
-    List.iter (trans_and m var_second) tau_second;
-    List.iter (inv_trans_or !term1 var_first) tau_first;
-    !term
+       let newterm = List.fold_left (trans_and m var_second) zero tau_second in
+       List.fold_left (inv_trans_or newterm var_first) one tau_first
     end
  (* will return may cpre and must cpre for a choosen player *)
 
@@ -263,24 +261,30 @@ let cpre stuff (first_is_controlling: bool) m : Mlglu.mdd =
 let compute_3color_winning mgr cpre color0 color1 color2 inv: Mlglu.mdd =
   let z = ref (Mlglu.mdd_one mgr) 
   and z_diff = ref (Mlglu.mdd_one mgr) in
+ 
+   
+
   while not (Mlglu.mdd_is_zero !z_diff) do
     let z_term = cpre !z in
     let z_term = Mlglu.mdd_and z_term color0 1 1 in
     print_string "Z";
-      flush stdout;
-    let y = ref (Mlglu.mdd_zero mgr) 
-    and y_diff = ref (Mlglu.mdd_one mgr) in
+    flush stdout;
+     let y = ref (Mlglu.mdd_zero mgr) 
+  and y_diff = ref (Mlglu.mdd_one mgr) in
+
     while not (Mlglu.mdd_is_zero !y_diff) do
       let y_term = cpre !y in
       let y_term = Mlglu.mdd_and y_term color1 1 1 in
-      print_string "y";
+      print_string "Y";
       flush stdout;
-      let x = ref (Mlglu.mdd_one mgr)
-      and x_diff = ref (Mlglu.mdd_one mgr) in 
+     
+     let x = ref (Mlglu.mdd_one mgr)
+     and x_diff = ref (Mlglu.mdd_one mgr) in
+     
       while not (Mlglu.mdd_is_zero !x_diff) do
 	let x_term = cpre !x in
 	let x_term = Mlglu.mdd_and x_term color2 1 1 in
-        print_string "x";
+        print_string "X";
         flush stdout;
 	let all_terms = Mlglu.mdd_or x_term y_term 1 1 in
 	let all_terms = Mlglu.mdd_or all_terms z_term 1 1 in
@@ -293,13 +297,11 @@ let compute_3color_winning mgr cpre color0 color1 color2 inv: Mlglu.mdd =
     z_diff := Mlglu.mdd_and !z !y 1 0;
     z := !y;
   done;
-
   (* so far, live states could contain states that violate the
      player's invariant. In particuar, these would be states from which
      you can go back to the invariant in one step.
      Thus, we conjoin with the appropriate invariant. *)
- Mlglu.mdd_and !z inv 1 1;;
-   
+  Mlglu.mdd_and !z inv 1 1;;
 
 (** If [input] is true, computes the set of states 
   where Input has a strategy to let time diverge 
@@ -354,9 +356,39 @@ let live_cpre input sp ?(verbose : bool = true) sm =
   let winm = compute_3color_winning mgr maycpre color0 color1 color2 inv in
   let winM = compute_3color_winning mgr mustcpre color0 color1 color2 inv in*)
  (* do something smarter to obtain the refinement*)
-  print_mdd "iinv" mgr iinv;
+ (* print_mdd "iinv" mgr iinv;*)
   iinv;;
 
 (* exported functions *)
 let i_live = live_cpre true
 let o_live = live_cpre false  
+
+let bothinv sp ?(verbose : bool = true) sm =
+  let mgr = Symprog.get_mgr sp in
+
+  (* variables for blameI and blameO *)
+  let bli = Symprog.get_bli sp in
+  let blo = Symprog.get_blo sp in
+  (* literals for blameI and blameO *)
+  let blitrue = Mlglu.mdd_literal mgr bli [1] in
+  let blotrue = Mlglu.mdd_literal mgr blo [1] in
+  
+  (* We choose the semantics of Timed Interfaces,
+     where Output moves first both in the I-liveness game
+     and in the O-liveness game *)
+  (*let input_moves_first = false in
+  let first_player_is_controlling = not input in*)
+  
+  (* the third argument of [cpre_init] controls 
+     who moves first (not whose Cpre it is) *)
+  let stuff = cpre_init sp sm false in
+  let iinv = Symmod.get_iinv sm in
+  let oinv = Symmod.get_oinv sm in
+  let bothfalse = Mlglu.mdd_and blitrue blotrue 0 0 in
+  let truefalse =  Mlglu.mdd_and blitrue blotrue 1 0 in
+  let blameout = blotrue in
+  let cpreI =  cpre stuff false in
+  let cpreO =  cpre stuff true in 
+  let siinv = compute_3color_winning mgr cpreI bothfalse truefalse blameout iinv in
+  let soinv = compute_3color_winning mgr cpreO bothfalse blameout truefalse oinv in
+  siinv, soinv;;
