@@ -13,7 +13,7 @@ GLUINCDIR = $(GLUDIR)/include
 
 # Vars we use in our rules to build ocaml programs
 #OCAMLDEBUG=-g
-INCLUDES=-I ../mlglu
+INCLUDES=-I ../mlglu -I ~/extlib-1.5.1
 OCAML_CFLAGS=$(INCLUDES) $(OCAMLDEBUG) 
 OCAMLOPTFLAGS=$(INCLUDES)
 OCAMLMKTOPFLAGS=$(INCLUDES) $(OCAMLDEBUG) 
@@ -31,12 +31,12 @@ ticc_OBJS = hsetmap.cmo hset.cmo biject.cmo var.cmo ast.cmo rule.cmo \
 	mod.cmo prog.cmo typecheck.cmo ticlex.cmo ticparse.cmo \
 	symtemp.cmo symmod.cmo symprog.cmo symutil.cmo \
 	symbuild.cmo ops.cmo htmlgen.cmo \
-        compose.cmo refine.cmo zeno.cmo timedabs.cmo modops.cmo symprint.cmo simulate.cmo abstract.cmo ticc.cmo
-ticc_LD_ADD = ../mlglu/mlglu.cma str.cma -cclib -lstr
+        compose.cmo refine.cmo zeno.cmo timedabs.cmo modops.cmo symprint.cmo simulate.cmo abstract.cmo modular.cmo ticc.cmo
+ticc_LD_ADD = ../mlglu/mlglu.cma str.cma -cclib -lstr ~/extlib-1.5.1/extLib.cma
 
 
 
-ticctop: $(ticc_OBJS) ../mlglu/mlglu.cma
+ticctop: $(ticc_OBJS) ../mlglu/mlglu.cma ~/extlib-1.5.1/extLib.cma
 	@rm -f ticc
 	$(OCAMLMKTOP) -custom -o ticctop $(OCAMLMKTOPFLAGS) $(ticc_LD_ADD) $(ticc_OBJS)
 
@@ -45,7 +45,7 @@ ticc: 	ticctop
 	sed -e 's;@TICCSRC@;$(TICCSRC);g' ticc.in > ticc
 	chmod a+rx ticc
 
-debug:	$(ticc_OBJS) debug.cmo ../mlglu/mlglu.cma
+debug:	$(ticc_OBJS) debug.cmo ../mlglu/mlglu.cma ~/extlib-1.5.1/extLib.cma
 	@rm -f debug
 	$(OCAMLC) -g -o debug $(OCAML_CFLAGS) $(ticc_LD_ADD) $(ticc_OBJS) debug.cmo
 #
