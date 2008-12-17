@@ -364,3 +364,4 @@ val wrap_stateset   : Mlglu.mdd  -> stateset_t
 val compute_abstract_cpre : Abstract.t -> bool -> bool -> stateset_t *)
 val abstract_ctl_e_f :  symbolic_module_t -> stateset_t -> stateset_t ->  bool 
 val ctl_e_f_init : symbolic_module_t -> stateset_t -> stateset_t -> bool
+val explore : stateset_t -> stateset_t -> symbolic_module_t list -> unit

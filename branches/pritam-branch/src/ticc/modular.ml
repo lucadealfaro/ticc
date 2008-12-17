@@ -7,6 +7,7 @@ open Ticc;;
 open Ast;;
 open Ops;;
 open ExtString;;
+open Printf;;
 
 module VarSet = Vset.VS;;
 
@@ -35,8 +36,6 @@ let remove_queue (exg : explicit_t) : Mlglu.mdd =
   let t = List.tl exg.queue in 
   exg.queue <- t ;
   h
-
-
 (* build empty explicit graph *)
 let build_empty_explicit_graph gl_init : explicit_t = {
   start = gl_init; 
@@ -44,6 +43,27 @@ let build_empty_explicit_graph gl_init : explicit_t = {
   edges = [];
   queue = [];
 }
+
+(** Build explicit graph *)
+let build_graph (exg : explicit_t) (av : VarSet.t) (fns : Symmod.t list): unit =
+  let sp  =  Symprog.toplevel in
+  let mgr = Symprog.get_mgr sp in
+  let funcno = List.length fns in
+  insert_queue exg exg.start;
+  while (List.length exg.queue > 0) do
+    let currnode = remove_queue exg in
+    for i=0 to funcno -1 do
+      let m = List.nth fns i in
+      let cv =  ref (VarSet.diff (Symmod.get_vars m) av) in
+      let wvarlist = Abstract.get_wvar_list m in
+      let unclist = ref (Abstract.create_unchngd_list sp wvarlist av) in
+      let (may_trans, must_trans) = Abstract.compute_abstract_trans m true av !cv in
+      let nextnode = Abstract.post may_trans currnode av !unclist in
+      insert_queue exg nextnode;
+    done;	  
+  done;;
+  
+
 (* a utility function which returns true if a given element has same value as one element in list*)
 let rec list_has_node (m : Mlglu.mdd) (mgr:Mlglu.mdd_manager) (l : Mlglu.mdd list): bool =
   match l with
@@ -131,6 +151,8 @@ let rec get_rev_index (m : Mlglu.mdd) (l:Mlglu.mdd list) : int =
    done;; *)  
     
 
+    
+ 
 (* prints an explicit graph *)
 let print_explicit_graph (exg : explicit_t) : unit =
   let sp  =  Symprog.toplevel in
@@ -165,7 +187,43 @@ let dump_explicit_graph (exg: explicit_t) (ofn : string) : unit =
     Printf.fprintf oc "%d -> %d [label=\"%s\"] \n" xind zind y;
   done;
   Printf.fprintf oc "}\n";
-  close_out oc; 
+  close_out oc;;
+
+(** Function which calls abstraction refinement each function separately *)
+
+let absref (m : Symmod.t ) (av : VarSet.t) (goal: Mlglu.mdd) : VarSet.t =
+  let sp  =  Symprog.toplevel in
+  let mgr = Symprog.get_mgr sp in
+  let result = ref 1 in
+  let modinit = get_init m in
+  while (!result = 1) do
+    let cv =  ref (VarSet.diff (Symmod.get_vars m) av) in
+    let wvarlist = Abstract.get_wvar_list m in
+    let unclist = ref (Abstract.create_unchngd_list sp wvarlist av) in
+    let (may_trans, must_trans) = Abstract.compute_abstract_trans m true av !cv in
+    let winm = Abstract.find_winning_states may_trans goal av !unclist in
+    let winM = Abstract.find_winning_states must_trans goal av !unclist in
+    let mayinit = Mlglu.mdd_and winm modinit 1 1 in
+    let mustinit = Mlglu.mdd_and winM modinit 1 1 in
+    let diff = Mlglu.mdd_and winm winM 1 0 in
+    result := if Mlglu.mdd_is_zero diff then 0 else 1;
+  done;  
+  av;;
+
+(** The algorithm to obtain an interface *)
+
+let explore (init: Mlglu.mdd) (goal: Mlglu.mdd) (fns: Symmod.t list): unit =
+  let sp  =  Symprog.toplevel in
+  let mgr = Symprog.get_mgr sp in
+  let av = ref (VarSet.union (Mlglu.mdd_get_support mgr goal) (Mlglu.mdd_get_support mgr init)) in
+  let funcno = List.length fns in
+  for i=0 to funcno -1 do
+    let m = List.nth fns i in
+    av := absref m !av goal;
+  done;
+  let exg = build_empty_explicit_graph init in
+  build_graph exg !av fns;
+  printf "\n blah \n";;
 
 
 

@@ -57,6 +57,36 @@ module VarSet = Vset.VS;;
    done;
    !result;; 
 
+
+(*
+Algorithm for fixed point iterations 
+   Inputs the initial states, abstract cpre operators, winning objective
+   returns abstract winning states
+*)
+
+ let post trans start av unclist: Mlglu.mdd = 
+   let sp  =  Symprog.toplevel in
+   let mgr = Symprog.get_mgr sp in
+   let result = ref start in
+   let frontier = ref start in
+   let av' = Symprog.prime_vars sp av in
+   while not (Mlglu.mdd_is_zero !frontier) do
+     let image = ref (Mlglu.mdd_zero mgr) in
+     let compute_image_rule r unc: unit =
+       let setr = Mlglu.mdd_and r start 1 1 in
+       let setu = Mlglu.mdd_and unc setr 1 1 in
+       image := Mlglu.mdd_or !image setu 1 1    
+     in
+     List.iter2 compute_image_rule trans unclist;    
+     image := Mlglu.mdd_smooth mgr !image av;
+     let upimage =  Symutil.unprime_mdd_vars sp !image av in
+     frontier := Mlglu.mdd_and upimage !result 1 0;  
+     result := Mlglu.mdd_or !result upimage 1 1  
+   done;
+   !result;; 
+
+
+
 (* Given a list of rules and a set of concrete variables,
    finds out rules where maybeimage is true in the guards 
    in those rules find the concrete variables*)

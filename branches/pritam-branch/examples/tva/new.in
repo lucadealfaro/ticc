@@ -3,7 +3,7 @@ parse "new.si";;
 let model = mk_sym "model1";;
 (*print_symmod model;;*)
 
-
+let mlist = [model];; 
 let reachset = parse_stateset "x=3";;
 let init = parse_stateset "x=0";;
 let set1 = abstract_ctl_e_f model init reachset in
@@ -13,3 +13,5 @@ print_string "\n";;
 
 let v = ctl_e_f_init model init reachset in
 print_bool v;;
+explore init reachset mlist;;
+

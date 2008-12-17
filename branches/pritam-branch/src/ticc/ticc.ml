@@ -360,3 +360,5 @@ let ctl_e_f_init (sm: symbolic_module_t)  (init: stateset_t) (r: stateset_t): bo
   let initset = set_and  setv init in
   if Mlglu.mdd_is_zero initset then false else true 
 
+(*********************************************************************)
+let explore = Modular.explore
